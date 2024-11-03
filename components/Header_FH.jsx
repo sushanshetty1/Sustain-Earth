@@ -19,31 +19,33 @@ function Header() {
     <div className="flex flex-row justify-center lg:justify-around items-center mt-12 ml-6 mr-6 sm:mb-3 mb-3">
       {/* Button Section (Visible on larger screens) */}
       <div className="lg:flex w-screen lg:justify-evenly h-7 items-center">
-        <div className='lg:flex hidden justify-around gap-5'>
-          <Link href={'/FoodHub'}>
+        <div className='lg:flex hidden justify-between gap-5'>
+          
           <button
             style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-            className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad"
+            className="text-lg rounded-lg w-28 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad"
           >
-            FoodHub
+            Share
+          </button>
+          
+          <button
+            style={{ fontFamily: '"Josefin Sans", sans-serif' }}
+            className="text-lg rounded-lg w-28 font-bold text-gray-500 hover:text-black transition duration-300 border-rad"
+          >
+            Search
+          </button>
+          <Link href={'/FoodHub/Alert'}>
+          <button
+            style={{ fontFamily: '"Josefin Sans", sans-serif' }}
+            className="text-lg rounded-lg w-28 font-bold text-gray-500 hover:text-black transition duration-300 border-rad"
+          >
+            Alert
           </button>
           </Link>
-          <button
-            style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-            className="text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300 border-rad"
-          >
-            Learn & Share
-          </button>
-          <button
-            style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-            className="text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300 border-rad"
-          >
-            MarketPlace
-          </button>
         </div>
         <Link href={'/'}>
-          <button className="h-11 lg:w-54 flex justify-center md:h-11  w-44">
-            <Image src={img} alt="logo" width={150} height={50} />
+          <button className="h-11 text-3xl font-bold lg:w-54 flex justify-center md:h-11  w-44">
+            Foodhub
           </button>
         </Link>
       

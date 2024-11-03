@@ -9,7 +9,6 @@ const page = () => {
     <div>
         <Header/>
         <HomePage/>
-        <Footer/>
     </div>
   )
 }
