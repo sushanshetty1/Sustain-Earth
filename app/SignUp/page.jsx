@@ -303,7 +303,7 @@ const handleAdditionalSubmit = async (e) => {
               </div>
 
               <div className="text-center text-sm">
-                Already have an account? <a href="/login" className="text-indigo-600 font-medium hover:text-indigo-500">Sign in</a>
+                Already have an account? <a href="/Login" className="text-indigo-600 font-medium hover:text-indigo-500">Sign in</a>
               </div>
             </form>
           )}
