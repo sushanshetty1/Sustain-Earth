@@ -10,8 +10,8 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className="font-sans bg-[#f9f6f4]">
         {children}
+        <Footer />
       </body>
-      <Footer />
     </html>
   );
 }
