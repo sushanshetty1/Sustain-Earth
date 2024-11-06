@@ -5,7 +5,7 @@ import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 import Image from 'next/image';
-import img from '../public/images/logo.jpg';
+import img from '../public/images/FoodHub.png';
 import { FaSpinner } from 'react-icons/fa';
 import profilePic from '../public/images/profile.png';
 import signOutPic from '../public/images/signout.png';
@@ -51,7 +51,7 @@ function Header() {
   };
 
   return (
-    <div className="flex flex-row justify-center lg:justify-around items-center mt-12 ml-6 mr-6 sm:mb-3 mb-3">
+    <div className="flex flex-row justify-center lg:justify-around items-center mt-12 ml-6 mr-6 sm:mb-3 mb-3" >
       <div className="lg:flex w-screen lg:justify-evenly h-7 items-center">
         
         {/* Desktop Navigation Links */}

@@ -70,7 +70,7 @@ const MealEntry = () => {
   };
 
   return !submitted ? (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen" style={{ backgroundColor: '#f9f6f4' }}>
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">Meal Entry</h1>
 
@@ -137,7 +137,7 @@ const MealEntry = () => {
       </div>
     </div>
   ) : (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex flex-col items-center justify-center min-h-screen" style={{ backgroundColor: '#f9f6f4' }}>
       <h1 className="text-3xl font-bold text-green-600 mb-6 text-center">Thank you for your donation ❤️</h1>
       <button
         onClick={() => router.push('/FoodHub')}

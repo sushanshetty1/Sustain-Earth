@@ -5,7 +5,7 @@ import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 import Image from 'next/image';
-import img from '../public/images/logo.jpg';
+import img from '../public/images/LearnNShare.png';
 import { FaSpinner } from 'react-icons/fa';
 import profilePic from '../public/images/profile.png';
 import signOutPic from '../public/images/signout.png';
