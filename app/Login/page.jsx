@@ -1,11 +1,13 @@
-"use client";
-import React, { useState } from 'react';
+"use client"; // Ensure this is a client component
+import React, { useState, useEffect } from 'react';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebaseConfig';
 import Image from 'next/image'; // Import Image from next/image
 import Logo from '../../public/images/logo-w.jpg';
+import { useRouter } from 'next/navigation'; // Ensure importing useRouter from 'next/navigation' for App Router in Next.js 13+
 
 const Login = () => {
+  const router = useRouter(); // Use useRouter directly, as this is a client component
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
@@ -20,7 +22,7 @@ const Login = () => {
       const result = await signInWithPopup(auth, provider);
       console.log('Google sign-in result:', result.user);
       setSuccess('Successfully signed in with Google!');
-      // Redirect or update UI as needed
+      router.push('/'); // Redirect to homepage after successful login
     } catch (error) {
       console.error('Error signing in with Google:', error.code, error.message);
       setError('Failed to sign in with Google. Please try again.');
@@ -41,7 +43,7 @@ const Login = () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log('Signed in with email:', userCredential.user);
       setSuccess('Successfully signed in with email!');
-      // Handle successful login, e.g., redirect the user
+      router.push('/'); // Redirect to homepage after successful login
     } catch (error) {
       console.error('Error signing in with email and password:', error.code, error.message); // Enhanced logging
       setError('Failed to sign in. Please check your credentials and try again.');

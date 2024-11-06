@@ -13,8 +13,10 @@ const firebaseConfig = {
   measurementId: "G-YD8LRRX3JE"
 };
 
+// Initialize Firebase app
 const app = initializeApp(firebaseConfig);
 
+// Initialize Firestore
 let db;
 try {
   db = getFirestore(app);
@@ -22,16 +24,20 @@ try {
   console.error("Error initializing Firestore:", error);
 }
 
+// Initialize Firebase Authentication
 const auth = getAuth(app);
 
+// Initialize Analytics (conditionally)
 let analytics;
-if (typeof window !== 'undefined') { 
+if (typeof window !== 'undefined') {
   isSupported().then((supported) => {
     if (supported) {
-      analytics = getAnalytics(app);
+      analytics = getAnalytics(app);  // Async initialization
     } else {
       console.warn("Firebase Analytics is not supported in this environment.");
     }
+  }).catch(error => {
+    console.error("Error checking Analytics support:", error);
   });
 }
 

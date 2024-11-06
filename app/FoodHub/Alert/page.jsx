@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import MapComponent from '@/components/MapComponent';
+import dynamic from 'next/dynamic';
 import Header_FH from '@/components/Header_FH';
+
+const MapComponent = dynamic(() => import('@/components/MapComponent'), {
+  ssr: false,
+});
 
 const NearbyHelpersPage = () => {
   const [helpers, setHelpers] = useState([]);
@@ -13,22 +17,18 @@ const NearbyHelpersPage = () => {
   const [locationError, setLocationError] = useState(null);
 
   useEffect(() => {
-    const fetchLocation = () => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLatitude(position.coords.latitude);
-          setLongitude(position.coords.longitude);
-          setIsLoading(false);
-        },
-        (error) => {
-          console.error("Error fetching location:", error);
-          setLocationError(error);
-          setIsLoading(false);
-        }
-      );
-    };
-
-    fetchLocation();
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLatitude(position.coords.latitude);
+        setLongitude(position.coords.longitude);
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching location:", error);
+        setLocationError(error);
+        setIsLoading(false);
+      }
+    );
   }, []);
 
   useEffect(() => {
@@ -38,14 +38,27 @@ const NearbyHelpersPage = () => {
         try {
           const response = await axios.get(url, {
             headers: {
-              Authorization: process.env.FOURSQUARE_API_KEY, 
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_FOURSQUARE_API_KEY}`,
             },
           });
-          setHelpers(response.data.results);
+          if (response.data && response.data.results) {
+            setHelpers(response.data.results);
+          } else {
+            console.error("Unexpected API response structure:", response.data);
+          }
         } catch (error) {
-          console.error("Error fetching data from Foursquare API:", error);
-          // Handle API errors (e.g., display an error message to the user)
+          if (error.response) {
+            console.error(
+              "Error fetching data from Foursquare API:",
+              error.response.data ? error.response.data : `Status ${error.response.status}`
+            );
+          } else if (error.request) {
+            console.error("No response received from Foursquare API:", error.request);
+          } else {
+            console.error("Error setting up request to Foursquare API:", error.message);
+          }
         }
+        
       }
     };
 
@@ -60,7 +73,6 @@ const NearbyHelpersPage = () => {
     return (
       <div>
         <p>Error getting your location: {locationError.message}</p>
-        {/* Optionally, provide a way for the user to enter their location manually */}
       </div>
     );
   }
