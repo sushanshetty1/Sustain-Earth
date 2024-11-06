@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import dynamic from 'next/dynamic';
-import Header_FH from '@/components/Header_FH';
 
 const MapComponent = dynamic(() => import('@/components/MapComponent'), {
   ssr: false,
@@ -38,7 +37,7 @@ const NearbyHelpersPage = () => {
         try {
           const response = await axios.get(url, {
             headers: {
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_FOURSQUARE_API_KEY}`,
+              Authorization: `fsq35ZgLviaNcXvbNt20KJH4VljgbB90mzDTCNUgrYDAqBQ=`,
             },
           });
           if (response.data && response.data.results) {
@@ -79,7 +78,6 @@ const NearbyHelpersPage = () => {
 
   return (
     <div>
-      <Header_FH />
       {latitude && longitude ? (
         <MapComponent helpers={helpers} latitude={latitude} longitude={longitude} />
       ) : (

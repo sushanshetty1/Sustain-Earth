@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from 'react';
-import Header_FH from '@/components/Header_FH';
 
 function HomePage() {
   const [selectedAmount, setSelectedAmount] = useState(0);
@@ -28,7 +27,6 @@ function HomePage() {
 
   return (
     <div className="h-screen bg-[#f9f6f4] w-screen flex flex-col items-center"> 
-      <Header_FH />
       <div className="flex pt-28 flex-row w-[80%] h-96 mt-8">
         <div className="flex-1 w-1/2 text-center content-center text-3xl">
           <p 

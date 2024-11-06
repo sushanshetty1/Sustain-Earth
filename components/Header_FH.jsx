@@ -14,9 +14,7 @@ function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
-  const auth = getAuth();
   const [loading, setLoading] = useState(true);
-  const db = getFirestore();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -47,6 +45,11 @@ function Header() {
     setUserProfile(null);
   };
 
+  // Log the button click for tracking
+  const handleButtonClick = (buttonName) => {
+    console.log(`${buttonName} button clicked`);
+  };
+
   return (
     <div className="flex flex-row justify-center lg:justify-around items-center mt-12 ml-6 mr-6 sm:mb-3 mb-3">
       <div className="lg:flex w-screen lg:justify-evenly h-7 items-center">
@@ -55,14 +58,16 @@ function Header() {
         <div className="lg:flex hidden justify-around gap-5">
           <Link href="/FoodHub/Share">
             <button
+              onClick={() => handleButtonClick('Share')}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad"
             >
               Share
             </button>
           </Link>
-          <Link href={"/FoodHub/Find"}>
+          <Link href="/FoodHub/Find">
             <button
+              onClick={() => handleButtonClick('Find')}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className="text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300 border-rad"
             >
@@ -70,12 +75,13 @@ function Header() {
             </button>
           </Link>
           <Link href="/FoodHub/Alert">
-          <button
-            style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-            className="text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300 border-rad"
-          >
-            Alert
-          </button>
+            <button
+              onClick={() => handleButtonClick('Alert')}
+              style={{ fontFamily: '"Josefin Sans", sans-serif' }}
+              className="text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300 border-rad"
+            >
+              Alert
+            </button>
           </Link>
         </div>
 
@@ -94,40 +100,41 @@ function Header() {
           ) : user ? (
             // Profile Info if user is logged in
             <div className="flex items-center gap-3">
-              
               <span className="flex items-center ml-2">
-                  <Image
-                    src={profilePic}
-                    alt={userProfile?.firstName || 'User'}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                  />
-                 <span className="ml-5 text-xl font-semibold wave-effect">{userProfile?.firstName}</span>
-            </span>
+                <Image
+                  src={profilePic}
+                  alt={userProfile?.firstName || 'User'}
+                  width={40}
+                  height={40}
+                  className="rounded-full"
+                />
+                <span className="ml-5 text-xl font-semibold wave-effect">{userProfile?.firstName}</span>
+              </span>
 
-            <button
-                onClick={handleSignOut}
+              <button
+                onClick={() => {
+                  handleButtonClick('Sign Out');
+                  handleSignOut();
+                }}
                 style={{ fontFamily: '"Josefin Sans", sans-serif' }} 
                 className="px-3 py-2 mx-9 font-bold text-white rounded-full h-11 transition duration-400 bg-black hover:bg-gray-700 w-32 flex items-center justify-center space-x-2"
               >
-                    <span>Sign Out</span>
-                    <Image
-                      src={signOutPic}
-                      alt="Sign Out"
-                      width={20}
-                      height={20}
-                      className="rounded-full"
-                    />
-                    
-          </button>
-
+                <span>Sign Out</span>
+                <Image
+                  src={signOutPic}
+                  alt="Sign Out"
+                  width={20}
+                  height={20}
+                  className="rounded-full"
+                />
+              </button>
             </div>
           ) : (
             // Login and Signup if no user is logged in
             <>
               <Link href="/Login">
                 <button
+                  onClick={() => handleButtonClick('Log In')}
                   style={{ fontFamily: '"Josefin Sans", sans-serif' }}
                   className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad"
                 >
@@ -136,6 +143,7 @@ function Header() {
               </Link>
               <Link href="/SignUp">
                 <button
+                  onClick={() => handleButtonClick('Sign Up')}
                   style={{ fontFamily: '"Josefin Sans", sans-serif' }}
                   className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad"
                 >
@@ -148,7 +156,7 @@ function Header() {
       </div>
 
       {/* Mobile Menu Toggle Button */}
-      <button onClick={toggleMenu} className="lg:hidden focus:outline-none pt-3">
+      <button onClick={() => { toggleMenu(); handleButtonClick('Mobile Menu Toggle') }} className="lg:hidden focus:outline-none pt-3">
         <svg
           className="w-8 h-8 text-gray-500"
           xmlns="http://www.w3.org/2000/svg"
@@ -170,19 +178,19 @@ function Header() {
         <div className="absolute top-20 h-screen left-0 w-full bg-white z-10 shadow-lg lg:hidden">
           <div className="flex flex-col items-center py-4 space-y-4">
             <Link href="/FoodHub">
-              <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
+              <button onClick={() => { closeMenu(); handleButtonClick('FoodHub'); }} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
                 FoodHub
               </button>
             </Link>
             <button
-              onClick={closeMenu}
+              onClick={() => { closeMenu(); handleButtonClick('Learn & Share'); }}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
             >
               Learn & Share
             </button>
             <button
-              onClick={closeMenu}
+              onClick={() => { closeMenu(); handleButtonClick('MarketPlace'); }}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
             >
@@ -190,7 +198,7 @@ function Header() {
             </button>
             {user ? (
               <button
-                onClick={() => { closeMenu(); setUser(null); }}
+                onClick={() => { closeMenu(); handleButtonClick('Sign Out'); setUser(null); }}
                 className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
               >
                 Sign out
@@ -199,7 +207,7 @@ function Header() {
               <>
                 <Link href="/Login">
                   <button
-                    onClick={closeMenu}
+                    onClick={() => { closeMenu(); handleButtonClick('Log In'); }}
                     className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
                   >
                     Log in
@@ -207,7 +215,7 @@ function Header() {
                 </Link>
                 <Link href="/SignUp">
                   <button
-                    onClick={closeMenu}
+                    onClick={() => { closeMenu(); handleButtonClick('Sign Up'); }}
                     className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
                   >
                     Signup
