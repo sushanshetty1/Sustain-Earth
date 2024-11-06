@@ -7,16 +7,20 @@ import { auth, db } from '../firebaseConfig';
 import Image from 'next/image';
 import img from '../public/images/logo.jpg';
 import profilePic from '../public/images/profile.png';
+import { FaSpinner } from 'react-icons/fa'; 
+import signOutPic from '../public/images/signout.png';
 
 function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+  const [loading, setLoading] = useState(true); // New loading state
   const auth = getAuth();
   const db = getFirestore();
-
+  
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setLoading(true); // Start loading
       if (currentUser) {
         setUser(currentUser);
         const userRef = doc(db, "users", currentUser.uid);
@@ -28,6 +32,7 @@ function Header() {
         setUser(null);
         setUserProfile(null);
       }
+      setLoading(false); // End loading
     });
 
     return () => unsubscribe();
@@ -45,8 +50,10 @@ function Header() {
   return (
     <div className="flex flex-row justify-center lg:justify-around items-center mt-12 ml-6 mr-6 sm:mb-3 mb-3">
       <div className="lg:flex w-screen lg:justify-evenly h-7 items-center">
-        <div className='lg:flex hidden justify-around gap-5'>
-          <Link href={'/FoodHub'}>
+        
+        {/* Desktop Navigation Links */}
+        <div className="lg:flex hidden justify-around gap-5">
+          <Link href="/FoodHub">
             <button
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad"
@@ -67,39 +74,55 @@ function Header() {
             MarketPlace
           </button>
         </div>
-        <Link href={'/'}>
+
+        {/* Logo */}
+        <Link href="/">
           <button className="h-11 lg:w-54 flex justify-center md:h-11 w-44">
             <Image src={img} alt="logo" width={150} height={50} />
           </button>
         </Link>
-        <div className='lg:flex hidden justify-between gap-3'>
-          <input
-            type="search"
-            placeholder="Search..."
-            className="border border-gray-300 rounded-full p-2 w-48 focus:outline-none focus:border-green-500 py-1"
-            aria-label="Search through site content"
-          />
-          {user ? (
+
+        {/* Desktop Profile, Loader, and Search */}
+        <div className="lg:flex hidden justify-between gap-3 items-center">
+          {loading ? (
+            // Loader Spinner while loading
+            <FaSpinner className="text-gray-500 animate-spin" size={24} />
+          ) : user ? (
+            // Profile Info if user is logged in
             <div className="flex items-center gap-3">
-              <Image
-                src={profilePic}
-                alt={userProfile?.username || 'User'}
-                width={40}
-                height={40}
-                className="rounded-full"
-              />
-              <span className="ml-2">{userProfile?.username}</span>
-              <button
+              
+              <span className="flex items-center ml-2">
+                  <Image
+                    src={profilePic}
+                    alt={userProfile?.firstName || 'User'}
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                  />
+                 <span className="ml-5 text-xl font-semibold wave-effect">{userProfile?.firstName}</span>
+            </span>
+
+            <button
                 onClick={handleSignOut}
-                style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-                className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad"
+                style={{ fontFamily: '"Josefin Sans", sans-serif' }} 
+                className="px-3 py-2 mx-9 font-bold text-white rounded-full h-11 transition duration-400 bg-black hover:bg-gray-700 w-32 flex items-center justify-center space-x-2"
               >
-                Sign Out
-              </button>
+                    <span>Sign Out</span>
+                    <Image
+                      src={signOutPic}
+                      alt="Sign Out"
+                      width={20}
+                      height={20}
+                      className="rounded-full"
+                    />
+                    
+          </button>
+
             </div>
           ) : (
+            // Login and Signup if no user is logged in
             <>
-              <Link href={'/Login'}>
+              <Link href="/Login">
                 <button
                   style={{ fontFamily: '"Josefin Sans", sans-serif' }}
                   className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad"
@@ -107,7 +130,7 @@ function Header() {
                   Log in
                 </button>
               </Link>
-              <Link href={'/SignUp'}>
+              <Link href="/SignUp">
                 <button
                   style={{ fontFamily: '"Josefin Sans", sans-serif' }}
                   className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad"
@@ -119,6 +142,8 @@ function Header() {
           )}
         </div>
       </div>
+
+      {/* Mobile Menu Toggle Button */}
       <button onClick={toggleMenu} className="lg:hidden focus:outline-none pt-3">
         <svg
           className="w-8 h-8 text-gray-500"
@@ -135,16 +160,16 @@ function Header() {
           />
         </svg>
       </button>
+
+      {/* Mobile Menu */}
       {isOpen && (
         <div className="absolute top-20 h-screen left-0 w-full bg-white z-10 shadow-lg lg:hidden">
           <div className="flex flex-col items-center py-4 space-y-4">
-            <button
-              onClick={closeMenu}
-              style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-              className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
-            >
-              FoodHub
-            </button>
+            <Link href="/FoodHub">
+              <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
+                FoodHub
+              </button>
+            </Link>
             <button
               onClick={closeMenu}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
@@ -159,24 +184,35 @@ function Header() {
             >
               MarketPlace
             </button>
-            <Link href='/Login'>
+            {loading ? (
+              <FaSpinner className="text-gray-500 animate-spin" size={24} />
+            ) : user ? (
               <button
-                onClick={closeMenu}
-                style={{ fontFamily: '"Josefin Sans", sans-serif' }}
+                onClick={() => { closeMenu(); setUser(null); }}
                 className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
               >
-                Log in
+                Sign out
               </button>
-            </Link>
-            <Link href='/SignUp'>
-              <button
-                onClick={closeMenu}
-                style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-                className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
-              >
-                Signup
-              </button>
-            </Link>
+            ) : (
+              <>
+                <Link href="/Login">
+                  <button
+                    onClick={closeMenu}
+                    className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
+                  >
+                    Log in
+                  </button>
+                </Link>
+                <Link href="/SignUp">
+                  <button
+                    onClick={closeMenu}
+                    className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
+                  >
+                    Signup
+                  </button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

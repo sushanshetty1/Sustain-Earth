@@ -10,3 +10,30 @@ body {
   font-family: 'Josefin Sans', sans-serif; /* or any other font you want to set as default */
   background-color: #f9f6f4; /* Set your background color if needed */
 }
+
+@keyframes waveEffect {
+  0% {
+    background-position: 100% 0;
+  }
+  50% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+.wave-effect {
+  color: black; /* Default text color */
+  position: relative;
+  display: inline-block;
+}
+
+.wave-effect:hover {
+  color: transparent; /* Makes the text color transparent */
+  background: linear-gradient(90deg, #000000 0%, #ffa02d 50%, #000000 100%);
+  background-size: 200% auto;
+  animation: waveEffect 2s ease-in-out infinite;
+  background-clip: text;
+  -webkit-background-clip: text;
+}
