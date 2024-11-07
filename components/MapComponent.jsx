@@ -1,17 +1,10 @@
-"use client";
-
-import dynamic from 'next/dynamic';
 import { useEffect } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), {
-  ssr: false,
-});
-
 const customIcon = L.icon({
-  iconUrl: '/images/flag.png', 
-  iconSize: [40, 40],
+  iconUrl: '/images/flag.png',
+  iconSize: [30, 30],
   iconAnchor: [20, 40],
   popupAnchor: [0, -40],
 });
@@ -25,13 +18,48 @@ const MapComponent = ({ helpers, latitude, longitude }) => {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
+      console.log("Helpers:", helpers);
+
       helpers.forEach((helper) => {
-        L.marker([helper.geocodes.main.latitude, helper.geocodes.main.longitude], { icon: customIcon })
-          .addTo(map)
-          .bindPopup(`${helper.name}<br />${helper.location.address || 'No address available'}`);
+        if (helper.location?.lat && helper.location?.lon) {
+          console.log(`Adding marker for ${helper.name} at ${helper.location.lat}, ${helper.location.lon}`);
+
+          const marker = L.marker([helper.location.lat, helper.location.lon], { icon: customIcon })
+            .addTo(map)
+            .bindPopup(`
+              <div style="text-align: center;">
+                <img src="${helper.imageUrl}" alt="helper" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;" />
+                <div><strong>${helper.name}</strong></div>
+                <div>Meal Type: ${helper.mealType}</div>
+                <div>Meals Available: ${helper.meals}</div>
+                <div>Location: ${helper.location ? helper.location.address : 'Address not available'}</div>
+              </div>
+            `);
+
+          // Tooltip handling on mouseover and mouseout
+          let tooltip = null;
+          marker.on('mouseover', () => {
+            console.log(`Hovered over ${helper.name}`);
+            tooltip = L.tooltip()
+              .setContent(`
+                <img src="${helper.imageUrl}" alt="helper" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;" /><br>
+                <strong>${helper.name}</strong><br>
+                Meal Type: ${helper.mealType}<br>
+                Meals Available: ${helper.meals}
+              `)
+              .setLatLng([helper.location.lat, helper.location.lon])
+              .addTo(map);
+          })
+          .on('mouseout', () => {
+            if (tooltip) {
+              tooltip.remove();
+            }
+          });
+        } else {
+          console.warn(`Invalid or missing coordinates for helper: ${helper.name}`);
+        }
       });
 
-      // Cleanup the map instance on unmount
       return () => {
         map.remove();
       };

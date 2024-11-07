@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import { useState, useEffect } from 'react';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import { firebaseApp } from '../../../firebaseConfig';
@@ -6,7 +6,7 @@ import { FaSpinner } from 'react-icons/fa';
 
 const Find = () => {
   const [responses, setResponses] = useState([]);
-  const [loading, setLoading] = useState(true);  // Add loading state
+  const [loading, setLoading] = useState(true);
   const db = getFirestore(firebaseApp);
 
   useEffect(() => {
@@ -17,12 +17,11 @@ const Find = () => {
           id: doc.id,
           ...doc.data(),
         }));
-
         setResponses(fetchedResponses);
-        setLoading(false);  // Set loading to false once data is fetched
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching responses: ", error);
-        setLoading(false);  // Ensure loading state is false if there’s an error
+        setLoading(false);
       }
     };
 
@@ -45,7 +44,7 @@ const Find = () => {
       {loading ? (
         <div className="flex justify-center items-center mt-10 h-screen">
           <FaSpinner className="animate-spin text-4xl" />
-        </div>  // Display spinner while loading
+        </div>
       ) : responses.length === 0 ? (
         <p>No responses available.</p>
       ) : (
@@ -53,15 +52,27 @@ const Find = () => {
           {responses.map((response) => (
             <div
               key={response.id}
-              className="p-4 bg-white rounded-lg border-2 border-transparent hover:border-black hover:scale-105 transition duration-300 ease-in-out shadow-lg"
+              className="w-[300px] bg-white p-4 rounded-lg transition-transform transform hover:scale-105 shadow-lg"
             >
-              {/* Use fields from Firebase data */}
-              <div className="text-xl font-semibold text-gray-800">{response.name}</div>
-              <p className="text-gray-600 mt-2">Meal Type: {response.mealType}</p>
-              <p className="text-gray-600 mt-2">Meals: {response.meals}</p>
-              <p className="text-gray-600 mt-2">
-                Location: {response.location ? `${response.location.lat}, ${response.location.lon}` : 'Location not available'}
-              </p>
+              <div className="image_slot bg-gray-200 w-full h-[180px] rounded-t-lg">
+                {response.imageUrl ? (
+                  <img 
+                    src={response.imageUrl} 
+                    alt="User uploaded" 
+                    className="w-full h-full object-cover rounded-t-lg" 
+                  />
+                ) : (
+                  <p className="text-gray-500 text-center pt-16">No image available</p>
+                )}
+              </div>
+              <div className="uppercase text-sm font-semibold text-blue-600 pt-4">Meal Type: {response.mealType}</div>
+              <div className="font-semibold text-gray-700 p-2 text-lg">
+                {response.name}
+                <div className="text-gray-500 font-normal text-sm pt-3">
+                  Meals Available: <span className="font-semibold">{response.meals}</span><br />
+                  Location: {response.location ? `${response.location.lat}, ${response.location.lon}` : 'Location not available'}
+                </div>
+              </div>
             </div>
           ))}
         </div>

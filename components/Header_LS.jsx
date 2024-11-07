@@ -16,15 +16,14 @@ function Header() {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // State for button clicked status
-  const [activeButton, setActiveButton] = useState(null); // 0 for Learn, 1 for Forums, 2 for Articles
+  const [activeButton, setActiveButton] = useState(null);
 
   const auth = getAuth();
   const db = getFirestore();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(true); // Start loading
+      setLoading(true);
       if (currentUser) {
         setUser(currentUser);
         const userRef = doc(db, "users", currentUser.uid);
@@ -36,7 +35,7 @@ function Header() {
         setUser(null);
         setUserProfile(null);
       }
-      setLoading(false); // End loading
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -52,18 +51,17 @@ function Header() {
   };
 
   const handleButtonClick = (buttonIndex) => {
-    setActiveButton(buttonIndex); // Update clicked button
+    setActiveButton(buttonIndex);
   };
 
   return (
     <div className="flex flex-row justify-center lg:justify-around items-center mt-12 ml-6 mr-6 sm:mb-3 mb-3">
       <div className="lg:flex w-screen lg:justify-evenly h-7 items-center">
-        
-        {/* Desktop Navigation Links */}
+
         <div className="lg:flex hidden justify-around gap-5">
           <Link href="/Learn&Share/Learn">
             <button
-              onClick={() => handleButtonClick(0)} // Set active button index for Learn
+              onClick={() => handleButtonClick(0)}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className={`text-lg rounded-lg w-15 font-bold text-gray-500 transition duration-300 mr-4 
                 ${activeButton === 0 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-black' : 'hover:text-black'}`}
@@ -73,7 +71,7 @@ function Header() {
           </Link>
           <Link href={"/Learn&Share/Forums"}>
             <button
-              onClick={() => handleButtonClick(1)} // Set active button index for Forums
+              onClick={() => handleButtonClick(1)}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className={`text-lg rounded-lg font-bold text-gray-500 transition duration-300 mr-4 
                 ${activeButton === 1 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-black' : 'hover:text-black'}`}
@@ -83,7 +81,7 @@ function Header() {
           </Link>
           <Link href="/Learn&Share/Articles">
             <button
-              onClick={() => handleButtonClick(2)} // Set active button index for Articles
+              onClick={() => handleButtonClick(2)}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className={`text-lg rounded-lg font-bold text-gray-500 transition duration-300 
                 ${activeButton === 2 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-black' : 'hover:text-black'}`}
@@ -93,20 +91,16 @@ function Header() {
           </Link>
         </div>
 
-        {/* Logo */}
         <Link href="/">
           <button className="h-11 lg:w-54 flex justify-center md:h-11 w-44">
             <Image src={img} alt="logo" width={150} height={50} />
           </button>
         </Link>
 
-        {/* Desktop Profile and Search */}
         <div className="lg:flex hidden justify-between gap-3 items-center">
           {loading ? (
-            // Loader Spinner while loading
             <FaSpinner className="text-gray-500 animate-spin" size={24} />
           ) : user ? (
-            // Profile Info if user is logged in
             <div className="flex items-center gap-3">
               <span className="flex items-center ml-2">
                 <Image
@@ -135,7 +129,6 @@ function Header() {
               </button>
             </div>
           ) : (
-            // Login and Signup if no user is logged in
             <>
               <Link href="/Login">
                 <button
@@ -157,8 +150,6 @@ function Header() {
           )}
         </div>
       </div>
-
-      {/* Mobile Menu Toggle Button */}
       <button onClick={toggleMenu} className="lg:hidden focus:outline-none pt-3">
         <svg
           className="w-8 h-8 text-gray-500"
@@ -176,7 +167,6 @@ function Header() {
         </svg>
       </button>
 
-      {/* Mobile Menu */}
       {isOpen && (
         <div className="absolute top-20 h-screen left-0 w-full bg-white z-10 shadow-lg lg:hidden">
           <div className="flex flex-col items-center py-4 space-y-4">

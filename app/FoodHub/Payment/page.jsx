@@ -40,7 +40,6 @@ function PaymentPage() {
       amount: parseFloat(amount) 
     });
 
-    // Reset form fields after processing
     setCardNumber('');
     setExpiryDate('');
     setCvv('');

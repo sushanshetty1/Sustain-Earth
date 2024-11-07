@@ -16,6 +16,7 @@ const MealEntry = () => {
     name: '',
     meals: 1,
     mealType: 'veg',
+    imageUrl: '',
   });
   const [submitted, setSubmitted] = useState(false);
 
@@ -27,6 +28,15 @@ const MealEntry = () => {
         setUser(currentUser);
       }
     });
+
+    const script = document.createElement('script');
+    script.src = "https://widget.cloudinary.com/v2.0/global/all.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
   }, [auth, router]);
 
   const handleChange = (e) => {
@@ -47,9 +57,8 @@ const MealEntry = () => {
         lon: position.coords.longitude,
       };
 
-      // Save meal information directly under the user's UID in the 'mealsCollection'
       await setDoc(doc(db, 'mealsCollection', user.uid), {
-        ...formData,  // includes meal data like name, meals, mealType
+        ...formData,
         type: option,
         location: userLocation,
       });
@@ -69,6 +78,30 @@ const MealEntry = () => {
     handleLocationAndSubmit();
   };
 
+  const handleImageUpload = () => {
+    if (window.cloudinary) {
+      window.cloudinary.openUploadWidget(
+        {
+          cloudName: "dwkxh75ux",
+          uploadPreset: "sharepics",
+          sources: ["local", "url", "camera"],
+          cropping: true,
+          multiple: false,
+          resourceType: "image",
+        },
+        (error, result) => {
+          if (!error && result && result.event === "success") {
+            setFormData((prev) => ({
+              ...prev,
+              imageUrl: result.info.secure_url,
+            }));
+            console.log("Image uploaded:", result.info.secure_url);
+          }
+        }
+      );
+    }
+  };
+
   return !submitted ? (
     <div className="flex flex-col items-center justify-center min-h-screen" style={{ backgroundColor: '#f9f6f4' }}>
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
@@ -76,8 +109,8 @@ const MealEntry = () => {
 
         <div className="mb-4">
           <label className="block text-gray-600 font-medium mb-1">Select Type:</label>
-          <select 
-            onChange={(e) => setOption(e.target.value)} 
+          <select
+            onChange={(e) => setOption(e.target.value)}
             value={option}
             className="w-full p-2.5 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
           >
@@ -116,9 +149,9 @@ const MealEntry = () => {
 
           <div>
             <label className="block text-gray-600 font-medium mb-1">Meal Type:</label>
-            <select 
-              name="mealType" 
-              value={formData.mealType} 
+            <select
+              name="mealType"
+              value={formData.mealType}
               onChange={handleChange}
               className="w-full p-2.5 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
             >
@@ -127,8 +160,21 @@ const MealEntry = () => {
             </select>
           </div>
 
-          <button 
-            type="submit" 
+          <div>
+            <button
+              type="button"
+              onClick={handleImageUpload}
+              className="w-full py-2.5 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition duration-200"
+            >
+              Upload Image
+            </button>
+            {formData.imageUrl && (
+              <img src={formData.imageUrl} alt="Uploaded" className="mt-4 w-full rounded-md" />
+            )}
+          </div>
+
+          <button
+            type="submit"
             className="w-full py-2.5 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition duration-200"
           >
             Submit

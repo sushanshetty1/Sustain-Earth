@@ -78,7 +78,7 @@ function Header() {
             <button
               onClick={() => handleButtonClick('Alert')}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-              className="text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300 border-rad"
+              className="text-lg rounded-lg font-bold pl-5 text-gray-500 hover:text-black transition duration-300 border-rad"
             >
               Alert
             </button>

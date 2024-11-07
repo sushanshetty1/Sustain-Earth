@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import dynamic from 'next/dynamic';
+import { firebaseApp } from '../../../firebaseConfig';
 
 const MapComponent = dynamic(() => import('@/components/MapComponent'), {
   ssr: false,
@@ -14,6 +15,7 @@ const NearbyHelpersPage = () => {
   const [longitude, setLongitude] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [locationError, setLocationError] = useState(null);
+  const db = getFirestore(firebaseApp);
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -30,39 +32,29 @@ const NearbyHelpersPage = () => {
     );
   }, []);
 
+  // Fetch helpers' data from Firestore
   useEffect(() => {
-    const fetchFoursquareHelpers = async () => {
+    const fetchHelpersFromDB = async () => {
       if (latitude && longitude) {
-        const url = `https://api.foursquare.com/v3/places/search?ll=${latitude},${longitude}&query=food&limit=10`;
         try {
-          const response = await axios.get(url, {
-            headers: {
-              Authorization: `fsq35ZgLviaNcXvbNt20KJH4VljgbB90mzDTCNUgrYDAqBQ=`,
-            },
-          });
-          if (response.data && response.data.results) {
-            setHelpers(response.data.results);
-          } else {
-            console.error("Unexpected API response structure:", response.data);
-          }
+          const querySnapshot = await getDocs(collection(db, "mealsCollection"));
+          const helpersData = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            lat: doc.data().lat,
+            lon: doc.data().lon,
+          }));
+
+          console.log("Fetched helpers:", helpersData);
+          setHelpers(helpersData);
         } catch (error) {
-          if (error.response) {
-            console.error(
-              "Error fetching data from Foursquare API:",
-              error.response.data ? error.response.data : `Status ${error.response.status}`
-            );
-          } else if (error.request) {
-            console.error("No response received from Foursquare API:", error.request);
-          } else {
-            console.error("Error setting up request to Foursquare API:", error.message);
-          }
+          console.error("Error fetching helpers from Firestore: ", error);
         }
-        
       }
     };
 
-    fetchFoursquareHelpers();
-  }, [latitude, longitude]);
+    fetchHelpersFromDB();
+  }, [latitude, longitude, db]);
 
   if (isLoading) {
     return <p>Loading location...</p>;

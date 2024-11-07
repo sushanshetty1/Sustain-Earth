@@ -14,7 +14,7 @@ function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
-  const [loading, setLoading] = useState(true); // New loading state
+  const [loading, setLoading] = useState(true);
   const auth = getAuth();
   const db = getFirestore();
   
