@@ -20,7 +20,7 @@ function Header() {
   
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(true); // Start loading
+      setLoading(true);
       if (currentUser) {
         setUser(currentUser);
         const userRef = doc(db, "users", currentUser.uid);
@@ -32,7 +32,7 @@ function Header() {
         setUser(null);
         setUserProfile(null);
       }
-      setLoading(false); // End loading
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -51,7 +51,6 @@ function Header() {
     <div className="flex flex-row justify-center lg:justify-around items-center mt-12 ml-6 mr-6 sm:mb-3 mb-3">
       <div className="lg:flex w-screen lg:justify-evenly h-7 items-center">
         
-        {/* Desktop Navigation Links */}
         <div className="lg:flex hidden justify-around gap-5">
           <Link href="/FoodHub">
             <button
@@ -61,7 +60,7 @@ function Header() {
               FoodHub
             </button>
           </Link>
-          <Link href={'/Learn&Share'}>
+          <Link href={'/Learn&Share/Learn'}>
           <button
             style={{ fontFamily: '"Josefin Sans", sans-serif' }}
             className="text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300 border-rad"
@@ -96,13 +95,16 @@ function Header() {
             <div className="flex items-center gap-3">
               
               <span className="flex items-center ml-2">
+                <Link href="/DashBoard">
                   <Image
                     src={profilePic}
+                    
                     alt={userProfile?.firstName || 'User'}
                     width={40}
                     height={40}
                     className="rounded-full"
                   />
+                </Link>
                  <span className="ml-5 text-xl font-semibold wave-effect">{userProfile?.firstName}</span>
             </span>
 

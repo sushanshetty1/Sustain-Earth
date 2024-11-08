@@ -63,7 +63,7 @@ function Header() {
             <button
               onClick={() => handleButtonClick(0)}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-              className={`text-lg rounded-lg w-15 font-bold text-gray-500 transition duration-300 mr-4 
+              className={`text-lg rounded-lg w-15 font-bold text-gray-500 transition duration-300 mr-4
                 ${activeButton === 0 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-black' : 'hover:text-black'}`}
             >
               Learn
