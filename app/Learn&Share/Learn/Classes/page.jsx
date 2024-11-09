@@ -2,8 +2,10 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, updateDoc, arrayRemove } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore';
 import firebaseApp from '../../../../firebaseConfig';
+import Link from 'next/link';
 
 const ClassesEntry = () => {
   const router = useRouter();
@@ -18,9 +20,14 @@ const ClassesEntry = () => {
     classDate: '',
     classTime: '',
     imageUrl: '',
+    description: '',
+    minimumRequirements: [],
+    whatYouWillLearn: [],
   });
   const [submitted, setSubmitted] = useState(false);
   const [cloudinaryLoaded, setCloudinaryLoaded] = useState(false);
+  const [minRequirement, setMinRequirement] = useState('');
+  const [learningPoint, setLearningPoint] = useState('');
 
   useEffect(() => {
     if (!window.cloudinary) {
@@ -75,12 +82,70 @@ const ClassesEntry = () => {
     }
   };
 
+  const handleRequirementAdd = () => {
+    if (minRequirement) {
+      setFormData((prev) => ({
+        ...prev,
+        minimumRequirements: [...prev.minimumRequirements, minRequirement],
+      }));
+      setMinRequirement('');
+    }
+  };
+
+  const handleLearningAdd = () => {
+    if (learningPoint) {
+      setFormData((prev) => ({
+        ...prev,
+        whatYouWillLearn: [...prev.whatYouWillLearn, learningPoint],
+      }));
+      setLearningPoint('');
+    }
+  };
+
+  const handleRequirementDelete = async (item) => {
+    try {
+      const updatedRequirements = formData.minimumRequirements.filter((req) => req !== item);
+      setFormData((prev) => ({
+        ...prev,
+        minimumRequirements: updatedRequirements,
+      }));
+
+      if (user) {
+        const classRef = doc(db, 'classesCollection', user.uid);
+        await updateDoc(classRef, {
+          minimumRequirements: arrayRemove(item),
+        });
+      }
+    } catch (error) {
+      console.error("Error removing requirement:", error);
+    }
+  };
+
+  const handleLearningDelete = async (item) => {
+    try {
+      const updatedLearning = formData.whatYouWillLearn.filter((learn) => learn !== item);
+      setFormData((prev) => ({
+        ...prev,
+        whatYouWillLearn: updatedLearning,
+      }));
+
+      if (user) {
+        const classRef = doc(db, 'classesCollection', user.uid);
+        await updateDoc(classRef, {
+          whatYouWillLearn: arrayRemove(item),
+        });
+      }
+    } catch (error) {
+      console.error("Error removing learning point:", error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) return;
 
     try {
-      await setDoc(doc(db, 'classesCollection', user.uid), formData);
+      await addDoc(collection(db, 'classesCollection'), formData);
       setSubmitted(true);
     } catch (error) {
       console.error("Error saving class data:", error);
@@ -88,11 +153,11 @@ const ClassesEntry = () => {
   };
 
   return !submitted ? (
-    <div className="flex flex-col items-center justify-center min-h-screen" style={{ backgroundColor: '#f9f6f4' }}>
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">Class Entry</h1>
+    <div className="flex items-center justify-center min-h-screen bg-[#f9f6f4] ">
+      <div className="w-full max-w-lg bg-white rounded-lg shadow-lg p-8 mt-10">
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">Class Entry</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-gray-600 font-medium mb-1">Class Name:</label>
             <input
@@ -101,7 +166,7 @@ const ClassesEntry = () => {
               value={formData.className}
               onChange={handleChange}
               required
-              className="w-full p-2.5 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
             />
           </div>
 
@@ -113,29 +178,20 @@ const ClassesEntry = () => {
               value={formData.standard}
               onChange={handleChange}
               required
-              className="w-full p-2.5 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
             />
           </div>
 
           <div>
             <label className="block text-gray-600 font-medium mb-1">Class Type:</label>
-            <div className="flex flex-wrap">
-              <input
-                type="text"
-                name="classType"
-                value={formData.classType}
-                onChange={handleChange}
-                placeholder="Enter class type"
-                className="w-full p-2.5 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
-              />
-              <button
-                type="button"
-                onClick={() => setFormData((prev) => ({ ...prev, classType: '' }))}
-                className="mt-2 w-full p-2.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200"
-              >
-                Add Another Class Type
-              </button>
-            </div>
+            <input
+              type="text"
+              name="classType"
+              value={formData.classType}
+              onChange={handleChange}
+              placeholder="Enter class type"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
+            />
           </div>
 
           <div>
@@ -146,7 +202,7 @@ const ClassesEntry = () => {
               value={formData.classDate}
               onChange={handleChange}
               required
-              className="w-full p-2.5 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
             />
           </div>
 
@@ -158,29 +214,109 @@ const ClassesEntry = () => {
               value={formData.classTime}
               onChange={handleChange}
               required
-              className="w-full p-2.5 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
             />
           </div>
 
           <div>
-            <label className="block text-gray-600 font-medium mb-1">Upload Class Image:</label>
+            <label className="block text-gray-600 font-medium mb-1">Description:</label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              required
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-600 font-medium mb-1">Minimum Requirements:</label>
+            <div className="flex flex-col border p-3 rounded-md border-gray-300">
+              <div className="flex mb-2">
+                <input
+                  type="text"
+                  value={minRequirement}
+                  onChange={(e) => setMinRequirement(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
+                />
+                <button
+                  type="button"
+                  onClick={handleRequirementAdd}
+                  className="ml-2 p-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200"
+                >
+                  Add
+                </button>
+              </div>
+              <ul className="list-disc list-inside">
+                {formData.minimumRequirements.map((item, index) => (
+                  <li key={index} className="flex items-center justify-between">
+                    {item}
+                    <button
+                      onClick={() => handleRequirementDelete(item)}
+                      className="ml-2 text-red-600 hover:text-red-800"
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-gray-600 font-medium mb-1">What You Will Learn:</label>
+            <div className="flex flex-col border p-3 rounded-md border-gray-300">
+              <div className="flex mb-2">
+                <input
+                  type="text"
+                  value={learningPoint}
+                  onChange={(e) => setLearningPoint(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
+                />
+                <button
+                  type="button"
+                  onClick={handleLearningAdd}
+                  className="ml-2 p-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200"
+                >
+                  Add
+                </button>
+              </div>
+              <ul className="list-disc list-inside">
+                {formData.whatYouWillLearn.map((item, index) => (
+                  <li key={index} className="flex items-center justify-between">
+                    {item}
+                    <button
+                      onClick={() => handleLearningDelete(item)}
+                      className="ml-2 text-red-600 hover:text-red-800"
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div>
             <button
               type="button"
               onClick={handleImageUpload}
-              className="w-full p-2.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200"
+              className="w-full p-3 mb-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
             >
               Upload Image
             </button>
             {formData.imageUrl && (
-              <div className="mt-4">
-                <img src={formData.imageUrl} alt="Class Image" className="max-w-full h-auto rounded-md" />
-              </div>
+              <img
+                src={formData.imageUrl}
+                alt="Class Image"
+                className="w-full h-48 object-cover rounded-md"
+              />
             )}
           </div>
 
           <button
             type="submit"
-            className="w-full py-2.5 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition duration-200"
+            className="w-full p-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200"
           >
             Submit
           </button>
@@ -188,14 +324,8 @@ const ClassesEntry = () => {
       </div>
     </div>
   ) : (
-    <div className="flex flex-col items-center justify-center min-h-screen" style={{ backgroundColor: '#f9f6f4' }}>
-      <h1 className="text-3xl font-bold text-green-600 mb-6 text-center">Class Information Submitted Successfully!</h1>
-      <button
-        onClick={() => router.push('/Classes')}
-        className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition duration-200"
-      >
-        Exit
-      </button>
+    <div className="flex items-center justify-center min-h-screen">
+      <h1 className="text-3xl font-bold text-green-600">Form successfully submitted💦💦💦!</h1>
     </div>
   );
 };
