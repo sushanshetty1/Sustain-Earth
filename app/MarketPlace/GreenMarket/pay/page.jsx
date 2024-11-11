@@ -1,6 +1,7 @@
 "use client"
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import Gpay from '../../../../public/images/gpay.png'
 import Paypal from '../../../../public/images/paypal.png'
 import Apple from '../../../../public/images/apple.png'
@@ -9,6 +10,9 @@ const App = () => {
   const [cardNumber, setCardNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [cvv, setCvv] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  const router = useRouter();
 
   const handleCardholderNameChange = (event) => {
     setCardholderName(event.target.value);
@@ -30,10 +34,21 @@ const App = () => {
     event.preventDefault();
     // Handle form submission, e.g., send data to server
     console.log('Form submitted:', { cardholderName, cardNumber, expiryDate, cvv });
-  };
+  
+
+  setSubmitted(true);
+  setTimeout(() => {
+    router.push('/MarketPlace/GreenMarket'); // Replace with your target path
+  }, 3000);
+};
 
   return (
     <div className="modal">
+      {submitted ? (
+        <div className="thank-you-message">
+          <h2>THANK YOU FOR ORDERING</h2>
+        </div>
+      ) : (
       <form className="form" onSubmit={handleSubmit}>
         <div className="credit-card-info--form">
           <div className="input_container">
@@ -114,6 +129,7 @@ const App = () => {
           </div>
         </div>
       </form>
+      )}
 
       <style jsx>{`
         .modal {
@@ -267,6 +283,19 @@ const App = () => {
         .input_field[type='number'] {
           -moz-appearance: textfield;
         }
+
+     .thank-you-message h2 {
+  text-align: center;
+  color: #000; 
+  font-weight: 800;
+  font-size: 2.5rem;
+  margin: 0;
+  padding: 20px;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+  border: none;
+  white-space: nowrap; 
+}
+
       `}</style>   
 
     </div>

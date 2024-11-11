@@ -1,5 +1,5 @@
 "use client"
-import { usePathname } from 'next/navigation';
+import { usePathname,useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from "react";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { firebaseApp } from "../../../../firebaseConfig";
@@ -9,7 +9,12 @@ const db = getFirestore(firebaseApp);
 
 const ItemDetails = () => {
   const pathname = usePathname();
-  const id = pathname.split('/').pop();
+  const searchParams = useSearchParams();
+  const queryId = searchParams.get('id'); 
+  const pathId= pathname.split('/').pop();
+
+
+  const id = queryId || pathId;
   const [item, setItem] = useState(null);
 
   useEffect(() => {
@@ -71,17 +76,18 @@ const ItemDetails = () => {
         </div>
       </div>
       <div className="text-center mt-4 flex gap-10"> {/* Center the button */}
+      <Link href="/MarketPlace/GreenMarket/pay" target="_blank">
         <button className="Btn">
-         <Link href="/MarketPlace/GreenMarket/pay" target="_blank">
             Buy Now
-          </Link>
         </button>
+        </Link>
+        <Link href={`/MarketPlace/GreenMarket/${item.id}/Trade`} target="_blank">
         <button className=" Btn">
-        <Link href="/MarketPlace/GreenMarket/trade" target="_blank">
             Trade Now
-            </Link>
         </button>
+        </Link>
       </div>
+      
       <style jsx>{` 
       .Btn {
   width: 130px;

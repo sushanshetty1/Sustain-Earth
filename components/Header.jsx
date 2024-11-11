@@ -190,6 +190,7 @@ function Header() {
             >
               MarketPlace
             </button>
+            </Link>
             {loading ? (
               <FaSpinner className="text-gray-500 animate-spin" size={24} />
             ) : user ? (

@@ -173,13 +173,14 @@ function Header() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="absolute top-28 h-screen left-0 w-screen bg-white z-10 shadow-lg lg:hidden">
+        <div className="absolute top-28 h-screen left-0 w-screen bg-[#f9f6f4] z-10 shadow-lg lg:hidden">
           <div className="flex flex-col items-center py-4 space-y-4">
-            <Link href="/FoodHub">
+            <Link href="/FoodHub/Share">
               <button onClick={() => { closeMenu(); handleButtonClick('FoodHub/Share'); }} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
                 Share
               </button>
             </Link>
+            <Link href="/FoodHub/Find">
             <button
               onClick={() => { closeMenu(); handleButtonClick('FoodHub/Find'); }}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
@@ -187,6 +188,8 @@ function Header() {
             >
               Find
             </button>
+            </Link>
+            <Link href="/FoodHub/Alert">
             <button
               onClick={() => { closeMenu(); handleButtonClick('FoodHub/Alert'); }}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
@@ -194,6 +197,7 @@ function Header() {
             >
               Alert
             </button>
+            </Link>
             {user ? (
               <button
                 onClick={() => { closeMenu(); handleButtonClick('Sign Out'); setUser(null); }}

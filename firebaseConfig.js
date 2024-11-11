@@ -1,9 +1,10 @@
 import { initializeApp } from "firebase/app";
-import { getAnalytics, isSupported } from "firebase/analytics"; 
-import { getFirestore } from "firebase/firestore"; 
-import { getAuth } from "firebase/auth"; 
+import { getAnalytics, isSupported } from "firebase/analytics";
+import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, increment } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
+// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBv7k3_r05x8CdecvF3jRpWuO7H8YwrA_g",
   authDomain: "sustain-earth-2.firebaseapp.com",
@@ -14,8 +15,15 @@ const firebaseConfig = {
   measurementId: "G-YD8LRRX3JE"
 };
 
-const firebaseApp = initializeApp(firebaseConfig);
+// Initialize Firebase
+let firebaseApp;
+try {
+  firebaseApp = initializeApp(firebaseConfig);
+} catch (error) {
+  console.error("Error initializing Firebase app:", error);
+}
 
+// Initialize Firestore, Authentication, and Storage
 let db;
 try {
   db = getFirestore(firebaseApp);
@@ -24,20 +32,26 @@ try {
 }
 
 const auth = getAuth(firebaseApp);
-
 const storage = getStorage(firebaseApp);
 
-let analytics;
-if (typeof window !== 'undefined') {
-  isSupported().then((supported) => {
-    if (supported) {
-      analytics = getAnalytics(firebaseApp);
-    } else {
-      console.warn("Firebase Analytics is not supported in this environment.");
+// Initialize Firebase Analytics if supported
+let analytics = null;
+const initializeAnalytics = async () => {
+  if (typeof window !== 'undefined') {
+    try {
+      const supported = await isSupported();
+      if (supported) {
+        analytics = getAnalytics(firebaseApp);
+      } else {
+        console.warn("Firebase Analytics is not supported in this environment.");
+      }
+    } catch (error) {
+      console.error("Error checking Analytics support:", error);
     }
-  }).catch(error => {
-    console.error("Error checking Analytics support:", error);
-  });
-}
+  }
+};
 
-export { firebaseApp, db, analytics, auth, storage };
+initializeAnalytics();
+
+// Export the Firebase modules
+export { firebaseApp, db, analytics, auth, storage, collection, addDoc, getDocs, updateDoc, doc, increment };

@@ -168,7 +168,7 @@ function Header() {
       </button>
 
       {isOpen && (
-        <div className="absolute top-28 h-screen w-screen left-0  bg-white z-10 shadow-lg lg:hidden">
+        <div className="absolute top-28 h-screen w-screen left-0  bg-[#f9f6f4] z-10 shadow-lg lg:hidden">
           <div className="flex flex-col items-center py-4 space-y-4">
             <Link href="/Learn&Share/Learn">
               <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">

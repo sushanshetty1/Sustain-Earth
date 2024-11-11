@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import { doc, getDoc, getFirestore, collection, getDocs } from 'firebase/firestore';
 import firebaseApp from '../../../firebaseConfig';
 import { getAuth } from 'firebase/auth';
+import Help from '../../../public/images/help.png';
+import Image from 'next/image';
 
 const DonationDetails = () => {
   const [user, setUser] = useState(null);
@@ -13,12 +15,7 @@ const DonationDetails = () => {
   const path = usePathname();
   const donationId = path.split('/').pop();
   const db = getFirestore(firebaseApp);
-
-  const donationsList = [
-    { name: "Rocío Alba", amount: 25, note: "Recent donation" },
-    { name: "Veronica Diaz Gonzalez", amount: 2000, note: "Top donation" },
-    { name: "Nuria Casas Casado", amount: 200, note: "First donation" }
-  ];
+  const [donationsList, setdonationList] = useState([]);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(currentUser => setUser(currentUser));
@@ -33,6 +30,15 @@ const DonationDetails = () => {
 
         if (donationSnap.exists()) {
           setDonationData({ id: donationSnap.id, ...donationSnap.data() });
+
+          const donationsCollectionRef = collection(donationRef, 'donations');
+          const donationsSnapshot = await getDocs(donationsCollectionRef);
+          const donationsListData = donationsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          })).slice(0, 3); 
+
+          setdonationList(donationsListData);
         } else {
           router.push('/404');
         }
@@ -54,16 +60,16 @@ const DonationDetails = () => {
   );
 
   const DonationItem = ({ name, amount, note }) => (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between ">
+      <Image className="w-12 h-12 rounded-full object-cover" src={Help} alt="Help" />
       <span className="text-gray-800">{name}</span>
-      <span className="text-gray-500 text-sm">€{amount} • {note}</span>
+      <span className="text-gray-500 text-sm">₹{amount} • {note}</span>
     </div>
   );
 
   const handleDonate = () => (
-    router.push(`/FoodHub/${donationId}/donate`)
+    router.push(`/FoodHub/${donationId}/Donate`)
   );
-
 
   return (
     <div className="flex flex-col gap-8 w-full h-auto min-h-screen bg-white rounded-lg shadow-lg overflow-hidden">
@@ -71,26 +77,26 @@ const DonationDetails = () => {
         {donationData?.title}
       </h1>
       <div className="flex flex-col lg:flex-row w-full lg:max-w-screen-lg mx-auto">
-        {/* Left Section */}
         <div className="w-full lg:w-2/3 flex-col gap-9 flex justify-between pr-9">
           <img
             src={donationData?.image}
             alt="Fundraiser"
             className="w-full h-auto max-h-96 rounded-lg object-cover"
           />
-          <div className="flex row gap-5">
+          <div className="flex items-center gap-5">
             <div className="w-12 h-12 rounded-full bg-gray-300">
               <img
                 src={donationData?.admin}
                 alt="Admin"
-                className="w-full h-auto max-h-96 rounded-lg object-cover"
+                className="w-full h-auto max-h-96 rounded-full object-cover"
               />
             </div>
             <div className="flex flex-col">
               <span className="font-semibold">Team SustainEarth</span>
-              <p className="text-md text-black">{donationData?.description}</p>
             </div>
+            
           </div>
+          <div className="text-sm text-black">{donationData?.description}</div>
         </div>
 
         {/* Right Section */}
@@ -121,7 +127,7 @@ const DonationDetails = () => {
             {donationsList.length} people just donated
           </p>
           <div className="flex flex-col gap-3">
-            {donationsList.map((donation, index) => (
+            {donationsList.slice(0, 3).map((donation, index) => (
               <DonationItem key={index} {...donation} />
             ))}
           </div>

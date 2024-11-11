@@ -1,14 +1,24 @@
 "use client";
+import { useRouter, usePathname } from 'next/navigation';
 import React, { useState } from "react";
 import styled from "styled-components";
+import { db } from "../../../../firebaseConfig";
+import { collection, addDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore"; 
+
 
 const Form = () => {
   const placeholderAmount = 0;
   const [amount, setAmount] = useState(placeholderAmount);
   const [upiId, setUpiId] = useState("");
+  const router = useRouter(); 
+  const [name, setName] = useState("");
+  const path = usePathname();
+  const donationId = path.split('/')[2];
   const gstRate = 0.18;
   const tax = amount * gstRate;
   const total = amount + tax;
+
   const handleAmountChange = (e) => {
     const value = parseFloat(e.target.value) || placeholderAmount;
     setAmount(value);
@@ -18,12 +28,53 @@ const Form = () => {
     setUpiId(e.target.value);
   };
 
+  const handleNameChange = (e) => {
+    setName(e.target.value);
+  };
+
+  const handleSubmit = async () => {
+    const newDonation = { name, amount: total, date: new Date() };
+  
+    try {
+      const donationRef = doc(db, "donationCollections", donationId);
+      const donationDoc = await getDoc(donationRef);
+  
+      if (donationDoc.exists()) {
+        const currentAmount = donationDoc.data().amount || 0;
+        
+        await updateDoc(donationRef, {
+          amount: currentAmount + total,
+        });
+
+        await addDoc(collection(db, "donationCollections", donationId, "donations"), newDonation);
+  
+        alert("Thank You For Your Valuable Donation!");
+        router.back();
+      } else {
+        console.log("Donation document does not exist.");
+      }
+    } catch (error) {
+      console.error("Error saving donation information: ", error);
+      alert("Failed to save donation information. Please try again.");
+    }
+  };
+
   return (
     <StyledWrapper>
       <div className="container">
         <div className="card cart">
           <label className="title">DONATE</label>
           <div className="steps">
+            <div className="step">
+              <span>Enter Your Name</span>
+              <input
+                type="text"
+                className="input_field"
+                placeholder="Your name"
+                value={name}
+                onChange={handleNameChange}
+              />
+            </div>
             <div className="step">
               <span>Enter The Amount To Donate</span>
               <input
@@ -62,7 +113,9 @@ const Form = () => {
         <div className="card checkout">
           <div className="footer">
             <label className="price">₹{total.toFixed(2)}</label>
-            <button className="checkout-btn">Proceed to Donate</button>
+            <button className="checkout-btn" onClick={handleSubmit}>
+              Proceed to Donate
+            </button>
           </div>
         </div>
       </div>

@@ -1,12 +1,39 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 function HomePage() {
+  const [isSignedIn, setIsSignedIn] = useState(false); // State to track sign-in status
+  const [isClient, setIsClient] = useState(false); // Flag to check if running on client-side
   const router = useRouter();
+
+  useEffect(() => {
+    setIsClient(true); // Set to true once the component is mounted (client-side)
+    
+    if (typeof window !== 'undefined') {
+      // Now we can safely access localStorage
+      const user = localStorage.getItem('user');
+      if (user) {
+        setIsSignedIn(true); // If user is found in localStorage, mark as signed in
+      }
+    }
+  }, []);
+
   const handleClick = () => {
-    router.push('/SignUp');
+    const randomPage = getRandomPage(); // Get a random page URL
+    router.push(randomPage); // Navigate to the random page
   };
+
+  const getRandomPage = () => {
+    const pages = ["/FoodHub", "/MarketPlace/GreenMarket", "/Learn&Share/Learn"];
+    const randomIndex = Math.floor(Math.random() * pages.length);
+    return pages[randomIndex];
+  };
+
+  // Render nothing or a loading indicator if not on the client yet
+  if (!isClient) {
+    return null; // Or you can return a loading spinner
+  }
 
   return (
     <header className="h-screen p-4">
@@ -63,7 +90,7 @@ function HomePage() {
           style={{ fontFamily: '"Josefin Sans", sans-serif' }} 
           className="mt-9 px-2 py-2 font-bold text-white rounded-full h-14 transition duration-400 bg-black hover:bg-gray-700 w-36"
         >
-          Get started
+          Explore
         </button>
       </div>
     </header>

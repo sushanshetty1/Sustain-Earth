@@ -3,10 +3,9 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebaseConfig';
+import { FaSpinner } from 'react-icons/fa';
 import Image from 'next/image';
 import img from '../public/images/MarketPlace.png';
-import { FaSpinner } from 'react-icons/fa';
 import profilePic from '../public/images/profile.png';
 import signOutPic from '../public/images/signout.png';
 
@@ -15,7 +14,6 @@ function Header() {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeButton, setActiveButton] = useState(null); // Track active button
   const auth = getAuth();
   const db = getFirestore();
 
@@ -44,47 +42,26 @@ function Header() {
 
   const handleSignOut = async () => {
     await signOut(auth);
-    setUser(null);
-    setUserProfile(null);
-  };
-
-  const handleButtonClick = (buttonIndex) => {
-    setActiveButton(buttonIndex); // Update clicked button
+    // The sign out will trigger the auth state change listener and reset the user state.
   };
 
   return (
     <div className="flex flex-row justify-center lg:justify-around items-center mt-12 ml-6 mr-6 sm:mb-3 mb-3">
       <div className="lg:flex w-screen lg:justify-evenly h-7 items-center">
-        
         {/* Desktop Navigation Links */}
         <div className="lg:flex hidden justify-around gap-6">
           <Link href="/MarketPlace/GreenMarket">
-            <button
-              onClick={() => handleButtonClick(0)} // Set active button index for GreenMarket
-              style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-              className={`text-lg rounded-lg w-32 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad  
-                ${activeButton === 0 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-white' : ''}`}
-            >
+            <button className="text-lg rounded-lg w-32 font-bold text-gray-500 hover:text-black transition duration-300">
               GreenMarket
             </button>
           </Link>
-          <Link href={"/MarketPlace/SellNRent"}>
-            <button
-              onClick={() => handleButtonClick(1)} // Set active button index for Sell/Rent
-              style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-              className={`text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300 border-rad
-                ${activeButton === 1 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-white' : ''}`}
-            >
+          <Link href="/MarketPlace/SellNRent">
+            <button className="text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300">
               Sell/Rent
             </button>
           </Link>
           <Link href="/MarketPlace/QuickAsk">
-            <button
-              onClick={() => handleButtonClick(2)} // Set active button index for QuickAsk
-              style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-              className={`text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300 border-rad
-                ${activeButton === 2 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-white' : ''}`}
-            >
+            <button className="text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300">
               QuickAsk
             </button>
           </Link>
@@ -113,12 +90,10 @@ function Header() {
                   height={40}
                   className="rounded-full"
                 />
-                <span className="ml-5 text-xl font-semibold wave-effect">{userProfile?.firstName}</span>
+                <span className="ml-5 text-xl font-semibold">{userProfile?.firstName}</span>
               </span>
-
               <button
                 onClick={handleSignOut}
-                style={{ fontFamily: '"Josefin Sans", sans-serif' }} 
                 className="px-3 py-2 mx-9 font-bold text-white rounded-full h-11 transition duration-400 bg-black hover:bg-gray-700 w-32 flex items-center justify-center space-x-2"
               >
                 <span>Sign Out</span>
@@ -133,24 +108,18 @@ function Header() {
             </div>
           ) : (
             // Login and Signup if no user is logged in
-            <>
+            <div className="flex gap-3">
               <Link href="/Login">
-                <button
-                  style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-                  className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad"
-                >
+                <button className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black transition duration-300">
                   Log in
                 </button>
               </Link>
               <Link href="/SignUp">
-                <button
-                  style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-                  className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad"
-                >
+                <button className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black transition duration-300">
                   Signup
                 </button>
               </Link>
-            </>
+            </div>
           )}
         </div>
       </div>
@@ -175,7 +144,7 @@ function Header() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="absolute top-28 h-screen w-screen left-0  bg-white z-10 shadow-lg lg:hidden">
+        <div className="absolute top-28 h-screen w-screen left-0 bg-[#f9f6f4] z-10 shadow-lg lg:hidden">
           <div className="flex flex-col items-center py-4 space-y-4">
             <Link href="/MarketPlace/GreenMarket">
               <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
@@ -194,7 +163,7 @@ function Header() {
             </Link>
             {user ? (
               <button
-                onClick={() => { closeMenu(); setUser(null); }}
+                onClick={() => { closeMenu(); handleSignOut(); }}
                 className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
               >
                 Sign out
@@ -202,18 +171,12 @@ function Header() {
             ) : (
               <>
                 <Link href="/Login">
-                  <button
-                    onClick={closeMenu}
-                    className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
-                  >
+                  <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
                     Log in
                   </button>
                 </Link>
                 <Link href="/SignUp">
-                  <button
-                    onClick={closeMenu}
-                    className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
-                  >
+                  <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
                     Signup
                   </button>
                 </Link>

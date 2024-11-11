@@ -1,9 +1,9 @@
-"use client"
+"use client";
 import React, { useState, useEffect } from "react";
 import { FaCrown, FaDollarSign, FaEdit } from "react-icons/fa";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { auth, db } from "../../firebaseConfig";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { auth, db } from "../../firebaseConfig";
 import Header from "@/components/Header";
 
 const DashBoard = () => {
@@ -17,6 +17,7 @@ const DashBoard = () => {
     bio: "",
     balance: 0,
   });
+  const [activeSection, setActiveSection] = useState(null); // Track which section is active
 
   const auth = getAuth();
 
@@ -67,11 +68,15 @@ const DashBoard = () => {
     return <div className="text-white">Loading...</div>;
   }
 
+  const handleSectionClick = (section) => {
+    setActiveSection((prevSection) => (prevSection === section ? null : section));
+  };
+
   return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="bg-gray-800 p-6 h-96 rounded-lg shadow-lg max-w-sm w-full transform transition duration-300 hover:scale-105">
+    <div className="flex justify-center flex-row items-center h-screen">
+      <div className="bg-gray-800 p-4 h-fit w-[90%] rounded-lg flex justify-between flex-col shadow-lg   transform transition duration-300 hover:scale-105">
         {isEditing ? (
-          <div className="space-y-2 mb-4">
+          <div className="space-y-2 border-white border-2 mb-4">
             <input
               name="username"
               value={editValues.username}
@@ -104,15 +109,25 @@ const DashBoard = () => {
             </button>
           </div>
         ) : (
-          <div className="text-white space-y-2 mb-4">
-            <div className="text-lg font-semibold">{userProfile?.username}</div>
-            <div className="text-sm text-gray-400">{userProfile?.email}</div>
-            <div className="text-sm text-gray-400">{userProfile?.phone}</div>
-            <div className="text-sm text-gray-400">{userProfile?.bio}</div>
+          <div className="text-white p-8 border-white border-2 rounded-lg space-y-2 mb-4">
+            <div className="pl-5 pt-5 flex flex-row gap-4">
+            <div className="w-20 h-20 rounded-full bg-white"></div>
+            <div className="text-lg flex w-fit flex-row justify-center items-center gap-5 font-semibold">
+              {userProfile?.username}
+              <FaCrown className="text-yellow-500" />
+            </div>
+            
+      
+            </div>
+            <div className="pl-5 text-sm text-gray-400">{userProfile?.email}</div>
+            <div className="pl-5 text-sm text-gray-400">{userProfile?.phone}</div>
+            <div className="pl-5 text-sm text-gray-400">{userProfile?.bio}</div>
+            <button className="ml-5 mb-5 pb-5 h-9 text-md bg-green-700 rounded-lg w-28">
+              List as teacher
+            </button>
           </div>
         )}
-        <div className="flex justify-between items-center">
-          <FaCrown className="text-yellow-500" />
+        <div className="flex w-full justify-between items-center">
           <div className="flex items-center text-white text-sm">
             <FaDollarSign className="mr-1" />
             <span>{userProfile?.balance}</span>
@@ -125,6 +140,58 @@ const DashBoard = () => {
             <FaEdit className="ml-1" />
           </button>
         </div>
+
+        {/* Bottom navigation buttons */}
+        <div className="w-full justify-evenly bg-gray-800 flex text-white items-center h-20">
+          <div className="flex flex-col items-center">
+            <button
+              onClick={() => handleSectionClick("foodhub")}
+              className="h-12 w-28 text-sm border-black rounded-md font-bold border-2"
+            >
+              Foodhub
+            </button>
+          </div>
+          <div className="flex flex-col items-center">
+            <button
+              onClick={() => handleSectionClick("Learn&Share")}
+              className="h-12 w-28 text-sm border-black rounded-md font-bold border-2"
+            >
+              Learn&Share
+            </button>
+          </div>
+          <div className="flex flex-col items-center">
+            <button
+              onClick={() => handleSectionClick("marketPlace")}
+              className="h-12 w-28 text-sm border-black rounded-md font-bold border-2"
+            >
+              MarketPlace
+            </button>
+          </div>
+        </div>
+
+        {/* Content below the buttons */}
+        <div className="mt-4 border-white border-2 rounded-lg h-16 text-lg flex justify-center items-center">
+  {activeSection === "foodhub" && (
+    <div className="text-sm flex flex-col items-center text-center text-gray-300">
+      <div className="w-full">No. of Foods donated:</div>
+      <div className="w-full">Amount Donated to Cause:</div>
+    </div>
+  )}
+  {activeSection === "Learn&Share" && (
+    <div className="text-sm text-gray-300 gap-2 flex flex-col items-center text-center">
+      <div className="flex gap-8 flex-row w-full"><div>List of All classes taken</div><div>user rating</div></div>
+      <div className="w-full">List of All classes taken</div>
+      <div></div>
+    </div>
+  )}
+  {activeSection === "marketPlace" && (
+    <div className="text-sm text-gray-300 flex flex-col items-center text-center">
+      <div className="w-full">Number of products listed:</div>
+      <div className="w-full">Confirmed trades:</div>
+    </div>
+  )}
+</div>
+
       </div>
     </div>
   );

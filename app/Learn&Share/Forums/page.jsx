@@ -1,11 +1,12 @@
-"use client"
 import React from 'react'
-import Header_LS from '@/components/Header_LS';
+import Sidebar from './sidebar'
+import Feed from './feed'
 
 const Forums = () => {
   return (
-    <div>
-        {/* <Header_LS/> */}
+    <div className="flex justify-center bg-white mt-[40px] h-full">
+      <Sidebar />
+      <Feed />
     </div>
   )
 }
