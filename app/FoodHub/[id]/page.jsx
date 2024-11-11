@@ -60,7 +60,7 @@ const DonationDetails = () => {
   );
 
   const DonationItem = ({ name, amount, note }) => (
-    <div className="flex items-center justify-between ">
+    <div className="flex items-center justify-between">
       <Image className="w-12 h-12 rounded-full object-cover" src={Help} alt="Help" />
       <span className="text-gray-800">{name}</span>
       <span className="text-gray-500 text-sm">₹{amount} • {note}</span>
@@ -72,12 +72,12 @@ const DonationDetails = () => {
   );
 
   return (
-    <div className="flex flex-col gap-8 w-full h-auto min-h-screen bg-white rounded-lg shadow-lg overflow-hidden">
-      <h1 className="text-3xl font-bold text-center text-gray-800 p-4">
+    <div className="flex flex-col gap-8 w-full h-auto min-h-screen bg-white rounded-lg shadow-lg overflow-hidden p-4 sm:p-6">
+      <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 p-4">
         {donationData?.title}
       </h1>
-      <div className="flex flex-col lg:flex-row w-full lg:max-w-screen-lg mx-auto">
-        <div className="w-full lg:w-2/3 flex-col gap-9 flex justify-between pr-9">
+      <div className="flex flex-col sm:flex-row w-full sm:max-w-screen-lg mx-auto">
+        <div className="w-full sm:w-2/3 flex-col gap-9 flex justify-between pr-0 sm:pr-9">
           <img
             src={donationData?.image}
             alt="Fundraiser"
@@ -94,16 +94,15 @@ const DonationDetails = () => {
             <div className="flex flex-col">
               <span className="font-semibold">Team SustainEarth</span>
             </div>
-            
           </div>
           <div className="text-sm text-black">{donationData?.description}</div>
         </div>
 
         {/* Right Section */}
-        <div className="flex flex-col w-full lg:w-1/3 h-auto p-6 rounded-lg shadow-lg">
+        <div className="flex flex-col w-full sm:w-1/3 h-auto p-6 rounded-lg shadow-lg">
           {/* Fundraising Goal and Progress */}
           <div className="mb-4">
-            <p className="text-lg font-semibold text-gray-800">
+            <p className="text-lg sm:text-xl font-semibold text-gray-800">
               ₹{donationData?.amount} raised
             </p>
             <p className="text-sm text-gray-500">

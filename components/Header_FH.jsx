@@ -3,10 +3,9 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebaseConfig';
+import { FaSpinner } from 'react-icons/fa';
 import Image from 'next/image';
 import img from '../public/images/FoodHub.png';
-import { FaSpinner } from 'react-icons/fa';
 import profilePic from '../public/images/profile.png';
 import signOutPic from '../public/images/signout.png';
 
@@ -15,10 +14,12 @@ function Header() {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const auth = getAuth();
+  const db = getFirestore();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(true); // Start loading
+      setLoading(true);
       if (currentUser) {
         setUser(currentUser);
         const userRef = doc(db, "users", currentUser.uid);
@@ -41,44 +42,26 @@ function Header() {
 
   const handleSignOut = async () => {
     await signOut(auth);
-    setUser(null);
-    setUserProfile(null);
-  };
-
-  const handleButtonClick = (buttonName) => {
-    console.log(`${buttonName} button clicked`);
+    // The sign out will trigger the auth state change listener and reset the user state.
   };
 
   return (
-    <div className="flex flex-row justify-center lg:justify-around items-center mt-12 ml-6 mr-6 sm:mb-3 mb-3" >
+    <div className="flex flex-row justify-center lg:justify-around items-center mt-12 ml-6 mr-6 sm:mb-3 mb-3">
       <div className="lg:flex w-screen lg:justify-evenly h-7 items-center">
-        
         {/* Desktop Navigation Links */}
-        <div className="lg:flex hidden justify-around gap-5">
+        <div className="lg:flex hidden justify-around gap-6">
           <Link href="/FoodHub/Share">
-            <button
-              onClick={() => handleButtonClick('Share')}
-              style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-              className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad"
-            >
+            <button className="text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300">
               Share
             </button>
           </Link>
           <Link href="/FoodHub/Find">
-            <button
-              onClick={() => handleButtonClick('Find')}
-              style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-              className="text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300 border-rad"
-            >
+            <button className="text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300">
               Find
             </button>
           </Link>
           <Link href="/FoodHub/Alert">
-            <button
-              onClick={() => handleButtonClick('Alert')}
-              style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-              className="text-lg rounded-lg font-bold pl-5 text-gray-500 hover:text-black transition duration-300 border-rad"
-            >
+            <button className="text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300">
               Alert
             </button>
           </Link>
@@ -92,7 +75,7 @@ function Header() {
         </Link>
 
         {/* Desktop Profile and Search */}
-        <div className="flex justify-between gap-3 items-center">
+        <div className="lg:flex hidden justify-between gap-3 items-center">
           {loading ? (
             // Loader Spinner while loading
             <FaSpinner className="text-gray-500 animate-spin" size={24} />
@@ -107,15 +90,10 @@ function Header() {
                   height={40}
                   className="rounded-full"
                 />
-                <span className="ml-5 text-xl font-semibold wave-effect">{userProfile?.firstName}</span>
+                <span className="ml-5 text-xl font-semibold">{userProfile?.firstName}</span>
               </span>
-
               <button
-                onClick={() => {
-                  handleButtonClick('Sign Out');
-                  handleSignOut();
-                }}
-                style={{ fontFamily: '"Josefin Sans", sans-serif' }} 
+                onClick={handleSignOut}
                 className="px-3 py-2 mx-9 font-bold text-white rounded-full h-11 transition duration-400 bg-black hover:bg-gray-700 w-32 flex items-center justify-center space-x-2"
               >
                 <span>Sign Out</span>
@@ -129,32 +107,25 @@ function Header() {
               </button>
             </div>
           ) : (
-            <>
+            // Login and Signup if no user is logged in
+            <div className="flex gap-3">
               <Link href="/Login">
-                <button
-                  onClick={() => handleButtonClick('Log In')}
-                  style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-                  className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad"
-                >
+                <button className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black transition duration-300">
                   Log in
                 </button>
               </Link>
               <Link href="/SignUp">
-                <button
-                  onClick={() => handleButtonClick('Sign Up')}
-                  style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-                  className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad"
-                >
+                <button className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black transition duration-300">
                   Signup
                 </button>
               </Link>
-            </>
+            </div>
           )}
         </div>
       </div>
 
       {/* Mobile Menu Toggle Button */}
-      <button onClick={() => { toggleMenu(); handleButtonClick('Mobile Menu Toggle') }} className="lg:hidden focus:outline-none pt-3">
+      <button onClick={toggleMenu} className="lg:hidden focus:outline-none pt-3">
         <svg
           className="w-8 h-8 text-gray-500"
           xmlns="http://www.w3.org/2000/svg"
@@ -173,34 +144,26 @@ function Header() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="absolute top-28 h-screen left-0 w-screen bg-[#f9f6f4] z-10 shadow-lg lg:hidden">
+        <div className="absolute top-28 h-screen w-screen left-0 bg-[#f9f6f4] z-10 shadow-lg lg:hidden">
           <div className="flex flex-col items-center py-4 space-y-4">
             <Link href="/FoodHub/Share">
-              <button onClick={() => { closeMenu(); handleButtonClick('FoodHub/Share'); }} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
+              <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
                 Share
               </button>
             </Link>
             <Link href="/FoodHub/Find">
-            <button
-              onClick={() => { closeMenu(); handleButtonClick('FoodHub/Find'); }}
-              style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-              className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
-            >
-              Find
-            </button>
+              <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
+                Find
+              </button>
             </Link>
             <Link href="/FoodHub/Alert">
-            <button
-              onClick={() => { closeMenu(); handleButtonClick('FoodHub/Alert'); }}
-              style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-              className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
-            >
-              Alert
-            </button>
+              <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
+                Alert
+              </button>
             </Link>
             {user ? (
               <button
-                onClick={() => { closeMenu(); handleButtonClick('Sign Out'); setUser(null); }}
+                onClick={() => { closeMenu(); handleSignOut(); }}
                 className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
               >
                 Sign out
@@ -208,18 +171,12 @@ function Header() {
             ) : (
               <>
                 <Link href="/Login">
-                  <button
-                    onClick={() => { closeMenu(); handleButtonClick('Log In'); }}
-                    className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
-                  >
+                  <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
                     Log in
                   </button>
                 </Link>
                 <Link href="/SignUp">
-                  <button
-                    onClick={() => { closeMenu(); handleButtonClick('Sign Up'); }}
-                    className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
-                  >
+                  <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
                     Signup
                   </button>
                 </Link>

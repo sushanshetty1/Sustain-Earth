@@ -25,27 +25,27 @@ const Home = () => {
 
   return (
     <div className="text-white min-h-screen p-6 font-sans">
-      <header className="flex flex-col lg:flex-row items-center justify-center lg:justify-between mb-16">
-        <div className="lg:ml-[180px] mt-10 lg:w-1/2 mb-8 lg:mb-0">
-          <p className="text-4xl w-fit font-bold mb-4 text-black">
-            "Unlock Your Learning <br/><span className='ml-48'>Potential Today"</span>
+      <header className="flex flex-col md:flex-row items-center justify-center md:justify-between mb-16">
+        <div className="md:ml-[180px] mt-10 md:w-1/2 mb-8 md:mb-0">
+          <p className="text-3xl md:text-4xl w-fit font-bold mb-4 text-black">
+            "Unlock Your Learning <br/><span className='ml-0 md:ml-48'>Potential Today"</span>
           </p>
-          <p className="text-lg mb-6 text-black">
+          <p className="text-base md:text-lg mb-6 text-black">
             Explore a world of knowledge, master new skills, and achieve your academic goals with expert guidance and interactive resources designed for you.
           </p>
           <Link href="/Learn&Share/Learn/Classes">
-            <button className="border border-black text-black px-6 py-2 hover:bg-white hover:text-black transition duration-200">
+            <button className="border border-black text-black px-6 py-2 hover:bg-white hover:text-black transition duration-200 text-sm md:text-base">
               Get Involved
             </button>
           </Link>
         </div>
-        <div className="lg:w-1/3">
-          <Image src="/images/study-image.jpg" alt="Books and study materials" width={370} height={250} className="rounded-lg shadow-lg mr-[120px]" />
+        <div className="md:w-1/3 mt-8 md:mt-0">
+          <Image src="/images/study-image.jpg" alt="Books and study materials" width={370} height={250} className="rounded-lg shadow-lg mx-auto" />
         </div>
       </header>
 
       <section className="text-center">
-        <h2 className="text-2xl mb-4 text-black">Explore our platform to gain knowledge and enhance your skills.</h2>
+        <h2 className="text-xl md:text-2xl mb-4 text-black">Explore our platform to gain knowledge and enhance your skills.</h2>
         <nav className="flex justify-center space-x-6 mb-8 text-gray-400">
           <div className="text-blue-400 border-b-2 border-red-500 pb-1">Recent</div>
           <div href="#" className="hover:text-blue-400">Upcoming</div>
@@ -55,7 +55,6 @@ const Home = () => {
           <div className="flex justify-center items-center h-[13em]">
             <Loader />
           </div>
-          
         ) : (
           <div className="flex flex-wrap justify-center gap-6">
             {classesData.map((classData) => (
