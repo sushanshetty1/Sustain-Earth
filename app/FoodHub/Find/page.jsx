@@ -36,7 +36,7 @@ const Find = () => {
           letterSpacing: '-0.5px',
           lineHeight: '56px',
         }}
-        className="w-[600px] h-[200px] text-[38px] font-normal text-center hidden lg:block mt-[100px]"
+        className="w-full sm:w-[600px] h-auto text-[28px] sm:text-[38px] font-normal text-center hidden lg:block mt-[100px] px-4"
       >
         To those in need: We are here to help. Your struggles are not forgotten, and support is on the way.
       </div>
@@ -48,13 +48,13 @@ const Find = () => {
       ) : responses.length === 0 ? (
         <p>No responses available.</p>
       ) : (
-        <div className="ml-20 mt-10 mr-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+        <div className="ml-4 sm:ml-20 mt-10 mr-4 sm:mr-20 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
           {responses.map((response) => (
             <div
               key={response.id}
-              className="w-[300px] bg-white p-4 rounded-lg transition-transform transform hover:scale-105 shadow-lg"
+              className="w-full sm:w-[300px] bg-white p-4 rounded-lg transition-transform transform hover:scale-105 shadow-lg"
             >
-              <div className="image_slot bg-gray-200 w-full h-[180px] rounded-t-lg">
+              <div className="image_slot bg-gray-200 w-full h-[180px] sm:h-[200px] rounded-t-lg">
                 {response.imageUrl ? (
                   <img 
                     src={response.imageUrl} 
