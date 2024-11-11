@@ -64,7 +64,7 @@ function Header() {
               onClick={() => handleButtonClick(0)}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className={`text-lg rounded-lg w-15 font-bold text-gray-500 transition duration-300 mr-4
-                ${activeButton === 0 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-black' : 'hover:text-black'}`}
+                ${activeButton === 0 ? 'px-2 py-2 border-2  font-bold underline text-black' : 'hover:text-black'}`}
             >
               Learn
             </button>
@@ -74,7 +74,7 @@ function Header() {
               onClick={() => handleButtonClick(1)}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className={`text-lg rounded-lg font-bold text-gray-500 transition duration-300 mr-4 
-                ${activeButton === 1 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-black' : 'hover:text-black'}`}
+                ${activeButton === 1 ? 'px-2 py-2 border-2  font-bold underline text-black' : 'hover:text-black'}`}
             >
               Forums
             </button>
@@ -84,7 +84,7 @@ function Header() {
               onClick={() => handleButtonClick(2)}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className={`text-lg rounded-lg font-bold text-gray-500 transition duration-300 
-                ${activeButton === 2 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-black' : 'hover:text-black'}`}
+                ${activeButton === 2 ? 'px-2 py-2 border-2  font-bold underline text-black' : 'hover:text-black'}`}
             >
               Articles
             </button>
@@ -168,13 +168,14 @@ function Header() {
       </button>
 
       {isOpen && (
-        <div className="absolute top-20 h-screen left-0 w-full bg-white z-10 shadow-lg lg:hidden">
+        <div className="absolute top-28 h-screen w-screen left-0  bg-white z-10 shadow-lg lg:hidden">
           <div className="flex flex-col items-center py-4 space-y-4">
-            <Link href="/FoodHub">
+            <Link href="/Learn&Share/Learn">
               <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
                 Learn
               </button>
             </Link>
+            <Link href="/Learn&Share/Forums">
             <button
               onClick={closeMenu}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
@@ -182,6 +183,8 @@ function Header() {
             >
               Forums
             </button>
+            </Link>
+            <Link href="/Learn&Share/Articles">
             <button
               onClick={closeMenu}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
@@ -189,6 +192,7 @@ function Header() {
             >
               Articles
             </button>
+            </Link>
             {user ? (
               <button
                 onClick={() => { closeMenu(); setUser(null); }}

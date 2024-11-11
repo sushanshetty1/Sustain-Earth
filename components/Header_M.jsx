@@ -62,8 +62,8 @@ function Header() {
             <button
               onClick={() => handleButtonClick(0)} // Set active button index for GreenMarket
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-              className={`text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad mr-8 
-                ${activeButton === 0 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-black' : ''}`}
+              className={`text-lg rounded-lg w-32 font-bold text-gray-500 hover:text-black ease-in-out transition duration border-rad  
+                ${activeButton === 0 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-white' : ''}`}
             >
               GreenMarket
             </button>
@@ -73,7 +73,7 @@ function Header() {
               onClick={() => handleButtonClick(1)} // Set active button index for Sell/Rent
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className={`text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300 border-rad
-                ${activeButton === 1 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-black' : ''}`}
+                ${activeButton === 1 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-white' : ''}`}
             >
               Sell/Rent
             </button>
@@ -83,7 +83,7 @@ function Header() {
               onClick={() => handleButtonClick(2)} // Set active button index for QuickAsk
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className={`text-lg rounded-lg font-bold text-gray-500 hover:text-black transition duration-300 border-rad
-                ${activeButton === 2 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-black' : ''}`}
+                ${activeButton === 2 ? 'px-2 py-2 border-2 border-purple-500 bg-purple-500 text-white' : ''}`}
             >
               QuickAsk
             </button>
@@ -175,7 +175,7 @@ function Header() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="absolute top-20 h-screen left-0 w-full bg-white z-10 shadow-lg lg:hidden">
+        <div className="absolute top-28 h-screen w-screen left-0  bg-white z-10 shadow-lg lg:hidden">
           <div className="flex flex-col items-center py-4 space-y-4">
             <Link href="/MarketPlace/GreenMarket">
               <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">

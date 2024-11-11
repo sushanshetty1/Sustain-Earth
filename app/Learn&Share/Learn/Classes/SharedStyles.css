@@ -1,0 +1,79 @@
+/* app/Learn&Share/Learn/Classes/SharedStyles.css */
+
+/* Article Wrapper Styles */
+.article-wrapper {
+    width: 250px;
+    transition: 0.15s all ease-in-out;
+    border-radius: 10px;
+    padding: 5px;
+    border: 4px solid transparent;
+    cursor: pointer;
+    background-color: white;
+  }
+  
+  .article-wrapper:hover {
+    box-shadow: 10px 10px 0 #4e84ff, 20px 20px 0 #4444bd;
+    border-color: #0578c5;
+    transform: translate(-20px, -20px);
+  }
+  
+  .article-wrapper:active {
+    box-shadow: none;
+    transform: translate(0, 0);
+  }
+  
+  /* Container Project Styles */
+  .container-project {
+    width: 100%;
+    height: 170px;
+    background: gray;
+    overflow: hidden;
+  }
+  
+  /* Project Info and Title */
+  .project-info {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .project-title {
+    font-size: 1.5em;
+    font-weight: 600;
+    color: black;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  
+  .flex-pr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  /* Project Type */
+  .project-type {
+    background: #b2b2fd;
+    color: #1a41cd;
+    font-weight: bold;
+    padding: 0.3em 0.7em;
+    border-radius: 15px;
+    font-size: 12px;
+  }
+  
+  /* Project Hover Styles */
+  .project-hover {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    padding: 9px;
+    transition: all 0.3s ease;
+  }
+  
+  .article-wrapper:hover .project-hover {
+    transform: rotate(-45deg);
+    background-color: #a6c2f0;
+  }
+  

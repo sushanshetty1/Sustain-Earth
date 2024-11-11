@@ -1,156 +1,155 @@
 "use client";
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, setDoc, updateDoc, arrayRemove } from 'firebase/firestore';
-import { collection, addDoc } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';   
+
+import { getFirestore, doc, setDoc, updateDoc, arrayRemove, collection, addDoc } from 'firebase/firestore';
 import firebaseApp from '../../../../firebaseConfig';
 import Link from 'next/link';
 
 const ClassesEntry = () => {
-  const router = useRouter();
-  const auth = getAuth(firebaseApp);
-  const db = getFirestore(firebaseApp);
+    const router = useRouter();
+    const auth = getAuth(firebaseApp);
+    const db = getFirestore(firebaseApp);
 
-  const [user, setUser] = useState(null);
-  const [formData, setFormData] = useState({
-    className: '',
-    standard: '',
-    classType: '',
-    classDate: '',
-    classTime: '',
-    imageUrl: '',
-    description: '',
-    minimumRequirements: [],
-    whatYouWillLearn: [],
-  });
-  const [submitted, setSubmitted] = useState(false);
-  const [cloudinaryLoaded, setCloudinaryLoaded] = useState(false);
-  const [minRequirement, setMinRequirement] = useState('');
-  const [learningPoint, setLearningPoint] = useState('');
-
-  useEffect(() => {
-    if (!window.cloudinary) {
-      const script = document.createElement("script");
-      script.src = "https://upload-widget.cloudinary.com/global/all.js";
-      script.async = true;
-      script.onload = () => setCloudinaryLoaded(true);
-      document.body.appendChild(script);
-    } else {
-      setCloudinaryLoaded(true);
-    }
-
-    onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        router.push('/Login');
-      } else {
-        setUser(currentUser);
-      }
+    const [user, setUser] = useState(null);
+    const [formData, setFormData] = useState({
+        className: '',
+        standard: '',
+        classType: '',
+        classDate: '',
+        classTime: '',
+        imageUrl: '',
+        description: '',
+        minimumRequirements: [],
+        whatYouWillLearn: [],
     });
-  }, [auth, router]);
+    const [submitted, setSubmitted] = useState(false);
+    const [cloudinaryLoaded, setCloudinaryLoaded] = useState(false);
+    const [minRequirement, setMinRequirement] = useState('');
+    const [learningPoint, setLearningPoint] = useState('');
+    const [isLoading, setIsLoading] = useState(false); // Loading state
+    const [error, setError] = useState(null); // Error state
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleImageUpload = () => {
-    if (cloudinaryLoaded && window.cloudinary) {
-      window.cloudinary.openUploadWidget(
-        {
-          cloudName: "dwkxh75ux",
-          uploadPreset: "sharepics",
-          sources: ["local", "url", "camera"],
-          cropping: true,
-          multiple: false,
-          resourceType: "image",
-        },
-        (error, result) => {
-          if (!error && result && result.event === "success") {
-            setFormData((prev) => ({
-              ...prev,
-              imageUrl: result.info.secure_url,
-            }));
-            console.log("Image uploaded:", result.info.secure_url);
-          } else {
-            console.log("Upload error:", error);
-          }
+    useEffect(() => {
+        if (!window.cloudinary) {
+            const script = document.createElement("script");
+            script.src = "https://upload-widget.cloudinary.com/global/all.js";
+            script.async = true;
+            script.onload   
+ = () => setCloudinaryLoaded(true);
+            document.body.appendChild(script);
+        } else {
+            setCloudinaryLoaded(true);
         }
-      );
-    } else {
-      console.log("Cloudinary is not loaded yet.");
-    }
-  };
 
-  const handleRequirementAdd = () => {
-    if (minRequirement) {
-      setFormData((prev) => ({
-        ...prev,
-        minimumRequirements: [...prev.minimumRequirements, minRequirement],
-      }));
-      setMinRequirement('');
-    }
-  };
-
-  const handleLearningAdd = () => {
-    if (learningPoint) {
-      setFormData((prev) => ({
-        ...prev,
-        whatYouWillLearn: [...prev.whatYouWillLearn, learningPoint],
-      }));
-      setLearningPoint('');
-    }
-  };
-
-  const handleRequirementDelete = async (item) => {
-    try {
-      const updatedRequirements = formData.minimumRequirements.filter((req) => req !== item);
-      setFormData((prev) => ({
-        ...prev,
-        minimumRequirements: updatedRequirements,
-      }));
-
-      if (user) {
-        const classRef = doc(db, 'classesCollection', user.uid);
-        await updateDoc(classRef, {
-          minimumRequirements: arrayRemove(item),
+        onAuthStateChanged(auth, (currentUser) => {
+            if (!currentUser) {
+                router.push('/Login');
+            } else {
+                setUser(currentUser);
+                // Update formData after user is fetched:
+                setFormData(prev => ({ ...prev, procterId: currentUser.uid })); 
+            }
         });
-      }
-    } catch (error) {
-      console.error("Error removing requirement:", error);
-    }
-  };
+    }, [auth, router]);
 
-  const handleLearningDelete = async (item) => {
-    try {
-      const updatedLearning = formData.whatYouWillLearn.filter((learn) => learn !== item);
-      setFormData((prev) => ({
-        ...prev,
-        whatYouWillLearn: updatedLearning,
-      }));
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
 
-      if (user) {
-        const classRef = doc(db, 'classesCollection', user.uid);
-        await updateDoc(classRef, {
-          whatYouWillLearn: arrayRemove(item),
-        });
-      }
-    } catch (error) {
-      console.error("Error removing learning point:", error);
-    }
-  };
+    const handleImageUpload = () => {
+        if (cloudinaryLoaded && window.cloudinary) {
+            window.cloudinary.openUploadWidget(
+                {
+                    cloudName: "dwkxh75ux",
+                    uploadPreset: "sharepics",
+                    sources: ["local", "url", "camera"],
+                    cropping: true,
+                    multiple: false,
+                    resourceType: "image",
+                },
+                (error, result) => {
+                    if (!error && result && result.event === "success") {
+                        setFormData((prev) => ({
+                            ...prev,
+                            imageUrl: result.info.secure_url,
+                        }));
+                        console.log("Image uploaded:", result.info.secure_url);
+                    } else {
+                        console.log("Upload error:", error);
+                    }
+                }
+            );
+        } else {
+            console.log("Cloudinary is not loaded yet.");
+        }
+    };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!user) return;
+    const handleRequirementAdd = () => {
+        if (minRequirement) {
+            setFormData((prev) => ({
+                ...prev,
+                minimumRequirements: [...prev.minimumRequirements, minRequirement],
+            }));
+            setMinRequirement('');
+        }
+    };
 
-    try {
-      await addDoc(collection(db, 'classesCollection'), formData);
-      setSubmitted(true);
-    } catch (error) {
-      console.error("Error saving class data:", error);
-    }
-  };
+    const handleLearningAdd = () => {
+        if (learningPoint) {
+            setFormData((prev) => ({
+                ...prev,
+                whatYouWillLearn: [...prev.whatYouWillLearn, learningPoint],
+            }));
+            setLearningPoint('');
+        }
+    };
+
+    const handleRequirementDelete = async (item) => {
+        try {
+            const updatedRequirements = formData.minimumRequirements.filter((req) => req !== item);
+            setFormData((prev) => ({
+                ...prev,
+                minimumRequirements: updatedRequirements,
+            }));
+        } catch (error) {
+            console.error("Error removing requirement:", error);
+            setError("Error removing requirement"); // Update error state
+        }
+    };
+
+    const handleLearningDelete = async (item) => {
+        try {
+            const updatedLearning = formData.whatYouWillLearn.filter((learn) => learn !== item);
+            setFormData((prev) => ({
+                ...prev,
+                whatYouWillLearn: updatedLearning,
+            }));
+        } catch (error) {
+            console.error("Error removing learning point:", error);
+            setError("Error removing learning point"); // Update error state
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!user) return; 
+
+        setIsLoading(true); // Set loading state
+        setError(null); // Clear any previous errors
+
+        try {
+            await addDoc(collection(db, 'classesCollection'), formData);
+            setSubmitted(true);
+        } catch (error) {
+            console.error("Error saving class data:", error);
+            setError("Error saving class data"); // Update error state
+        } finally {
+            setIsLoading(false); // Reset loading state
+        }
+    };
 
   return !submitted ? (
     <div className="flex items-center justify-center min-h-screen bg-[#f9f6f4] ">

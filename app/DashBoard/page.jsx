@@ -69,7 +69,7 @@ const DashBoard = () => {
 
   return (
     <div className="flex justify-center items-center h-screen">
-      <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full transform transition duration-300 hover:scale-105">
+      <div className="bg-gray-800 p-6 h-96 rounded-lg shadow-lg max-w-sm w-full transform transition duration-300 hover:scale-105">
         {isEditing ? (
           <div className="space-y-2 mb-4">
             <input

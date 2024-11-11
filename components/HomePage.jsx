@@ -10,7 +10,7 @@ function HomePage() {
 
   return (
     <header className="h-screen p-4">
-      <div className="mb-48 items-center text-center flex flex-col justify-center mt-20 w-screen">
+      <div className="mb-48 items-center text-center flex flex-col justify-center mt-20">
         {/* Responsive box for title */}
         <div 
           style={{ 

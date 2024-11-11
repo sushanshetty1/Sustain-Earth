@@ -30,7 +30,7 @@ function Header() {
         setUser(null);
         setUserProfile(null);
       }
-      setLoading(false); // End loading
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -45,7 +45,6 @@ function Header() {
     setUserProfile(null);
   };
 
-  // Log the button click for tracking
   const handleButtonClick = (buttonName) => {
     console.log(`${buttonName} button clicked`);
   };
@@ -93,7 +92,7 @@ function Header() {
         </Link>
 
         {/* Desktop Profile and Search */}
-        <div className="lg:flex hidden justify-between gap-3 items-center">
+        <div className="flex justify-between gap-3 items-center">
           {loading ? (
             // Loader Spinner while loading
             <FaSpinner className="text-gray-500 animate-spin" size={24} />
@@ -130,7 +129,6 @@ function Header() {
               </button>
             </div>
           ) : (
-            // Login and Signup if no user is logged in
             <>
               <Link href="/Login">
                 <button
@@ -175,26 +173,26 @@ function Header() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="absolute top-20 h-screen left-0 w-full bg-white z-10 shadow-lg lg:hidden">
+        <div className="absolute top-28 h-screen left-0 w-screen bg-white z-10 shadow-lg lg:hidden">
           <div className="flex flex-col items-center py-4 space-y-4">
             <Link href="/FoodHub">
-              <button onClick={() => { closeMenu(); handleButtonClick('FoodHub'); }} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
-                FoodHub
+              <button onClick={() => { closeMenu(); handleButtonClick('FoodHub/Share'); }} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
+                Share
               </button>
             </Link>
             <button
-              onClick={() => { closeMenu(); handleButtonClick('Learn & Share'); }}
+              onClick={() => { closeMenu(); handleButtonClick('FoodHub/Find'); }}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
             >
-              Learn & Share
+              Find
             </button>
             <button
-              onClick={() => { closeMenu(); handleButtonClick('MarketPlace'); }}
+              onClick={() => { closeMenu(); handleButtonClick('FoodHub/Alert'); }}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
             >
-              MarketPlace
+              Alert
             </button>
             {user ? (
               <button

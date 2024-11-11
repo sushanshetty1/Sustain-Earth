@@ -143,7 +143,7 @@ const SellNRent = () => {
 
   return (
     <div className="flex flex-col lg:flex-row h-auto bg-gray-50 mt-10">
-      <div className="w-full lg:w-1/4 bg-white p-6 border-b lg:border-r border-gray-200 shadow-lg">
+      <div className="w-full lg:w-1/4 bg-white p-6 border-b lg:border-r border-gray-200">
         <h2 className="text-2xl font-semibold mb-6 text-gray-800">Navigation</h2>
         <button
           onClick={() => setView("add")}
