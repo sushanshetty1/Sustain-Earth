@@ -173,6 +173,7 @@ function Header() {
                 FoodHub
               </button>
             </Link>
+            <Link href="/Learn&Share">
             <button
               onClick={closeMenu}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
@@ -180,6 +181,8 @@ function Header() {
             >
               Learn & Share
             </button>
+            </Link>
+            <Link href="/MarketPlace/GreenMarket">
             <button
               onClick={closeMenu}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
