@@ -1,5 +1,5 @@
-"use client"
-import { usePathname,useSearchParams } from 'next/navigation';
+"use client";
+import { usePathname, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { firebaseApp } from "../../../../firebaseConfig";
@@ -11,9 +11,7 @@ const ItemDetails = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const queryId = searchParams.get('id'); 
-  const pathId= pathname.split('/').pop();
-
-
+  const pathId = pathname.split('/').pop();
   const id = queryId || pathId;
   const [item, setItem] = useState(null);
 
@@ -48,95 +46,88 @@ const ItemDetails = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 mt-7">
-      <div className="grid grid-cols-2 gap-4"> {/* Use grid for layout */}
+    <div className="container mx-auto p-4 sm:p-6 mt-7">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <div className="text-left"> {/* Align text to the left */}
+          <div className="text-left">
             <p className="font-bold inline-block"></p>
             <p>
-            📌 {item.location.city}, {item.location.state.label}
+              📌 {item.location.city}, {item.location.state.label}
             </p>
           </div>
-          <hr /> {/* Add a horizontal line */}
+          <hr />
           <img
             src={item.images[0]}
             alt={item.title}
-            className="w-full h-96 object-cover rounded-lg border" // Add border to image
+            className="w-full h-72 sm:h-96 object-cover rounded-lg border"
           />
-          <div className='h-44 flex gap-5 flex-row justify-between mt-5 w-full'>
-            <div className='w-1/3 rounded-lg h-44'></div>
-            <div className='w-1/3 rounded-lg h-44'></div>
-            <div className='w-1/3 rounded-lg h-44'></div>
-
+          <div className='h-36 sm:h-44 flex gap-2 sm:gap-5 flex-row justify-between mt-4 w-full'>
+            <div className='w-1/3 rounded-lg h-full'></div>
+            <div className='w-1/3 rounded-lg h-full'></div>
+            <div className='w-1/3 rounded-lg h-full'></div>
           </div>
         </div>
-        <div className='flex-col mt-12 flex text-center items-center'>
-          <h2 className="text-3xl font-semibold text-right">{item.title}</h2> {/* Align title to the right */}
-          <div className="border p-2"> {/* Add border to description */}
+        <div className='md:flex-col md:mt-12 md:text-right md:items-end flex flex-col text-center items-center'>
+          <h2 className="text-2xl sm:text-3xl font-semibold">{item.title}</h2>
+          <div className="border p-2 my-3 sm:my-4 w-full md:w-auto">
             <p className="text-gray-700">{item.description}</p>
           </div>
-          <div className="text-right"> {/* Align price information to the right */}
-            {item.type.sell && <p className="text-lg text-center font-medium mt-2">Price: {item.price}</p>}
+          <div>
+            {item.type.sell && <p className="text-lg font-medium mt-2">Price: {item.price}</p>}
             {item.type.rent && <p className="text-lg font-medium mt-2">Price per day: {item.pricePerDay}</p>}
           </div>
-          <div className="text-center mt-4 flex gap-10"> {/* Center the button */}
-      <Link href="/MarketPlace/GreenMarket/pay" target="_blank">
-        <button className="Btn">
-            Buy Now
-        </button>
-        </Link>
-        <Link href={`/MarketPlace/GreenMarket/${item.id}/Trade`} target="_blank">
-        <button className=" Btn">
-            Trade Now
-        </button>
-        </Link>
-      </div>
+          <div className="text-center mt-4 flex gap-4 sm:gap-10 flex-wrap justify-center">
+            <Link href="/MarketPlace/GreenMarket/pay" target="_blank">
+              <button className="Btn">Buy Now</button>
+            </Link>
+            <Link href={`/MarketPlace/GreenMarket/${item.id}/Trade`} target="_blank">
+              <button className="Btn">Trade Now</button>
+            </Link>
+          </div>
         </div>
-        
       </div>
       
       <style jsx>{` 
-      .Btn {
-  width: 130px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgb(15, 15, 15);
-  border: none;
-  color: white;
-  font-weight: 600;
-  gap: 8px;
-  cursor: pointer;
-  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.103);
-  position: relative;
-  overflow: hidden;
-  transition-duration: .3s;
-}
+        .Btn {
+          width: 130px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: rgb(15, 15, 15);
+          border: none;
+          color: white;
+          font-weight: 600;
+          gap: 8px;
+          cursor: pointer;
+          box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.103);
+          position: relative;
+          overflow: hidden;
+          transition-duration: .3s;
+        }
 
-.Btn::before {
-  width: calc(100% + 40px);
-  aspect-ratio: 1/1;
-  position: absolute;
-  content: "";
-  background-color: white;
-  border-radius: 50%;
-  left: -20px;
-  top: 50%;
-  transform: translate(-150%, -50%);
-  transition-duration: .5s;
-  mix-blend-mode: difference;
-}
+        .Btn::before {
+          width: calc(100% + 40px);
+          aspect-ratio: 1/1;
+          position: absolute;
+          content: "";
+          background-color: white;
+          border-radius: 50%;
+          left: -20px;
+          top: 50%;
+          transform: translate(-150%, -50%);
+          transition-duration: .5s;
+          mix-blend-mode: difference;
+        }
 
-.Btn:hover::before {
-  transform: translate(0, -50%);
-}
+        .Btn:hover::before {
+          transform: translate(0, -50%);
+        }
 
-.Btn:active {
-  transform: translateY(4px);
-  transition-duration: .3s;
-}
-
+        .Btn:active {
+          transform: translateY(4px);
+          transition-duration: .3s;
+        }
       `}</style>
     </div>
   );
