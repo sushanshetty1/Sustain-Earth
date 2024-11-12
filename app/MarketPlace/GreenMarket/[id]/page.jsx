@@ -52,30 +52,34 @@ const ItemDetails = () => {
       <div className="grid grid-cols-2 gap-4"> {/* Use grid for layout */}
         <div>
           <div className="text-left"> {/* Align text to the left */}
-            <p className="font-bold">ITEM'S CURRENT LOCATION:</p>
+            <p className="font-bold inline-block"></p>
             <p>
-              {item.location.city}, {item.location.state.label}
+            📌 {item.location.city}, {item.location.state.label}
             </p>
           </div>
           <hr /> {/* Add a horizontal line */}
           <img
             src={item.images[0]}
             alt={item.title}
-            className="w-full h-64 object-cover rounded-lg border" // Add border to image
+            className="w-full h-96 object-cover rounded-lg border" // Add border to image
           />
+          <div className='h-44 flex gap-5 flex-row justify-between mt-5 w-full'>
+            <div className='w-1/3 rounded-lg h-44'></div>
+            <div className='w-1/3 rounded-lg h-44'></div>
+            <div className='w-1/3 rounded-lg h-44'></div>
+
+          </div>
         </div>
-        <div>
-          <h2 className="text-xl font-semibold text-right">{item.title}</h2> {/* Align title to the right */}
+        <div className='flex-col mt-12 flex text-center items-center'>
+          <h2 className="text-3xl font-semibold text-right">{item.title}</h2> {/* Align title to the right */}
           <div className="border p-2"> {/* Add border to description */}
             <p className="text-gray-700">{item.description}</p>
           </div>
           <div className="text-right"> {/* Align price information to the right */}
-            {item.type.sell && <p className="text-lg font-medium mt-2">Price: {item.price}</p>}
+            {item.type.sell && <p className="text-lg text-center font-medium mt-2">Price: {item.price}</p>}
             {item.type.rent && <p className="text-lg font-medium mt-2">Price per day: {item.pricePerDay}</p>}
           </div>
-        </div>
-      </div>
-      <div className="text-center mt-4 flex gap-10"> {/* Center the button */}
+          <div className="text-center mt-4 flex gap-10"> {/* Center the button */}
       <Link href="/MarketPlace/GreenMarket/pay" target="_blank">
         <button className="Btn">
             Buy Now
@@ -86,6 +90,9 @@ const ItemDetails = () => {
             Trade Now
         </button>
         </Link>
+      </div>
+        </div>
+        
       </div>
       
       <style jsx>{` 

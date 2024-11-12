@@ -1,14 +1,14 @@
-import React from 'react'
-import Sidebar from './sidebar'
-import Feed from './feed'
+"use client"
+import React, { useState } from 'react';
+import Feed from './feed';
 
 const Forums = () => {
+
   return (
-    <div className="flex justify-center bg-white mt-[40px] h-full">
-      <Sidebar />
-      <Feed />
+    <div className="flex justify-center bg-[#f9f6f4] mt-[40px] h-full">
+      <Feed/>
     </div>
-  )
+  );
 }
 
-export default Forums
+export default Forums;

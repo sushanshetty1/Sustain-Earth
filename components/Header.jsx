@@ -122,7 +122,7 @@ function Header() {
         </button>
       </div>
     ) : (
-      <>
+      <><div className='w-40 h-12'></div>
         <Link href="/Login">
           <button
             style={{ fontFamily: '"Josefin Sans", sans-serif' }}

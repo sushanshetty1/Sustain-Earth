@@ -1,12 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
-import { usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { db } from "../../../../../firebaseConfig";
 import { collection, addDoc } from "firebase/firestore";
+import styles from './AddProduct.module.css';
 
 export default function AddProduct() {
   const path = usePathname();
   const itemId = path.split('/')[3];
+  const router = useRouter(); 
   const [productName, setProductName] = useState("");
   const [initialValue, setInitialValue] = useState("");
   const [images, setImages] = useState([]);
@@ -58,7 +60,7 @@ export default function AddProduct() {
       alert("Please fill out all fields and upload an image.");
       return;
     }
-
+  
     try {
       const productData = {
         productName,
@@ -69,54 +71,57 @@ export default function AddProduct() {
       };
       await addDoc(collection(db, "Trades"), productData);
       alert("Product added successfully!");
+      
       setProductName("");
       setInitialValue("");
       setImages([]);
+      router.push("/MarketPlace/GreenMarket");
     } catch (error) {
       console.error("Error adding product:", error);
       alert("There was an error adding the product. Please try again.");
     }
   };
+  
 
   return (
-    <div className="container">
-      <h2 className="header">Add a New Product</h2>
-      <form onSubmit={handleSubmit} className="form">
-        <div className="form-group">
-          <label className="label">Product Name:</label>
+    <div className={styles.container}>
+      <h2 className={styles.header}>Add a New Product</h2>
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles["form-group"]}>
+          <label className={styles.label}>Product Name:</label>
           <input
             type="text"
             value={productName}
             onChange={(e) => setProductName(e.target.value)}
             required
-            className="input"
+            className={styles.input}
           />
         </div>
-        <div className="form-group">
-          <label className="label">Initial Value:</label>
+        <div className={styles["form-group"]}>
+          <label className={styles.label}>Initial Value:</label>
           <input
             type="number"
             value={initialValue}
             onChange={(e) => setInitialValue(e.target.value)}
             required
-            className="input"
+            className={styles.input}
           />
         </div>
-        <div className="form-group">
-          <label className="label">Product Image:</label>
+        <div className={styles["form-group"]}>
+          <label className={styles.label}>Product Image:</label>
           <button
             type="button"
             onClick={handleImageUpload}
             disabled={uploading}
-            className={`upload-button ${uploading ? "uploading" : ""}`}
+            className={`${styles["upload-button"]} ${uploading ? styles.uploading : ""}`}
           >
             {uploading ? "Uploading..." : "Upload Image"}
           </button>
-          {images.length > 0 && <img src={images[0]} alt="Product" className="image-preview" />}
+          {images.length > 0 && <img src={images[0]} alt="Product" className={styles["image-preview"]} />}
         </div>
         <button
           type="submit"
-          className="submit-button"
+          className={styles["submit-button"]}
         >
           Submit
         </button>
@@ -124,105 +129,3 @@ export default function AddProduct() {
     </div>
   );
 }
-
-// CSS styles
-const styles = `
-  .container {
-    max-width: 400px;
-    margin: auto;
-    padding: 16px;
-    background-color: white;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-  }
-
-  .header {
-    text-align: center;
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 16px;
-  }
-
-  .form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .label {
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 8px;
-  }
-
-  .input {
-    padding: 10px;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    font-size: 16px;
-    transition: border-color 0.2s ease;
-  }
-
-  .input:focus {
-    border-color: #4f46e5;
-    outline: none;
-  }
-
-  .upload-button {
-    padding: 10px;
-    border-radius: 4px;
-    background-color: #6366f1;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-
-  .upload-button:hover {
-    background-color: #4f46e5;
-  }
-
-  .upload-button:disabled {
-    background-color: #d1d5db;
-    cursor: not-allowed;
-  }
-
-  .uploading {
-    background-color: #a3a3a3;
-    cursor: not-allowed;
-  }
-
-  .image-preview {
-    margin-top: 16px;
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 4px;
-  }
-
-  .submit-button {
-    padding: 12px;
-    background-color: #10b981;
-    color: white;
-    font-size: 16px;
-    font-weight: 600;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-
-  .submit-button:hover {
-    background-color: #059669;
-  }
-`;
-
-// Append styles to the document
-const styleSheet = document.createElement("style");
-styleSheet.type = "text/css";
-styleSheet.innerText = styles;
-document.head.appendChild(styleSheet);
