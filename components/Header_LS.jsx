@@ -192,7 +192,7 @@ function Header() {
             </Link>
             {user ? (
               <button
-                onClick={() => { closeMenu(); setUser(null); }}
+                onClick={() => { closeMenu(); handleSignOut() }}
                 className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
               >
                 Sign out

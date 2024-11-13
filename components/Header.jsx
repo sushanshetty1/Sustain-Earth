@@ -165,64 +165,61 @@ function Header() {
       </button>
 
       {/* Mobile Menu */}
-      {isOpen && (
-        <div className="absolute top-28 h-screen left-0 w-screen bg-[#f9f6f4] z-10 shadow-lg lg:hidden">
-          <div className="flex flex-col items-center py-4 space-y-4">
-            <Link href="/FoodHub">
-              <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
-                FoodHub
-              </button>
-            </Link>
-            <Link href="/Learn&Share">
+      {/* Mobile Menu */}
+{isOpen && (
+  <div className="absolute top-28 h-screen left-0 w-screen bg-[#f9f6f4] z-10 shadow-lg lg:hidden">
+    <div className="flex flex-col items-center py-4 space-y-4">
+      <Link href="/FoodHub">
+        <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
+          FoodHub
+        </button>
+      </Link>
+      <Link href="/Learn&Share">
+        <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
+          Learn & Share
+        </button>
+      </Link>
+      <Link href="/MarketPlace/GreenMarket">
+        <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
+          MarketPlace
+        </button>
+      </Link>
+      {loading ? (
+        <FaSpinner className="text-gray-500 animate-spin" size={24} />
+      ) : user ? (
+        <button
+          onClick={() => {
+            handleSignOut(); // Ensure the sign-out handler is called
+            closeMenu(); // Close the menu after sign-out
+          }}
+          className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
+        >
+          Sign out
+        </button>
+      ) : (
+        <>
+          <Link href="/Login">
             <button
               onClick={closeMenu}
-              style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
             >
-              Learn & Share
+              Log in
             </button>
-            </Link>
-            <Link href="/MarketPlace/GreenMarket">
+          </Link>
+          <Link href="/SignUp">
             <button
               onClick={closeMenu}
-              style={{ fontFamily: '"Josefin Sans", sans-serif' }}
               className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
             >
-              MarketPlace
+              Signup
             </button>
-            </Link>
-            {loading ? (
-              <FaSpinner className="text-gray-500 animate-spin" size={24} />
-            ) : user ? (
-              <button
-                onClick={() => { closeMenu(); setUser(null); }}
-                className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
-              >
-                Sign out
-              </button>
-            ) : (
-              <>
-                <Link href="/Login">
-                  <button
-                    onClick={closeMenu}
-                    className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
-                  >
-                    Log in
-                  </button>
-                </Link>
-                <Link href="/SignUp">
-                  <button
-                    onClick={closeMenu}
-                    className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
-                  >
-                    Signup
-                  </button>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
+          </Link>
+        </>
       )}
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
