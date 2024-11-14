@@ -70,8 +70,8 @@ const DashBoard = () => {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-900">
-      <div className="bg-gray-800 p-6 w-full max-w-2xl rounded-lg shadow-lg transform transition duration-300 hover:scale-105">
+    <div className="flex justify-center items-center h-screen bg-gray-900 px-4">
+      <div className="bg-gray-800 p-4 w-full max-w-2xl rounded-lg shadow-lg transform transition duration-300 hover:scale-105">
         {isEditing ? (
           <div className="space-y-4 mb-4 border-2 border-gray-600 p-4 rounded">
             <input
@@ -120,13 +120,13 @@ const DashBoard = () => {
             <div className="pl-4 mt-2 text-sm text-gray-400">{userProfile?.email}</div>
             <div className="pl-4 text-sm text-gray-400">{userProfile?.phone}</div>
             <div className="pl-4 text-sm text-gray-400">{userProfile?.bio}</div>
-            <button className="ml-4 mt-4 h-9 bg-green-700 text-white rounded-lg w-32">
+            <button className="ml-4 mt-4 h-9 bg-green-700 text-white rounded-lg w-full sm:w-32">
               List as Teacher
             </button>
           </div>
         )}
 
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-4 text-sm sm:text-base">
           <div className="flex items-center text-white">
             <FaDollarSign className="mr-1" />
             <span>{userProfile?.balance}</span>
@@ -139,12 +139,12 @@ const DashBoard = () => {
           </button>
         </div>
 
-        <div className="flex justify-around bg-gray-700 text-white py-2 rounded-md mb-4">
+        <div className="flex flex-wrap justify-around bg-gray-700 text-white py-2 rounded-md mb-4">
           {["Foodhub", "Learn&Share", "MarketPlace"].map((section) => (
             <button
               key={section}
               onClick={() => handleSectionClick(section)}
-              className={`px-4 py-2 rounded-md font-semibold ${
+              className={`px-4 py-2 rounded-md font-semibold text-xs sm:text-sm ${
                 activeSection === section ? "bg-gray-600" : "bg-gray-800"
               }`}
             >
@@ -153,22 +153,21 @@ const DashBoard = () => {
           ))}
         </div>
 
-        <div className="border-2 border-gray-600 rounded-lg p-4 text-lg text-gray-300">
-        {activeSection === "Foodhub" && (
-          <div className="flex flex-col items-center">
-            <div>No. of Foods donated: {userProfile?.totalMealsShared}</div>
-            <div>Amount Donated to Cause: Rs.{(userProfile?.totalDonations / 1000).toFixed(1)}K</div>
-          </div>
-        )}
-
+        <div className="border-2 border-gray-600 rounded-lg p-4 text-base sm:text-lg text-gray-300">
+          {activeSection === "Foodhub" && (
+            <div className="flex flex-col items-center text-center">
+              <div>No. of Foods donated: {userProfile?.totalMealsShared}</div>
+              <div>Amount Donated to Cause: Rs.{(userProfile?.totalDonations / 1000).toFixed(1)}K</div>
+            </div>
+          )}
           {activeSection === "Learn&Share" && (
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center text-center">
               <div>List of All Classes Taken</div>
               <div>User Rating:</div>
             </div>
           )}
           {activeSection === "MarketPlace" && (
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center text-center">
               <div>Number of Products Listed:</div>
               <div>Confirmed Trades:</div>
             </div>
