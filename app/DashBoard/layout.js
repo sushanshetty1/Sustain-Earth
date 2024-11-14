@@ -2,8 +2,8 @@ import "../globals.css";
 import Header from '@/components/Header';
 
 export const metadata = {
-  title: "SustainEarth",
-  description: "SustainEarth is a platform for sharing and learning about sustainability.",
+  title: "DashBoard",
+  description: "DashBoard",
 };
 
 export default function RootLayout({ children }) {

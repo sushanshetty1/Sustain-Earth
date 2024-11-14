@@ -49,7 +49,7 @@ function Feed() {
       const postDocRef = doc(db, 'posts', id);
       try {
         await updateDoc(postDocRef, {
-          views: views + 1, // Increment views count
+          views: views + 1,
         });
       } catch (error) {
         console.error("Error updating view count: ", error);
@@ -61,13 +61,11 @@ function Feed() {
     const toggleLike = async () => {
       const postDocRef = doc(db, 'posts', id);
       if (liked) {
-        // Remove the user's ID from the likes array if already liked
         await updateDoc(postDocRef, {
           likes: arrayRemove(currentUser.uid)
         });
         setLiked(false);
       } else {
-        // Add the user's ID to the likes array if not liked
         await updateDoc(postDocRef, {
           likes: arrayUnion(currentUser.uid)
         });

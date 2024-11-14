@@ -39,12 +39,12 @@ const Form = () => {
         },
         (error, result) => {
           if (error) {
-            console.error("Upload error:", error);  // Log the error object
+            console.error("Upload error:", error);
           } else if (result && result.event === "success") {
             console.log("Image uploaded:", result.info.secure_url);
             setImageUrl(result.info.secure_url);
           } else {
-            console.log("Unexpected result:", result);  // Log the result if there's no success event
+            console.log("Unexpected result:", result);
           }
         }
       );

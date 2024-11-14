@@ -41,7 +41,6 @@ const Signup = () => {
     }
 };
 
-// You may want to ensure this function gets called after setting up the state
 const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -72,7 +71,6 @@ const handleSubmit = async (e) => {
     }
 };
 
-// Make sure this is called appropriately
 const handleAdditionalSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -92,17 +90,15 @@ const handleAdditionalSubmit = async (e) => {
             throw new Error('User not authenticated');
         }
 
-        // Update the user's display name
         await updateProfile(user, {
             displayName: `${firstName} ${lastName}`,
         });
 
-        // Add the user data to the Firestore 'users' collection using setDoc
         await setDoc(doc(db, 'users', user.uid), {
             firstName,
             lastName,
             username,
-            email: user.email,  // Use the email from the user object
+            email: user.email,
             userId: user.uid,
         });
 
@@ -132,7 +128,6 @@ const handleAdditionalSubmit = async (e) => {
 
   return (
     <div className="flex sm:h-screen justify-center h-fit w-screen bg-gray-100">
-      {/* Left 30% div for video with logo */}
       <div className="relative w-[30%] sm:inline-block hidden h-full">
         <video
           autoPlay
@@ -155,7 +150,6 @@ const handleAdditionalSubmit = async (e) => {
         </div>
       </div>
 
-      {/* Right 70% div for signup form */}
       <div className="w-[70%] flex justify-center items-center bg-white">
         <div className="w-full max-w-md space-y-8 px-4 sm:px-6 lg:px-8 bg-white p-8">
           <div>

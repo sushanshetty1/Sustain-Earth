@@ -13,7 +13,6 @@ const EditPostPage = () => {
   const router = useRouter();
   const { id } = useParams();
 
-  // Load Cloudinary widget script
   useEffect(() => {
     if (!window.cloudinary) {
       const script = document.createElement("script");
@@ -27,7 +26,6 @@ const EditPostPage = () => {
     }
   }, []);
 
-  // Fetch existing post data from Firestore
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -48,7 +46,6 @@ const EditPostPage = () => {
     fetchPost();
   }, [id]);
 
-  // Open Cloudinary widget for image upload
   const handleImageUpload = () => {
     if (cloudinaryLoaded && window.cloudinary) {
       window.cloudinary.openUploadWidget(
@@ -73,7 +70,6 @@ const EditPostPage = () => {
     }
   };
 
-  // Save the edited post to Firestore
   const handleSave = async (e) => {
     e.preventDefault();
     try {

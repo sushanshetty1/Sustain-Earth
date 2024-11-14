@@ -9,7 +9,7 @@ const db = getFirestore(firebaseApp);
 
 const GreenMarket = () => {
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true); // Add loading state
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -20,7 +20,7 @@ const GreenMarket = () => {
         ...doc.data()
       }));
       setItems(itemList);
-      setLoading(false); // Set loading to false once the data is fetched
+      setLoading(false);
     };
     fetchItems();
   }, []);

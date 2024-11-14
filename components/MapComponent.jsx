@@ -36,7 +36,6 @@ const MapComponent = ({ helpers, latitude, longitude }) => {
               </div>
             `);
 
-          // Tooltip handling on mouseover and mouseout
           let tooltip = null;
           marker.on('mouseover', () => {
             console.log(`Hovered over ${helper.name}`);

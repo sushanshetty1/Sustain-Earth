@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from 'react';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import dynamic from 'next/dynamic';
@@ -32,7 +31,6 @@ const NearbyHelpersPage = () => {
     );
   }, []);
 
-  // Fetch helpers' data from Firestore
   useEffect(() => {
     const fetchHelpersFromDB = async () => {
       if (latitude && longitude) {

@@ -1,27 +1,46 @@
 "use client";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from 'next/navigation';
-import React, { useState } from "react";
 import styled from "styled-components";
 import { db } from "../../../../firebaseConfig";
-import { collection, addDoc } from "firebase/firestore";
-import { doc, getDoc, updateDoc } from "firebase/firestore"; 
-
+import { collection, addDoc, doc, getDoc, updateDoc } from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const Form = () => {
   const placeholderAmount = 0;
   const [amount, setAmount] = useState(placeholderAmount);
+  const [helpPercentage, setHelpPercentage] = useState(12);
   const [upiId, setUpiId] = useState("");
-  const router = useRouter(); 
   const [name, setName] = useState("");
+  const [user, setUser] = useState(null);
+  const router = useRouter();
   const path = usePathname();
   const donationId = path.split('/')[2];
-  const gstRate = 0.18;
-  const tax = amount * gstRate;
-  const total = amount + tax;
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+      } else {
+        alert("User is not authenticated");
+        router.push("/login");
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
 
   const handleAmountChange = (e) => {
-    const value = parseFloat(e.target.value) || placeholderAmount;
+    let value = parseFloat(e.target.value) || placeholderAmount;
+    if (value < 0) value = 0;
+    if (value > 1000000) value = 1000000;
+  
     setAmount(value);
+  };
+  
+
+  const handleHelpPercentageChange = (e) => {
+    setHelpPercentage(e.target.value);
   };
 
   const handleUpiIdChange = (e) => {
@@ -32,32 +51,77 @@ const Form = () => {
     setName(e.target.value);
   };
 
-  const handleSubmit = async () => {
-    const newDonation = { name, amount: total, date: new Date() };
-  
-    try {
-      const donationRef = doc(db, "donationCollections", donationId);
-      const donationDoc = await getDoc(donationRef);
-  
-      if (donationDoc.exists()) {
-        const currentAmount = donationDoc.data().amount || 0;
-        
-        await updateDoc(donationRef, {
-          amount: currentAmount + total,
-        });
+  const helpingMoney = (amount * helpPercentage) / 100;
+  const total = amount + helpingMoney;
 
+  const handleSubmit = async () => {
+    if (!user) {
+      alert("User not authenticated");
+      return;
+    }
+  
+    const donationRef = doc(db, "donationCollections", donationId);
+    const donationDoc = await getDoc(donationRef);
+  
+    if (donationDoc.exists()) {
+      const donationData = donationDoc.data();
+      const donationGoal = donationData.goal || 0;
+      const currentAmount = donationData.amount || 0;
+  
+      if (currentAmount + amount > donationGoal) {
+        alert(`Donation exceeds the goal of ₹${donationGoal}. Please reduce your donation.`);
+        return;
+      }
+  
+      if (amount < 10) {
+        alert("Donation amount should be at least ₹10.");
+        return;
+      } else if (amount > 1000000) {
+        alert("Donation amount should not exceed ₹10,00,000.");
+        return;
+      }
+  
+      const newDonation = { name, amount, date: new Date() };
+  
+      try {
+        await updateDoc(donationRef, {
+          amount: currentAmount + amount,
+        });
         await addDoc(collection(db, "donationCollections", donationId, "donations"), newDonation);
+  
+        const userRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userRef);
+  
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const newTotalDonations = (userData.totalDonations || 0) + amount;
+          let newBalance = userData.balance || 0;
+  
+          const additionalBalance = Math.floor(newTotalDonations / 250) * 25;
+  
+          await updateDoc(userRef, {
+            totalDonations: newTotalDonations,
+            balance: newBalance + additionalBalance,
+          });
+        } else {
+          await setDoc(userRef, {
+            totalDonations: amount,
+            balance: Math.floor(amount / 250) * 25,
+          });
+        }
   
         alert("Thank You For Your Valuable Donation!");
         router.back();
-      } else {
-        console.log("Donation document does not exist.");
+      } catch (error) {
+        console.error("Error saving donation information: ", error);
+        alert("Failed to save donation information. Please try again.");
       }
-    } catch (error) {
-      console.error("Error saving donation information: ", error);
-      alert("Failed to save donation information. Please try again.");
+    } else {
+      console.log("Donation document does not exist.");
     }
   };
+  
+  
 
   return (
     <StyledWrapper>
@@ -86,6 +150,18 @@ const Form = () => {
               />
             </div>
             <div className="step">
+              <span>Contribution Share for SustainEarth</span>
+              <input
+                type="range"
+                className="input_field"
+                min={0}
+                max={100}
+                value={helpPercentage}
+                onChange={handleHelpPercentageChange}
+              />
+              <span>{helpPercentage}%</span>
+            </div>
+            <div className="step">
               <div className="payment-method">
                 <span>PAYMENT METHOD</span>
                 <p>UPI</p>
@@ -101,10 +177,10 @@ const Form = () => {
               <div className="payments">
                 <span>PAYMENT SUMMARY</span>
                 <div className="details">
-                  <span>Subtotal:</span>
+                  <span>Actual Donation:</span>
                   <span>₹{amount.toFixed(2)}</span>
-                  <span>Tax (18%):</span>
-                  <span>₹{tax.toFixed(2)}</span>
+                  <span>Helping Money ({helpPercentage}%):</span>
+                  <span>₹{helpingMoney.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -112,7 +188,7 @@ const Form = () => {
         </div>
         <div className="card checkout">
           <div className="footer">
-            <label className="price">₹{total.toFixed(2)}</label>
+            <label className="price">Total: ₹{total.toFixed(2)}</label>
             <button className="checkout-btn" onClick={handleSubmit}>
               Proceed to Donate
             </button>
@@ -237,6 +313,19 @@ const StyledWrapper = styled.div`
   .checkout-btn:hover {
     background-color: #0c3a45;
   }
+  
+  .donation-percentage {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .slider {
+    width: 100%;
+  }
+    
 `;
 
 export default Form;

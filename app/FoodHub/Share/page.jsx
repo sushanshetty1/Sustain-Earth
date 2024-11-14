@@ -2,14 +2,13 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, updateDoc, increment,serverTimestamp } from 'firebase/firestore';
 import firebaseApp from '../../../firebaseConfig';
 
 const MealEntry = () => {
   const router = useRouter();
   const auth = getAuth(firebaseApp);
   const db = getFirestore(firebaseApp);
-
   const [user, setUser] = useState(null);
   const [option, setOption] = useState('restaurant');
   const [formData, setFormData] = useState({
@@ -46,32 +45,73 @@ const MealEntry = () => {
 
   const handleLocationAndSubmit = async () => {
     if (!user) return;
-
+  
     try {
       const position = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject);
       });
-
+  
       const userLocation = {
         lat: position.coords.latitude,
         lon: position.coords.longitude,
       };
-
+  
       await setDoc(doc(db, 'mealsCollection', user.uid), {
         ...formData,
         type: option,
         location: userLocation,
       });
-
+  
+      const userRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userRef);
+  
+      const today = new Date();
+      const todayString = today.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+  
+      let balanceIncrement = formData.meals * 12;
+      let newBalance = balanceIncrement;
+      let lastUpdated = todayString;
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+  
+        if (userData.lastUpdated === todayString) {
+          const remainingBalanceForToday = 250 - (userData.dailyBalance || 0);
+  
+          balanceIncrement = Math.min(balanceIncrement, remainingBalanceForToday);
+        }
+  
+        newBalance = userData.balance + balanceIncrement;
+  
+        await updateDoc(userRef, {
+          totalMealsShared: increment(formData.meals),
+          dailyBalance: (userData.lastUpdated === todayString)
+            ? increment(balanceIncrement)
+            : balanceIncrement,
+          balance: newBalance,
+          lastUpdated: todayString
+        });
+      } else {
+        await setDoc(userRef, {
+          totalMealsShared: formData.meals,
+          dailyBalance: balanceIncrement,
+          balance: newBalance,
+          lastUpdated: todayString,
+        });
+      }
+  
       setSubmitted(true);
     } catch (error) {
-      if (error.code === error.PERMISSION_DENIED) {
+      if (error.code === 'PERMISSION_DENIED') {
         alert("Location access must be given");
       } else {
-        console.error("Error obtaining location or saving data:", error);
+        alert("Error obtaining location or saving data. Please try again.");
+        console.error("Location or Firestore error:", error);
       }
     }
   };
+  
+    
 
   const handleSubmit = (e) => {
     e.preventDefault();

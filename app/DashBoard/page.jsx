@@ -4,7 +4,6 @@ import { FaCrown, FaDollarSign, FaEdit } from "react-icons/fa";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../firebaseConfig";
-import Header from "@/components/Header";
 
 const DashBoard = () => {
   const [userProfile, setUserProfile] = useState(null);
@@ -17,9 +16,7 @@ const DashBoard = () => {
     bio: "",
     balance: 0,
   });
-  const [activeSection, setActiveSection] = useState(null); // Track which section is active
-
-  const auth = getAuth();
+  const [activeSection, setActiveSection] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -41,7 +38,7 @@ const DashBoard = () => {
       setLoading(false);
     });
     return () => unsubscribe();
-  }, [auth]);
+  }, []);
 
   const handleEditToggle = () => setIsEditing(!isEditing);
 
@@ -73,33 +70,37 @@ const DashBoard = () => {
   };
 
   return (
-    <div className="flex justify-center flex-row items-center h-screen">
-      <div className="bg-gray-800 p-4 h-fit w-[90%] rounded-lg flex justify-between flex-col shadow-lg   transform transition duration-300 hover:scale-105">
+    <div className="flex justify-center items-center h-screen bg-gray-900">
+      <div className="bg-gray-800 p-6 w-full max-w-2xl rounded-lg shadow-lg transform transition duration-300 hover:scale-105">
         {isEditing ? (
-          <div className="space-y-2 border-white border-2 mb-4">
+          <div className="space-y-4 mb-4 border-2 border-gray-600 p-4 rounded">
             <input
               name="username"
               value={editValues.username}
               onChange={handleInputChange}
               className="bg-gray-700 text-white w-full rounded p-2"
+              placeholder="Username"
             />
             <input
               name="email"
               value={editValues.email}
               onChange={handleInputChange}
               className="bg-gray-700 text-white w-full rounded p-2"
+              placeholder="Email"
             />
             <input
               name="phone"
               value={editValues.phone}
               onChange={handleInputChange}
               className="bg-gray-700 text-white w-full rounded p-2"
+              placeholder="Phone"
             />
             <textarea
               name="bio"
               value={editValues.bio}
               onChange={handleInputChange}
               className="bg-gray-700 text-white w-full rounded p-2"
+              placeholder="Bio"
             />
             <button
               onClick={handleSaveChanges}
@@ -109,89 +110,70 @@ const DashBoard = () => {
             </button>
           </div>
         ) : (
-          <div className="text-white p-8 border-white border-2 rounded-lg space-y-2 mb-4">
-            <div className="pl-5 pt-5 flex flex-row gap-4">
-            <div className="w-20 h-20 rounded-full bg-white"></div>
-            <div className="text-lg flex w-fit flex-row justify-center items-center gap-5 font-semibold">
-              {userProfile?.username}
-              <FaCrown className="text-yellow-500" />
+          <div className="text-white p-4 border-2 border-gray-600 rounded-lg mb-4">
+            <div className="flex gap-4 items-center">
+              <div className="w-16 h-16 rounded-full bg-white"></div>
+              <div className="text-lg flex items-center gap-2 font-semibold">
+                {userProfile?.username} <FaCrown className="text-yellow-500" />
+              </div>
             </div>
-            
-      
-            </div>
-            <div className="pl-5 text-sm text-gray-400">{userProfile?.email}</div>
-            <div className="pl-5 text-sm text-gray-400">{userProfile?.phone}</div>
-            <div className="pl-5 text-sm text-gray-400">{userProfile?.bio}</div>
-            <button className="ml-5 mb-5 pb-5 h-9 text-md bg-green-700 rounded-lg w-28">
-              List as teacher
+            <div className="pl-4 mt-2 text-sm text-gray-400">{userProfile?.email}</div>
+            <div className="pl-4 text-sm text-gray-400">{userProfile?.phone}</div>
+            <div className="pl-4 text-sm text-gray-400">{userProfile?.bio}</div>
+            <button className="ml-4 mt-4 h-9 bg-green-700 text-white rounded-lg w-32">
+              List as Teacher
             </button>
           </div>
         )}
-        <div className="flex w-full justify-between items-center">
-          <div className="flex items-center text-white text-sm">
+
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center text-white">
             <FaDollarSign className="mr-1" />
             <span>{userProfile?.balance}</span>
           </div>
           <button
             onClick={handleEditToggle}
-            className="flex items-center text-gray-400 hover:text-gray-200 text-sm"
+            className="flex items-center text-gray-400 hover:text-gray-200"
           >
-            {isEditing ? "Cancel" : "Edit Profile"}
-            <FaEdit className="ml-1" />
+            {isEditing ? "Cancel" : "Edit Profile"} <FaEdit className="ml-1" />
           </button>
         </div>
 
-        {/* Bottom navigation buttons */}
-        <div className="w-full justify-evenly bg-gray-800 flex text-white items-center h-20">
-          <div className="flex flex-col items-center">
+        <div className="flex justify-around bg-gray-700 text-white py-2 rounded-md mb-4">
+          {["Foodhub", "Learn&Share", "MarketPlace"].map((section) => (
             <button
-              onClick={() => handleSectionClick("foodhub")}
-              className="h-12 w-28 text-sm border-black rounded-md font-bold border-2"
+              key={section}
+              onClick={() => handleSectionClick(section)}
+              className={`px-4 py-2 rounded-md font-semibold ${
+                activeSection === section ? "bg-gray-600" : "bg-gray-800"
+              }`}
             >
-              Foodhub
+              {section}
             </button>
-          </div>
-          <div className="flex flex-col items-center">
-            <button
-              onClick={() => handleSectionClick("Learn&Share")}
-              className="h-12 w-28 text-sm border-black rounded-md font-bold border-2"
-            >
-              Learn&Share
-            </button>
-          </div>
-          <div className="flex flex-col items-center">
-            <button
-              onClick={() => handleSectionClick("marketPlace")}
-              className="h-12 w-28 text-sm border-black rounded-md font-bold border-2"
-            >
-              MarketPlace
-            </button>
-          </div>
+          ))}
         </div>
 
-        {/* Content below the buttons */}
-        <div className="mt-4 border-white border-2 rounded-lg h-16 text-lg flex justify-center items-center">
-  {activeSection === "foodhub" && (
-    <div className="text-sm flex flex-col items-center text-center text-gray-300">
-      <div className="w-full">No. of Foods donated:</div>
-      <div className="w-full">Amount Donated to Cause:</div>
-    </div>
-  )}
-  {activeSection === "Learn&Share" && (
-    <div className="text-sm text-gray-300 gap-2 flex flex-col items-center text-center">
-      <div className="flex gap-8 flex-row w-full"><div>List of All classes taken</div><div>user rating</div></div>
-      <div className="w-full">List of All classes taken</div>
-      <div></div>
-    </div>
-  )}
-  {activeSection === "marketPlace" && (
-    <div className="text-sm text-gray-300 flex flex-col items-center text-center">
-      <div className="w-full">Number of products listed:</div>
-      <div className="w-full">Confirmed trades:</div>
-    </div>
-  )}
-</div>
+        <div className="border-2 border-gray-600 rounded-lg p-4 text-lg text-gray-300">
+        {activeSection === "Foodhub" && (
+          <div className="flex flex-col items-center">
+            <div>No. of Foods donated: {userProfile?.totalMealsShared}</div>
+            <div>Amount Donated to Cause: Rs.{(userProfile?.totalDonations / 1000).toFixed(1)}K</div>
+          </div>
+        )}
 
+          {activeSection === "Learn&Share" && (
+            <div className="flex flex-col items-center">
+              <div>List of All Classes Taken</div>
+              <div>User Rating:</div>
+            </div>
+          )}
+          {activeSection === "MarketPlace" && (
+            <div className="flex flex-col items-center">
+              <div>Number of Products Listed:</div>
+              <div>Confirmed Trades:</div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

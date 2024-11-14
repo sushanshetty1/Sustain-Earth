@@ -19,7 +19,7 @@ function Header() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(true); // Start loading
+      setLoading(true);
       if (currentUser) {
         setUser(currentUser);
         const userRef = doc(db, "users", currentUser.uid);
@@ -31,7 +31,7 @@ function Header() {
         setUser(null);
         setUserProfile(null);
       }
-      setLoading(false); // End loading
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -42,13 +42,11 @@ function Header() {
 
   const handleSignOut = async () => {
     await signOut(auth);
-    // The sign out will trigger the auth state change listener and reset the user state.
   };
 
   return (
     <div className="flex flex-row justify-center lg:justify-around items-center mt-12 ml-6 mr-6 sm:mb-3 mb-3">
       <div className="lg:flex w-screen lg:justify-evenly h-7 items-center">
-        {/* Desktop Navigation Links */}
         <div className="lg:flex hidden justify-around gap-6">
           <Link href="/MarketPlace/GreenMarket">
             <button className="text-lg rounded-lg w-32 font-bold text-gray-500 hover:text-black transition duration-300">
@@ -67,20 +65,16 @@ function Header() {
           </Link>
         </div>
 
-        {/* Logo */}
         <Link href="/">
           <button className="h-11 lg:w-54 flex justify-center md:h-11 w-44">
             <Image src={img} alt="logo" width={150} height={50} />
           </button>
         </Link>
 
-        {/* Desktop Profile and Search */}
         <div className="lg:flex hidden justify-between gap-3 items-center">
           {loading ? (
-            // Loader Spinner while loading
             <FaSpinner className="text-gray-500 animate-spin" size={24} />
           ) : user ? (
-            // Profile Info if user is logged in
             <div className="flex items-center gap-3">
               <span className="flex items-center ml-2">
                 <Image
@@ -107,7 +101,6 @@ function Header() {
               </button>
             </div>
           ) : (
-            // Login and Signup if no user is logged in
             <div className="flex gap-3">
               <Link href="/Login">
                 <button className="text-lg rounded-lg w-20 font-bold text-gray-500 hover:text-black transition duration-300">
@@ -124,7 +117,6 @@ function Header() {
         </div>
       </div>
 
-      {/* Mobile Menu Toggle Button */}
       <button onClick={toggleMenu} className="lg:hidden focus:outline-none pt-3">
         <svg
           className="w-8 h-8 text-gray-500"
@@ -142,7 +134,6 @@ function Header() {
         </svg>
       </button>
 
-{/* Mobile Menu */}
 {isOpen && (
   <div className="absolute top-28 h-screen w-screen left-0 bg-[#f9f6f4] z-10 shadow-lg lg:hidden">
     <div className="flex flex-col items-center py-4 space-y-4">
@@ -164,8 +155,8 @@ function Header() {
       {user ? (
         <button
           onClick={() => {
-            handleSignOut();  // Sign out the user
-            closeMenu();       // Close the menu after sign out
+            handleSignOut();
+            closeMenu(); 
           }}
           className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
         >

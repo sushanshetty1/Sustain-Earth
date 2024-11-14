@@ -5,6 +5,7 @@ import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 import Image from 'next/image';
+import styled from 'styled-components';
 import img from '../public/images/logo.png';
 import profilePic from '../public/images/profile.png';
 import { FaSpinner } from 'react-icons/fa'; 
@@ -79,7 +80,6 @@ function Header() {
           </Link>
         </div>
 
-        {/* Logo */}
         <Link href="/">
           <button className="h-11 lg:w-54 flex justify-center  md:h-11 w-44">
             <Image src={img} alt="logo" width={150} height={50} />
@@ -146,7 +146,6 @@ function Header() {
 
       </div>
 
-      {/* Mobile Menu Toggle Button */}
       <button onClick={toggleMenu} className="lg:hidden focus:outline-none pt-3">
         <svg
           className="w-8 h-8 text-gray-500"
@@ -164,8 +163,6 @@ function Header() {
         </svg>
       </button>
 
-      {/* Mobile Menu */}
-      {/* Mobile Menu */}
 {isOpen && (
   <div className="absolute top-28 h-screen left-0 w-screen bg-[#f9f6f4] z-10 shadow-lg lg:hidden">
     <div className="flex flex-col items-center py-4 space-y-4">
@@ -174,7 +171,7 @@ function Header() {
           FoodHub
         </button>
       </Link>
-      <Link href="/Learn&Share">
+      <Link href="/Learn&Share/Learn">
         <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
           Learn & Share
         </button>
@@ -184,13 +181,18 @@ function Header() {
           MarketPlace
         </button>
       </Link>
+      <Link href="/DashBoard">
+        <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
+          DashBoard
+        </button>
+      </Link>
       {loading ? (
         <FaSpinner className="text-gray-500 animate-spin" size={24} />
       ) : user ? (
         <button
           onClick={() => {
-            handleSignOut(); // Ensure the sign-out handler is called
-            closeMenu(); // Close the menu after sign-out
+            handleSignOut();
+            closeMenu();
           }}
           className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300"
         >

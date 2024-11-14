@@ -135,7 +135,7 @@ const SellNRent = () => {
       setProductStock(0);
       setProductSizes([]);
       setImages([]);
-      setProductType({ sell: false, rent: false }); // Reset product type
+      setProductType({ sell: false, rent: false });
     } catch (error) {
       alert("Error adding item.");
     }
@@ -215,7 +215,6 @@ const SellNRent = () => {
                 </div>
               </div>
 
-              {/* Dynamic fields for sale and rent */}
               {productType.sell && (
                 <div className="mb-4">
                   <label className="block text-gray-700 text-sm font-medium mb-2">Price (Sale)</label>
@@ -309,7 +308,6 @@ const SellNRent = () => {
         ) : (
           <div>
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Orders</h2>
-            {/* Orders content */}
           </div>
         )}
       </div>

@@ -1,11 +1,11 @@
-"use client"; // Ensure this is a client component
+"use client";
 import React, { useState, useEffect } from 'react';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebaseConfig';
 import Image from 'next/image';
 import Logo from '../../public/images/logo-w.jpg';
 import { useRouter } from 'next/navigation';
-import { FaSpinner } from 'react-icons/fa'; // Import FaSpinner
+import { FaSpinner } from 'react-icons/fa';
 
 const Login = () => {
   const router = useRouter();
@@ -14,7 +14,7 @@ const Login = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [videoLoading, setVideoLoading] = useState(true); // Video loading state
+  const [videoLoading, setVideoLoading] = useState(true);
 
   const provider = new GoogleAuthProvider();
 
@@ -53,14 +53,14 @@ const Login = () => {
       <div className="w-[30%] hidden md:inline-block h-full relative">
         {videoLoading && (
           <div className="flex justify-center items-center w-full h-full absolute top-0 left-0 bg-black bg-opacity-50">
-            <FaSpinner className="text-white text-4xl animate-spin" /> {/* Spinner */}
+            <FaSpinner className="text-white text-4xl animate-spin" />
           </div>
         )}
         <video 
           autoPlay 
           loop 
           muted 
-          onCanPlay={() => setVideoLoading(false)} // Hide loading when video is ready
+          onCanPlay={() => setVideoLoading(false)}
           className="object-cover w-full h-full absolute top-0 left-0"
         >
           <source 
@@ -77,7 +77,6 @@ const Login = () => {
         </div>
       </div>
   
-      {/* Right 70% div for login form */}
       <div className="w-[70%] flex justify-center items-center bg-white">
         <div className="w-full max-w-md space-y-8 px-4 sm:px-6 lg:px-8 bg-white p-8"> 
           <div>

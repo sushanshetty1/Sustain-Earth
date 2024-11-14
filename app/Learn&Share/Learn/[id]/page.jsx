@@ -92,27 +92,22 @@ const ClassDetail = () => {
   if (!classData) return <p>Loading...</p>;
   return (
     <div className="min-h-screen flex flex-col items-center justify-start p-8 bg-gray-50 text-gray-900">
-      {/* Class Title */}
       <h1 className="text-5xl font-bold text-center mb-6 text-gray-800 tracking-wide">
         {classData.className}
       </h1>
 
-      {/* Main Content Wrapper */}
       <div className="flex flex-col md:flex-row items-center w-full max-w-5xl">
-        {/* Large Image */}
         <img
           src={classData.imageUrl}
           alt="Class Image"
           className="w-full md:w-1/2 h-96 object-cover rounded-lg mb-4 md:mb-0"
         />
-        
-        {/* Class Details */}
+
         <div className="flex flex-col ml-0 md:ml-6 space-y-4 text-left gap-6">
           <p><strong>Standard:</strong> {classData.standard}</p>
           <p><strong>Class Type:</strong> {classData.classType}</p>
           <p><strong>Class Date:</strong> {classData.classDate}</p>
 
-          {/* Interested Checkbox */}
           <div className="flex items-center space-x-2">
             <span className="text-xl font-semibold mr-5">Interested:</span>
             <Checkbox
@@ -123,13 +118,11 @@ const ClassDetail = () => {
         </div>
       </div>
 
-      {/* Description Section */}
       <div className="mt-8 w-full max-w-5xl text-left">
         <h3 className="text-2xl font-bold mb-2">Description</h3>
         <p className="text-lg text-gray-700">{classData.description}</p>
       </div>
 
-      {/* What You Will Learn Section */}
       <div className="mt-8 w-full max-w-5xl text-left">
         <h3 className="text-2xl font-bold mb-2">What You Will Learn</h3>
         <ul className="list-disc pl-6 text-lg">
@@ -139,7 +132,6 @@ const ClassDetail = () => {
         </ul>
       </div>
 
-      {/* Minimum Requirements Section */}
       <div className="mt-8 w-full max-w-5xl text-left">
         <h3 className="text-2xl font-bold mb-2">Minimum Requirements</h3>
         <ul className="list-disc pl-6 text-lg">
@@ -149,7 +141,6 @@ const ClassDetail = () => {
         </ul>
       </div>
 
-      {/* Google Meet Link */}
       <div className="mt-8 w-full max-w-5xl text-left">
         <h3 className="text-2xl font-bold mb-2">Google Meet Link</h3>
         <a href={classData.googleMeetLink} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">

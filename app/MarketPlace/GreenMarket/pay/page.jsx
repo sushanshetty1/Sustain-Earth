@@ -32,13 +32,12 @@ const App = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    // Handle form submission, e.g., send data to server
     console.log('Form submitted:', { cardholderName, cardNumber, expiryDate, cvv });
   
 
   setSubmitted(true);
   setTimeout(() => {
-    router.push('/MarketPlace/GreenMarket'); // Replace with your target path
+    router.push('/MarketPlace/GreenMarket');
   }, 3000);
 };
 

@@ -28,8 +28,8 @@ const ClassesEntry = () => {
     const [cloudinaryLoaded, setCloudinaryLoaded] = useState(false);
     const [minRequirement, setMinRequirement] = useState('');
     const [learningPoint, setLearningPoint] = useState('');
-    const [isLoading, setIsLoading] = useState(false); // Loading state
-    const [error, setError] = useState(null); // Error state
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         if (!window.cloudinary) {
@@ -48,7 +48,6 @@ const ClassesEntry = () => {
                 router.push('/Login');
             } else {
                 setUser(currentUser);
-                // Update formData after user is fetched:
                 setFormData(prev => ({ ...prev, procterId: currentUser.uid })); 
             }
         });
@@ -116,7 +115,7 @@ const ClassesEntry = () => {
             }));
         } catch (error) {
             console.error("Error removing requirement:", error);
-            setError("Error removing requirement"); // Update error state
+            setError("Error removing requirement");
         }
     };
 
@@ -129,7 +128,7 @@ const ClassesEntry = () => {
             }));
         } catch (error) {
             console.error("Error removing learning point:", error);
-            setError("Error removing learning point"); // Update error state
+            setError("Error removing learning point");
         }
     };
 
@@ -137,17 +136,17 @@ const ClassesEntry = () => {
         e.preventDefault();
         if (!user) return; 
 
-        setIsLoading(true); // Set loading state
-        setError(null); // Clear any previous errors
+        setIsLoading(true);
+        setError(null);
 
         try {
             await addDoc(collection(db, 'classesCollection'), formData);
             setSubmitted(true);
         } catch (error) {
             console.error("Error saving class data:", error);
-            setError("Error saving class data"); // Update error state
+            setError("Error saving class data");
         } finally {
-            setIsLoading(false); // Reset loading state
+            setIsLoading(false);
         }
     };
 

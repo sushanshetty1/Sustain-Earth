@@ -2,9 +2,17 @@
 import { useState, useEffect } from 'react';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import { firebaseApp } from '../../firebaseConfig';
-import { FaSpinner } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import Loader from './loader';
+
+const ProgressBar = ({ amount, goal }) => (
+  <div className="w-full bg-gray-300 rounded-full h-4 mt-2">
+    <div
+      className="bg-green-500 h-4 rounded-full"
+      style={{ width: `${(amount / goal) * 100}%` }}
+    />
+  </div>
+);
 
 const HomePage = () => {
   const [responses, setResponses] = useState([]);
@@ -31,7 +39,6 @@ const HomePage = () => {
     fetchResponses();
   }, [db]);
 
-  // Handler to redirect to the donation details page
   const handleRedirect = (donationId) => {
     router.push(`/FoodHub/${donationId}`);
   };
@@ -51,39 +58,29 @@ const HomePage = () => {
           Every Gift Counts – Join Us in Making a Change
         </h1>
         <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {responses.map((fundraiser, index) => (
+          {responses.map((fundraiser) => (
             <div
-              key={index}
+              key={fundraiser.id}
               className="bg-white shadow-lg rounded-lg overflow-hidden cursor-pointer"
-              onClick={() => handleRedirect(fundraiser.id)} // Redirect on click
+              onClick={() => handleRedirect(fundraiser.id)}
             >
-              {/* Image with overlay text */}
               <div className="relative">
                 <img 
                   src={fundraiser.image || 'default-image.jpg'} 
-                  alt={fundraiser.title} 
+                  alt={fundraiser.title || 'Untitled'} 
                   className="w-full h-64 object-cover" 
                 />
                 <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
                   {fundraiser.donations || 0} Donations
                 </div>
               </div>
-
-              {/* Title and Content */}
               <div className="p-6">
-                <h2 className="text-xl font-semibold mb-3">{fundraiser.title || 'No title available'}</h2>
-  
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-                  <div
-                    className="bg-green-500 h-3 rounded-full"
-                    style={{ width: `${fundraiser.progress || 0}%` }}
-                  ></div>
-                </div>
-  
-                {/* Amount Raised */}
+                <h2 className="text-xl font-semibold mb-3">
+                  {fundraiser.title || 'No title available'}
+                </h2>
+                <ProgressBar amount={fundraiser.amount || 0} goal={fundraiser.goal || 100} />
                 <p className="text-lg font-semibold text-green-700">
-                ₹{fundraiser.amount || 0} raised of ₹{fundraiser.goal || 0}
+                  ₹{fundraiser.amount || 0} raised of ₹{fundraiser.goal || 100}
                 </p>
               </div>
             </div>

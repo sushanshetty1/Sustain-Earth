@@ -71,8 +71,14 @@ const DonationDetails = () => {
     router.push(`/FoodHub/${donationId}/Donate`)
   );
 
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href)
+      .then(() => alert("Link copied to clipboard!"))
+      .catch(err => console.error("Failed to copy: ", err));
+  };
+
   return (
-    <div className="flex flex-col gap-8 w-full h-auto min-h-screen bg-white rounded-lg shadow-lg overflow-hidden p-4 sm:p-6">
+    <div className="flex flex-col gap-8 w-full h-auto min-h-screen bg-[#f9f6f4] rounded-lg shadow-lg overflow-hidden p-4 sm:p-6">
       <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 p-4">
         {donationData?.title}
       </h1>
@@ -98,9 +104,7 @@ const DonationDetails = () => {
           <div className="text-sm text-black">{donationData?.description}</div>
         </div>
 
-        {/* Right Section */}
         <div className="flex flex-col w-full sm:w-1/3 h-auto p-6 rounded-lg shadow-lg">
-          {/* Fundraising Goal and Progress */}
           <div className="mb-4">
             <p className="text-lg sm:text-xl font-semibold text-gray-800">
               ₹{donationData?.amount} raised
@@ -111,9 +115,8 @@ const DonationDetails = () => {
             <ProgressBar amount={donationData?.amount} goal={donationData?.goal} />
           </div>
 
-          {/* Buttons */}
           <div className="flex flex-col gap-2 mb-4">
-            <button className="bg-yellow-400 text-white font-semibold py-2 rounded-xl w-full">
+            <button onClick={handleShare} className="bg-yellow-400 text-white font-semibold py-2 rounded-xl w-full">
               Share
             </button>
             <button onClick={handleDonate} className="bg-yellow-500 text-white font-semibold py-2 rounded-xl w-full">
@@ -121,7 +124,6 @@ const DonationDetails = () => {
             </button>
           </div>
 
-          {/* Recent Donations */}
           <p className="text-purple-600 text-sm font-bold mb-4">
             {donationsList.length} people just donated
           </p>
