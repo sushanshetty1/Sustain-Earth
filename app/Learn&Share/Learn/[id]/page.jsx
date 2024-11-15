@@ -91,7 +91,7 @@ const ClassDetail = () => {
 
   if (!classData) return <p>Loading...</p>;
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start p-8 bg-gray-50 text-gray-900">
+    <div className="min-h-screen flex flex-col items-center justify-start p-8 bg-[#f9f6f4] text-gray-900">
       <h1 className="text-5xl font-bold text-center mb-6 text-gray-800 tracking-wide">
         {classData.className}
       </h1>
@@ -104,12 +104,12 @@ const ClassDetail = () => {
         />
 
         <div className="flex flex-col ml-0 md:ml-6 space-y-4 text-left gap-6">
-          <p><strong>Standard:</strong> {classData.standard}</p>
+          <p><strong>Age Group:</strong> {classData.standard}</p>
           <p><strong>Class Type:</strong> {classData.classType}</p>
           <p><strong>Class Date:</strong> {classData.classDate}</p>
 
-          <div className="flex items-center space-x-2">
-            <span className="text-xl font-semibold mr-5">Interested:</span>
+          <div className="flex items-center">
+            <span className="text-xl font-semibold mr-3">Interested:</span>
             <Checkbox
               onChange={handleCheckboxChange} 
               checked={isInterested} />

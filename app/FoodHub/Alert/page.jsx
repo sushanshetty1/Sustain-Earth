@@ -67,7 +67,7 @@ const NearbyHelpersPage = () => {
   }
 
   return (
-    <div>
+    <div className='mt-9'>
       {latitude && longitude ? (
         <MapComponent helpers={helpers} latitude={latitude} longitude={longitude} />
       ) : (

@@ -70,7 +70,7 @@ const DashBoard = () => {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-900 px-4">
+    <div className="flex justify-center items-center h-screen bg-gray-900 px-4 mt-9">
       <div className="bg-gray-800 p-4 w-full max-w-2xl rounded-lg shadow-lg transform transition duration-300 hover:scale-105">
         {isEditing ? (
           <div className="space-y-4 mb-4 border-2 border-gray-600 p-4 rounded">
@@ -120,7 +120,7 @@ const DashBoard = () => {
             <div className="pl-4 mt-2 text-sm text-gray-400">{userProfile?.email}</div>
             <div className="pl-4 text-sm text-gray-400">{userProfile?.phone}</div>
             <div className="pl-4 text-sm text-gray-400">{userProfile?.bio}</div>
-            <button className="ml-4 mt-4 h-9 bg-green-700 text-white rounded-lg w-full sm:w-32">
+            <button className="ml-4 mt-4 mr-2  h-9 bg-green-700 text-white rounded-lg w-full sm:w-32">
               List as Teacher
             </button>
           </div>

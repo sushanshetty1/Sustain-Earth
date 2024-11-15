@@ -24,8 +24,8 @@ const Home = () => {
   }, [db]);
 
   return (
-    <div className="text-white min-h-screen p-6 font-sans">
-      <header className="flex flex-col md:flex-row items-center justify-center md:justify-between mb-16">
+    <div className="text-white min-h-screen p-6 font-sans ">
+      <header className="flex flex-col md:flex-row items-center justify-center md:justify-between mb-16 ">
         <div className="md:ml-[180px] mt-10 md:w-1/2 mb-8 md:mb-0">
           <p className="text-3xl md:text-4xl w-fit font-bold mb-4 text-black">
             "Unlock Your Learning <br/><span className='ml-0 md:ml-48'>Potential Today"</span>
@@ -56,7 +56,7 @@ const Home = () => {
             <Loader />
           </div>
         ) : (
-          <div className="flex flex-wrap justify-center gap-6">
+          <div className="flex flex-wrap justify-center gap-6 ">
             {classesData.map((classData) => (
               <Link href={`/Learn&Share/Learn/${classData.id}`} key={classData.id}>
                 <div className="article-wrapper">
@@ -75,8 +75,8 @@ const Home = () => {
                         </svg>
                       </div>
                     </div>
-                    <div className="text-left text-black">{classData.classDate}</div>
-                    <div className="types">
+                    <div className="text-center text-black">{classData.classDate}</div>
+                    <div className="types flex gap-2 justify-center">
                       <span style={{ backgroundColor: 'rgba(165, 96, 247, 0.43)', color: 'rgb(85, 27, 177)' }} className="project-type">• {classData.classType}</span>
                       <span className="project-type">• {classData.standard}</span>
                     </div>
