@@ -24,6 +24,18 @@ body {
   }
 }
 
+@media (max-width: 768px) {
+  .profile-pic {
+    width: 35px; 
+    height: 35px; 
+  }
+
+  .sign-out-text {
+    display: none;
+  }
+}
+
+
 .wave-effect {
   color: black; /* Default text color */
   position: relative;

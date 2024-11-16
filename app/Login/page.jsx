@@ -48,7 +48,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex h-fit md:h-screen justify-center w-screen bg-gray-100">
+    <div className="flex h-fit md:h-screen justify-center bg-gray-100">
       {/* Left 30% div for video */}
       <div className="w-[30%] hidden md:inline-block h-full relative">
         {videoLoading && (

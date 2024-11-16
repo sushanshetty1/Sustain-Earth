@@ -62,7 +62,7 @@ const DashBoard = () => {
   };
 
   if (loading) {
-    return <div className="text-white">Loading...</div>;
+    return <div className="text-black">Loading...</div>;
   }
 
   const handleSectionClick = (section) => {
@@ -70,82 +70,82 @@ const DashBoard = () => {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-900 px-4 mt-9">
-      <div className="bg-gray-800 p-4 w-full max-w-2xl rounded-lg shadow-lg transform transition duration-300 hover:scale-105">
+    <div className="flex justify-center items-center h-screen bg-[#f9f6f4] px-4 mt-9">
+      <div className="bg-white p-4 w-full text-black max-w-2xl rounded-lg shadow-lg transform transition duration-300 hover:scale-105">
         {isEditing ? (
-          <div className="space-y-4 mb-4 border-2 border-gray-600 p-4 rounded">
+          <div className="space-y-4 mb-4 border-2 border-gray-300 p-4 rounded">
             <input
               name="username"
               value={editValues.username}
               onChange={handleInputChange}
-              className="bg-gray-700 text-white w-full rounded p-2"
+              className="bg-gray-100 text-black w-full rounded p-2 border border-gray-300"
               placeholder="Username"
             />
             <input
               name="email"
               value={editValues.email}
               onChange={handleInputChange}
-              className="bg-gray-700 text-white w-full rounded p-2"
+              className="bg-gray-100 text-black w-full rounded p-2 border border-gray-300"
               placeholder="Email"
             />
             <input
               name="phone"
               value={editValues.phone}
               onChange={handleInputChange}
-              className="bg-gray-700 text-white w-full rounded p-2"
+              className="bg-gray-100 text-black w-full rounded p-2 border border-gray-300"
               placeholder="Phone"
             />
             <textarea
               name="bio"
               value={editValues.bio}
               onChange={handleInputChange}
-              className="bg-gray-700 text-white w-full rounded p-2"
+              className="bg-gray-100 text-black w-full rounded p-2 border border-gray-300"
               placeholder="Bio"
             />
             <button
               onClick={handleSaveChanges}
-              className="w-full bg-green-600 text-white rounded p-2 mt-2"
+              className="w-full bg-blue-500 text-white rounded p-2 mt-2 hover:bg-blue-600"
             >
               Save Changes
             </button>
           </div>
         ) : (
-          <div className="text-white p-4 border-2 border-gray-600 rounded-lg mb-4">
+          <div className="text-black p-4 border-2 border-gray-300 rounded-lg mb-4">
             <div className="flex gap-4 items-center">
-              <div className="w-16 h-16 rounded-full bg-white"></div>
+              <div className="w-16 h-16 rounded-full bg-gray-200"></div>
               <div className="text-lg flex items-center gap-2 font-semibold">
                 {userProfile?.username} <FaCrown className="text-yellow-500" />
               </div>
             </div>
-            <div className="pl-4 mt-2 text-sm text-gray-400">{userProfile?.email}</div>
-            <div className="pl-4 text-sm text-gray-400">{userProfile?.phone}</div>
-            <div className="pl-4 text-sm text-gray-400">{userProfile?.bio}</div>
-            <button className="ml-4 mt-4 mr-2  h-9 bg-green-700 text-white rounded-lg w-full sm:w-32">
+            <div className="pl-4 mt-2 text-sm text-gray-600">{userProfile?.email}</div>
+            <div className="pl-4 text-sm text-gray-600">{userProfile?.phone}</div>
+            <div className="pl-4 text-sm text-gray-600">{userProfile?.bio}</div>
+            <button className="ml-4 mt-4 mr-2 h-9 bg-blue-500 text-white rounded-lg w-full sm:w-32 hover:bg-blue-600">
               List as Teacher
             </button>
           </div>
         )}
 
         <div className="flex justify-between items-center mb-4 text-sm sm:text-base">
-          <div className="flex items-center text-white">
+          <div className="flex items-center text-black">
             <FaDollarSign className="mr-1" />
             <span>{userProfile?.balance}</span>
           </div>
           <button
             onClick={handleEditToggle}
-            className="flex items-center text-gray-400 hover:text-gray-200"
+            className="flex items-center text-gray-600 hover:text-gray-800"
           >
             {isEditing ? "Cancel" : "Edit Profile"} <FaEdit className="ml-1" />
           </button>
         </div>
 
-        <div className="flex flex-wrap justify-around bg-gray-700 text-white py-2 rounded-md mb-4">
+        <div className="flex flex-wrap justify-around bg-gray-200 text-black py-2 rounded-md mb-4">
           {["Foodhub", "Learn&Share", "MarketPlace"].map((section) => (
             <button
               key={section}
               onClick={() => handleSectionClick(section)}
               className={`px-4 py-2 rounded-md font-semibold text-xs sm:text-sm ${
-                activeSection === section ? "bg-gray-600" : "bg-gray-800"
+                activeSection === section ? "bg-gray-300" : "bg-gray-200"
               }`}
             >
               {section}
@@ -153,7 +153,7 @@ const DashBoard = () => {
           ))}
         </div>
 
-        <div className="border-2 border-gray-600 rounded-lg p-4 text-base sm:text-lg text-gray-300">
+        <div className="border-2 border-gray-300 rounded-lg p-4 text-base sm:text-lg text-gray-600">
           {activeSection === "Foodhub" && (
             <div className="flex flex-col items-center text-center">
               <div>No. of Foods donated: {userProfile?.totalMealsShared}</div>

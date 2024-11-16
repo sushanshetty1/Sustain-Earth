@@ -127,7 +127,7 @@ const handleAdditionalSubmit = async (e) => {
   testFirestore();
 
   return (
-    <div className="flex sm:h-screen justify-center h-fit w-screen bg-gray-100">
+    <div className="flex sm:h-screen justify-center h-fit bg-gray-100">
       <div className="relative w-[30%] sm:inline-block hidden h-full">
         <video
           autoPlay
