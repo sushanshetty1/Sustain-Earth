@@ -100,7 +100,7 @@ Together, we can make the world a better place! 🌎
 
 ## 📬 **Contact Us**
 
-Have suggestions or want to learn more? Reach out to us at **contact@sustainearth.com**.
+Have suggestions or want to learn more? Reach out to us at **sushanshetty1470@gmail.com**.
 
 ---
 
