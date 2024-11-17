@@ -67,6 +67,7 @@ const ClassDetail = () => {
 
     const newInterestedState = !isInterested;
     const classRef = doc(db, 'classesCollection', classId);
+    const userRef = doc(db, "users", user.uid);
 
     try {
       if (newInterestedState) {
@@ -74,6 +75,35 @@ const ClassDetail = () => {
           interestedUsers: arrayUnion(user.uid) 
         });
         setInterestedCount(prevCount => prevCount + 1);
+
+       
+        const newCount = interestedCount + 1;
+        if (newCount % 4 === 0) {
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            const currentDate = new Date().toDateString();
+
+            if (lastUpdated !== currentDate) {
+              dailyBalance = 0;
+          }
+           
+
+            let newDailyBalance = dailyBalance + 20;
+            let newBalance = balance;
+
+            if (newDailyBalance > 250) {
+              newDailyBalance = 250;
+            } else {
+              newBalance += 20;
+            }
+
+            await updateDoc(userRef, {
+              dailyBalance: newDailyBalance,
+              balance: newBalance,
+            });
+          }
+        }
+
       } else {
         await updateDoc(classRef, {
           interestedUsers: arrayRemove(user.uid)

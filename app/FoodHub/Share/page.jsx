@@ -66,7 +66,7 @@ const MealEntry = () => {
       const userDoc = await getDoc(userRef);
   
       const today = new Date();
-      const todayString = today.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+      const todayString = today.toISOString().split("T")[0];
   
       let balanceIncrement = formData.meals * 12;
       let newBalance = balanceIncrement;

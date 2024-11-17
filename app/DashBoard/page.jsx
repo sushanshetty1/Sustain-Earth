@@ -89,7 +89,7 @@ const DashBoard = () => {
   );
 
   const handleProfessional = () => (
-    router.push(`/DashBoard/Proffesional`)
+    router.push(`/DashBoard/Professional`)
   );
 
   return (

@@ -63,36 +63,32 @@ export default function AddProduct() {
   
     try {
       const productData = {
-        userId: auth.currentUser.uid,  // Correctly referencing auth
+        userId: auth.currentUser.uid,
         productName,
         initialValue,
         images,
         createdAt: new Date(),
         itemId,
-        TradeRequests: []  // Initialize the TradeRequests array for future requests
+        TradeRequests: [] 
       };
   
-      // Create a new trade request object to add to TradeRequests array
       const tradeRequest = {
-        createdAt: new Date(),  // Timestamp for the trade request
-        images,  // Product images
-        initialValue,  // Initial value of the product
-        itemId,  // Unique product identifier
-        productName,  // Name of the product
-        userId: auth.currentUser.uid,  // User ID of the current user adding the product
+        createdAt: new Date(),
+        images,
+        initialValue,
+        itemId,
+        productName,
+        userId: auth.currentUser.uid,
       };
   
-      // Reference the product document using itemId
       const productRef = doc(db, "orderCollections", itemId);
   
-      // Add the trade request to the TradeRequests array within the product document
       await updateDoc(productRef, {
-        TradeRequests: arrayUnion(tradeRequest)  // Add the new trade request to the array
+        TradeRequests: arrayUnion(tradeRequest)
       });
   
       alert("Product added successfully!");
   
-      // Clear form fields after submission
       setProductName("");
       setInitialValue("");
       setImages([]);
@@ -103,11 +99,6 @@ export default function AddProduct() {
     }
   };
   
-  
-  
-  
-  
-
   return (
     <div className={styles.container}>
       <h2 className={styles.header}>Add a New Product</h2>

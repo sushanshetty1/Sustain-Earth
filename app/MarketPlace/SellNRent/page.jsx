@@ -1,28 +1,34 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
-import { firebaseApp } from "../../../firebaseConfig";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { firebaseApp} from "../../../firebaseConfig";
+import { getFirestore, addDoc } from "firebase/firestore";
+import { FaSpinner } from "react-icons/fa";
 
 const db = getFirestore(firebaseApp);
+const auth = getAuth(firebaseApp);
 
 const SellNRent = () => {
   const [view, setView] = useState("add");
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
-  const [productCategory, setProductCategory] = useState("Men");
+  const [productCategory, setProductCategory] = useState({ value: "Men", label: "Men" });
   const [productPrice, setProductPrice] = useState(0);
   const [productPricePerDay, setProductPricePerDay] = useState(0);
   const [productStock, setProductStock] = useState(0);
   const [productSizes, setProductSizes] = useState([]);
   const [images, setImages] = useState([]);
+  const [tradeRequests, setTradeRequests] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [productType, setProductType] = useState({
     sell: false,
     rent: false,
   });
   const [productCity, setProductCity] = useState("");
-  const [productState, setProductState] = useState("");
+  const [productState, setProductState] = useState({ value: "", label: "" });
 
   const categoryOptions = [
     "Electronics", "Computers & Accessories", "Mobile Phones & Accessories", "Home Appliances", "Furniture",
@@ -73,6 +79,59 @@ const SellNRent = () => {
     };
     loadCloudinaryScript();
   }, []);
+
+  useEffect(() => {
+    if (view === "trade") {
+      fetchTradeRequests();
+    }
+  }, [view]);
+
+  const fetchTradeRequests = async () => {
+    setLoading(true);
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Please log in to view trade requests.");
+        return;
+      }
+  
+      const userUid = user.uid;
+      const tradeQuery = query(
+        collection(db, "orderCollections"),
+        where("userId", "==", userUid)
+      );
+  
+      const querySnapshot = await getDocs(tradeQuery);
+  
+      const requests = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+  
+        const formattedTradeRequests = (data.TradeRequests || []).map((trade) => ({
+          ...trade,
+          timestamp: trade.timestamp
+            ? new Date(trade.timestamp.seconds * 1000).toLocaleString()
+            : null,
+        }));
+  
+        return {
+          id: doc.id,
+          ...data,
+          TradeRequests: formattedTradeRequests,
+        };
+      });
+  
+      const tradeRequests = requests.flatMap((request) => request.TradeRequests || []);
+  
+      setTradeRequests(tradeRequests);
+    } catch (error) {
+      console.error("Error fetching trade requests:", error);
+      alert("Failed to load trade requests. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
 
   const handleImageUpload = () => {
     if (window.cloudinary) {
@@ -130,7 +189,7 @@ const SellNRent = () => {
 
       setProductName("");
       setProductDescription("");
-      setProductCategory("Men");
+      setProductCategory({ value: "Men", label: "Men" });
       setProductPrice(0);
       setProductStock(0);
       setProductSizes([]);
@@ -140,6 +199,32 @@ const SellNRent = () => {
       alert("Error adding item.");
     }
   };
+
+const handleConfirmTrade = async (tradeId) => {
+  try {
+    await updateDoc(doc(db, "orderCollections", tradeId), {
+      type: "Confirmed",
+    });
+    alert("Trade confirmed!");
+    fetchTradeRequests();
+  } catch (error) {
+    console.error("Error confirming trade:", error);
+    alert("Failed to confirm trade.");
+  }
+};
+
+const handleDeleteTrade = async (tradeId) => {
+  try {
+    await updateDoc(doc(db, "orderCollections", tradeId), {
+      TradeRequests: arrayRemove({ id: tradeId }),
+    });
+    alert("Trade deleted!");
+    fetchTradeRequests();
+  } catch (error) {
+    console.error("Error deleting trade:", error);
+    alert("Failed to delete trade.");
+  }
+};
 
   return (
     <div className="flex flex-col lg:flex-row h-auto bg-gray-50 mt-10">
@@ -157,15 +242,21 @@ const SellNRent = () => {
         >
           Orders
         </button>
+        <button
+          onClick={() => setView("trade")}
+          className="w-full text-left py-3 px-5 mb-3 rounded-md text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+        >
+          Trade
+        </button>
       </div>
 
       <div className="flex-grow p-8 bg-white">
-        {view === "add" ? (
+        {view === "add" && (
           <div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Add New Item</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Add New Item</h2>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">Product Name</label>
+                <label className="block text-gray-700 text-sm font-semibold mb-2">Product Name</label>
                 <input
                   type="text"
                   value={productName}
@@ -175,7 +266,7 @@ const SellNRent = () => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">Product Description</label>
+                <label className="block text-gray-700 text-sm font-semibold mb-2">Product Description</label>
                 <textarea
                   value={productDescription}
                   onChange={(e) => setProductDescription(e.target.value)}
@@ -184,7 +275,7 @@ const SellNRent = () => {
                 ></textarea>
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">Category</label>
+                <label className="block text-gray-700 text-sm font-semibold mb-2">Category</label>
                 <Select
                   value={productCategory}
                   onChange={setProductCategory}
@@ -194,7 +285,7 @@ const SellNRent = () => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">Product Type</label>
+                <label className="block text-gray-700 text-sm font-semibold mb-2">Product Type</label>
                 <div className="flex items-center mb-3">
                   <input
                     type="checkbox"
@@ -217,7 +308,7 @@ const SellNRent = () => {
 
               {productType.sell && (
                 <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-medium mb-2">Price (Sale)</label>
+                  <label className="block text-gray-700 text-sm font-semibold mb-2">Price (Sale)</label>
                   <input
                     type="number"
                     value={productPrice}
@@ -229,7 +320,7 @@ const SellNRent = () => {
               )}
               {productType.rent && (
                 <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-medium mb-2">Price Per Day (Rent)</label>
+                  <label className="block text-gray-700 text-sm font-semibold mb-2">Price Per Day (Rent)</label>
                   <input
                     type="number"
                     value={productPricePerDay}
@@ -241,7 +332,7 @@ const SellNRent = () => {
               )}
 
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">Stock Quantity</label>
+                <label className="block text-gray-700 text-sm font-semibold mb-2">Stock Quantity</label>
                 <input
                   type="number"
                   value={productStock}
@@ -252,7 +343,7 @@ const SellNRent = () => {
               </div>
 
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">Product Sizes (Optional)</label>
+                <label className="block text-gray-700 text-sm font-semibold mb-2">Product Sizes (Optional)</label>
                 <input
                   type="text"
                   value={productSizes}
@@ -263,7 +354,7 @@ const SellNRent = () => {
               </div>
 
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">Product Images</label>
+                <label className="block text-gray-700 text-sm font-semibold mb-2">Product Images</label>
                 <button
                   type="button"
                   onClick={handleImageUpload}
@@ -274,7 +365,7 @@ const SellNRent = () => {
               </div>
 
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">City</label>
+                <label className="block text-gray-700 text-sm font-semibold mb-2">City</label>
                 <input
                   type="text"
                   value={productCity}
@@ -285,7 +376,7 @@ const SellNRent = () => {
               </div>
 
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">State</label>
+                <label className="block text-gray-700 text-sm font-semibold mb-2">State</label>
                 <Select
                   value={productState}
                   onChange={setProductState}
@@ -305,14 +396,78 @@ const SellNRent = () => {
               </div>
             </form>
           </div>
-        ) : (
+        )}
+        {view === "orders" && (
           <div>
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Orders</h2>
+            {/* Orders content */}
           </div>
         )}
+        {view === "trade" && (
+  <div>
+    <h2 className="text-2xl font-semibold text-gray-800 mb-6">Trade Requests</h2>
+    {loading ? (
+      <div className="flex justify-center items-center mt-10 h-screen">
+        <FaSpinner className="animate-spin text-4xl" />
+      </div>
+    ) : tradeRequests.length === 0 ? (
+      <p>No responses available.</p>
+    ) : (
+      <div className="ml-4 sm:ml-20 mt-10 mr-4 sm:mr-20 flex flex-wrap gap-6 p-6">
+        {tradeRequests.map((response) => (
+          <div
+            key={response.id}
+            className="w-full sm:w-[300px] bg-white p-4 rounded-lg transition-transform transform hover:scale-105 shadow-lg"
+          >
+            <div className="image_slot bg-gray-200 w-full h-[180px] sm:h-[200px] rounded-t-lg">
+              {response.images ? (
+                <img 
+                  src={response.images} 
+                  alt="Trade Pic" 
+                  className="w-full h-full object-cover rounded-t-lg" 
+                />
+              ) : (
+                <p className="text-gray-500 text-center pt-16">No image available</p>
+              )}
+            </div>
+            <div className="font-semibold text-gray-700 p-2 text-lg">
+              {response.productName || "Anonymous"}
+              <div className="text-gray-500 font-normal text-sm pt-3">
+              Initial Value: <span className="font-semibold">₹{response.initialValue || "N/A"}</span>
+                <br />
+                Created At:{" "}
+                <span className="font-semibold">
+                  {response.createdAt 
+                    ? new Date(response.createdAt.seconds * 1000).toLocaleString() 
+                    : "Unknown"}
+                </span>
+              </div>
+              <div className="flex items-center justify-center mt-4 space-x-4">
+                <button
+                  onClick={() => handleConfirmTrade(trade.id)}
+                  className="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600 transition duration-200"
+                >
+                  ✓
+                </button>
+                <button
+                  onClick={() => handleDeleteTrade(trade.id)}
+                  className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-200"
+                >
+                  ✗
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+)}
+
       </div>
     </div>
   );
 };
+    
 
 export default SellNRent;

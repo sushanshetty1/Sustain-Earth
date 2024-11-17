@@ -4,8 +4,6 @@ import { getAuth } from "firebase/auth";
 import { auth } from "../../../firebaseConfig";
 import { getFirestore, collection, addDoc } from "firebase/firestore";
 
-const db = getFirestore();
-
 const App = () => {
   const [formData, setFormData] = useState({
     teacherName: "",
@@ -19,8 +17,7 @@ const App = () => {
   });
 
   useEffect(() => {
-    const auth = getAuth();
-    const user = auth.currentUser;
+    const user = getAuth().currentUser;
 
     if (user) {
       setFormData((prev) => ({
@@ -83,39 +80,35 @@ const App = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const user = auth.currentUser;
-  
-    if (!user) {
-      alert("User not authenticated. Please sign in.");
-      return;
-    }
-  
-    try {
-      await addDoc(collection(db, "teacherVerification"), {
-        userId: user.uid,
-        teacherName: formData.teacherName,
-        schoolName: formData.schoolName,
-        frontCardImage: formData.frontCardImage,
-        backCardImage: formData.backCardImage,
-        timestamp: new Date(),
-      });
-      alert("Form submitted successfully!");
-      setFormData({
-        teacherName: user.displayName || "",
-        schoolName: "",
-        frontCardImage: "",
-        backCardImage: "",
-      });
-    } catch (error) {
-      console.error("Error adding document: ", error);
-      alert("Failed to submit the form. Please try again.");
+
+    const db = getFirestore();
+    const user = getAuth().currentUser;
+
+    if (user) {
+      try {
+        await addDoc(collection(db, "professionalVerification"), {
+          userId: user.uid,
+          teacherName: formData.teacherName,
+          schoolName: formData.schoolName,
+          frontCardImage: formData.frontCardImage,
+          backCardImage: formData.backCardImage,
+        });
+        console.log("Form Data Submitted and Stored in Firestore:", formData);
+        alert("Form data submitted successfully.");
+      } catch (error) {
+        console.error("Error adding document:", error);
+        alert("Error submitting form.");
+      }
+    } else {
+      alert("User not authenticated.");
     }
   };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br bg-[#f9f6f4]">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <h2 className="text-3xl font-semibold text-center text-black mb-6">
-          Teacher Form
+          Professional Form
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -141,7 +134,7 @@ const App = () => {
               htmlFor="schoolName"
               className="block text-sm font-medium text-gray-700"
             >
-              Institution Name:
+              Company Name:
             </label>
             <input
               type="text"
@@ -149,7 +142,7 @@ const App = () => {
               name="schoolName"
               value={formData.schoolName}
               onChange={handleChange}
-              placeholder="Enter your Institution name"
+              placeholder="Enter your Company name"
               required
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             />
