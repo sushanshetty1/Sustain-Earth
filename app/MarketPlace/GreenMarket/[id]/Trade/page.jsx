@@ -1,8 +1,8 @@
-"use client";
+"use client"
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from 'next/navigation';
-import { db } from "../../../../../firebaseConfig";
-import { collection, addDoc } from "firebase/firestore";
+import { db, auth,doc } from "../../../../../firebaseConfig"; 
+import { collection, addDoc, setDoc ,updateDoc,arrayUnion } from "firebase/firestore";
 import styles from './AddProduct.module.css';
 
 export default function AddProduct() {
@@ -63,15 +63,36 @@ export default function AddProduct() {
   
     try {
       const productData = {
+        userId: auth.currentUser.uid,  // Correctly referencing auth
         productName,
         initialValue,
         images,
         createdAt: new Date(),
         itemId,
+        TradeRequests: []  // Initialize the TradeRequests array for future requests
       };
-      await addDoc(collection(db, "Trades"), productData);
+  
+      // Create a new trade request object to add to TradeRequests array
+      const tradeRequest = {
+        createdAt: new Date(),  // Timestamp for the trade request
+        images,  // Product images
+        initialValue,  // Initial value of the product
+        itemId,  // Unique product identifier
+        productName,  // Name of the product
+        userId: auth.currentUser.uid,  // User ID of the current user adding the product
+      };
+  
+      // Reference the product document using itemId
+      const productRef = doc(db, "orderCollections", itemId);
+  
+      // Add the trade request to the TradeRequests array within the product document
+      await updateDoc(productRef, {
+        TradeRequests: arrayUnion(tradeRequest)  // Add the new trade request to the array
+      });
+  
       alert("Product added successfully!");
-      
+  
+      // Clear form fields after submission
       setProductName("");
       setInitialValue("");
       setImages([]);
@@ -81,6 +102,10 @@ export default function AddProduct() {
       alert("There was an error adding the product. Please try again.");
     }
   };
+  
+  
+  
+  
   
 
   return (

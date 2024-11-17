@@ -2,13 +2,18 @@
 import React, { useState, useEffect } from "react";
 import { FaCrown, FaDollarSign, FaEdit } from "react-icons/fa";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { useRouter } from 'next/navigation';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../firebaseConfig";
+import Loader from "./loader";
+import styled from "styled-components";
 
 const DashBoard = () => {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [showButtons, setShowButtons] = useState(false);
+  const router = useRouter();
   const [editValues, setEditValues] = useState({
     username: "",
     email: "",
@@ -50,6 +55,10 @@ const DashBoard = () => {
     }));
   };
 
+  const handleToggleChange = () => {
+    setShowButtons((prev) => !prev);
+  };
+
   const handleSaveChanges = async () => {
     if (auth.currentUser) {
       const userRef = doc(db, "users", auth.currentUser.uid);
@@ -62,12 +71,26 @@ const DashBoard = () => {
   };
 
   if (loading) {
-    return <div className="text-black">Loading...</div>;
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <Loader />
+      </div>
+    );
   }
 
   const handleSectionClick = (section) => {
-    setActiveSection((prevSection) => (prevSection === section ? null : section));
+    setActiveSection((prevSection) =>
+      prevSection === section ? null : section
+    );
   };
+
+  const handleTeacher = () => (
+    router.push(`/DashBoard/Teacher`)
+  );
+
+  const handleProfessional = () => (
+    router.push(`/DashBoard/Proffesional`)
+  );
 
   return (
     <div className="flex justify-center items-center h-screen bg-[#f9f6f4] px-4 mt-9">
@@ -85,6 +108,7 @@ const DashBoard = () => {
               name="email"
               value={editValues.email}
               onChange={handleInputChange}
+              disabled
               className="bg-gray-100 text-black w-full rounded p-2 border border-gray-300"
               placeholder="Email"
             />
@@ -117,65 +141,99 @@ const DashBoard = () => {
                 {userProfile?.username} <FaCrown className="text-yellow-500" />
               </div>
             </div>
-            <div className="pl-4 mt-2 text-sm text-gray-600">{userProfile?.email}</div>
-            <div className="pl-4 text-sm text-gray-600">{userProfile?.phone}</div>
+            <div className="pl-4 mt-2 text-sm text-gray-600">
+              {userProfile?.email}
+            </div>
+            <div className="pl-4 text-sm text-gray-600">
+              {userProfile?.phone}
+            </div>
             <div className="pl-4 text-sm text-gray-600">{userProfile?.bio}</div>
-            <button className="ml-4 mt-4 mr-2 h-9 bg-blue-500 text-white rounded-lg w-full sm:w-32 hover:bg-blue-600">
-              List as Teacher
-            </button>
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-gray-600">
+                <span className="font-bold">
+                  User Type: {userProfile?.type}
+                </span>
+                <button
+                  onClick={handleToggleChange}
+                  className="bg-gray-200 hover:bg-gray-300 text-sm px-3 py-1 rounded text-black ml-2"
+                >
+                  {showButtons ? "Cancel" : "Change"}
+                </button>
+              </div>
+              {showButtons && (
+                <StyledWrapper>
+                  <button onClick={handleTeacher} className="btn-31">Teacher</button>
+                  <button onClick={handleProfessional} className="btn-31">Professional</button>
+                </StyledWrapper>
+              )}
+            </div>
+            {!isEditing && (
+              <div className="flex justify-end">
+          <button
+            onClick={handleEditToggle}
+            className="w-fit bg-transparent text-blue-500 rounded p-2 mt-2  flex items-center justify-center gap-2"
+          >
+            <FaEdit className="text-xl" /> Edit Profile
+          </button>
           </div>
         )}
 
-        <div className="flex justify-between items-center mb-4 text-sm sm:text-base">
-          <div className="flex items-center text-black">
-            <FaDollarSign className="mr-1" />
-            <span>{userProfile?.balance}</span>
+            <div className="flex flex-wrap justify-around bg-gray-200 text-black py-2 rounded-md mb-4">
+              {["Foodhub", "Learn&Share", "MarketPlace"].map((section) => (
+                <button
+                  key={section}
+                  onClick={() => handleSectionClick(section)}
+                  className={`px-4 py-2 rounded-md font-semibold ${activeSection === section ? "bg-gray-300" : "bg-gray-200"}`}
+                >
+                  {section}
+                </button>
+              ))}
+            </div>
+            <div className="border-2 border-gray-300 rounded-lg p-4">
+              {activeSection === "Foodhub" && (
+                <div>
+                  <div>No. of Foods donated: {userProfile?.totalMealsShared}</div>
+                  <div>Amount Donated to Cause: Rs. {(userProfile?.totalDonations / 1000).toFixed(1)}K</div>
+                </div>
+              )}
+              {activeSection === "Learn&Share" && (
+                <div>
+                  <div>List of All Classes Taken</div>
+                  <div>User Rating:</div>
+                </div>
+              )}
+              {activeSection === "MarketPlace" && (
+                <div>
+                  <div>Number of Products Listed:</div>
+                  <div>Confirmed Trades:</div>
+                </div>
+              )}
+            </div>
           </div>
-          <button
-            onClick={handleEditToggle}
-            className="flex items-center text-gray-600 hover:text-gray-800"
-          >
-            {isEditing ? "Cancel" : "Edit Profile"} <FaEdit className="ml-1" />
-          </button>
-        </div>
-
-        <div className="flex flex-wrap justify-around bg-gray-200 text-black py-2 rounded-md mb-4">
-          {["Foodhub", "Learn&Share", "MarketPlace"].map((section) => (
-            <button
-              key={section}
-              onClick={() => handleSectionClick(section)}
-              className={`px-4 py-2 rounded-md font-semibold text-xs sm:text-sm ${
-                activeSection === section ? "bg-gray-300" : "bg-gray-200"
-              }`}
-            >
-              {section}
-            </button>
-          ))}
-        </div>
-
-        <div className="border-2 border-gray-300 rounded-lg p-4 text-base sm:text-lg text-gray-600">
-          {activeSection === "Foodhub" && (
-            <div className="flex flex-col items-center text-center">
-              <div>No. of Foods donated: {userProfile?.totalMealsShared}</div>
-              <div>Amount Donated to Cause: Rs.{(userProfile?.totalDonations / 1000).toFixed(1)}K</div>
-            </div>
-          )}
-          {activeSection === "Learn&Share" && (
-            <div className="flex flex-col items-center text-center">
-              <div>List of All Classes Taken</div>
-              <div>User Rating:</div>
-            </div>
-          )}
-          {activeSection === "MarketPlace" && (
-            <div className="flex flex-col items-center text-center">
-              <div>Number of Products Listed:</div>
-              <div>Confirmed Trades:</div>
-            </div>
-          )}
-        </div>
+        )}
+       
       </div>
     </div>
   );
 };
+
+const StyledWrapper = styled.div`
+  display: flex;
+  gap: 10px;
+
+  .btn-31 {
+    background-color: #000;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+
+    &:hover {
+      background-color: #444;
+    }
+  }
+`;
 
 export default DashBoard;

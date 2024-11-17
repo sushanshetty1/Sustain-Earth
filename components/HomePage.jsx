@@ -116,9 +116,16 @@ function HomePage() {
           <span className="block">collaborate, share, and contribute</span>
           <span>to make a lasting impact</span>
         </p>
-
+        <p 
+          style={{
+            fontFamily: '"Source Serif 4", Georgia, serif', 
+            fontWeight: 'bold'
+          }} 
+          className="mt-6 mb-6 text-[41px] font-semibold block lg:hidden"
+        >
+          Join the Global Movement for Sustainable Impact.
+        </p>
         <MemoizedButton handleClick={handleClick} />
-
       </div>
 
       {userType === "Admin" && (
@@ -155,7 +162,7 @@ const StyledWrapper = styled.div`
   }
 
   button:hover {
-    background-color: #ff1493;
+    background-color: #FAEBD7;
     transform: scale(1.05);
   }
 `;

@@ -100,6 +100,7 @@ const handleAdditionalSubmit = async (e) => {
             username,
             email: user.email,
             userId: user.uid,
+            type: "Student",
         });
 
         setSuccess('User profile completed successfully!');

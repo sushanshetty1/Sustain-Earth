@@ -69,8 +69,8 @@ const GreenMarket = () => {
                 </div>
                 <div className="card-footer">
                   <span className="text-title">
-                    {item.type?.sell && <div>For Sale: {item.price}</div>}
-                    {item.type?.rent && <div>For Rent: {item.pricePerDay}/day</div>}
+                    {item.type?.sell && <div>For Sale: ₹{item.price}</div>}
+                    {item.type?.rent && <div>For Rent: ₹{item.pricePerDay}/day</div>}
                     {!item.type?.sell && !item.type?.rent && <div>Price not available</div>}
                   </span>
                   <div className="card-button">
