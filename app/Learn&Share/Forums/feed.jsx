@@ -39,9 +39,9 @@ function Feed() {
     fetchPosts();
   }, [showMyPosts, currentUser]);
 
-  const updateUserBalance = async () => {
+  const updateUserBalance = async (views, count) => {
     if (!currentUser) return;
-
+// change in the next line
     const userDocRef = doc(db, "users", currentUser.uid);
     try {
       const userDoc = await getDoc(userDocRef);
@@ -54,18 +54,19 @@ function Feed() {
       const currentDate = new Date().toDateString();
 
       if (lastUpdated !== currentDate) {
+        dailyBalance = 0;
         await updateDoc(userDocRef, {
-        dailyBalance : 0,
-      });
-    }
-
-      // Increment dailyBalance by 5 without exceeding 250
-      if (dailyBalance < 250) {
-        const increment = Math.min(5, 250 - dailyBalance); // Ensure we don't exceed 250
+          dailyBalance: 0,
+          lastUpdated: currentDate,
+        });
+      }
+            
+      if ((views % 100 === 0 || likesLength % 25 === 0) && dailyBalance < 250) {
+        const increment = Math.min(5, 250 - dailyBalance);
         await updateDoc(userDocRef, {
           dailyBalance: dailyBalance + increment,
           balance: balance + increment,
-          lastUpdated: currentDate,
+          
         });
       }
     } catch (error) {
@@ -73,7 +74,8 @@ function Feed() {
     }
   };
 
-  const FeedCard = ({ profilePic, name, time, title, content, views, likes = [], comments = [], id, imageUrl, userId }) => {
+  const FeedCa = ({ profilePic, name, time, title, content, views, likes = [], comments = [], id, imageUrl, userId }) => {
+    const count = likes.length;
     const [isCommentModalVisible, setCommentModalVisible] = useState(false);
     const [commentText, setCommentText] = useState('');
     const [commentList, setCommentList] = useState(comments);

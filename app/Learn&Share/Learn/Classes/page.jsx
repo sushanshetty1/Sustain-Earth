@@ -138,7 +138,6 @@ const ClassesEntry = () => {
         setError(null);
 
         try {
-            // Add the class data to the classesCollection
             await addDoc(collection(db, 'classesCollection'), formData);
 
             const userDocRef = doc(db, 'users', user.uid);
@@ -151,18 +150,16 @@ const ClassesEntry = () => {
                 let balance = userData.balance || 0;
                 const lastUpdated = userData.lastUpdated || null;
 
-                // Reset dailyBalance if it’s a new day
               if (lastUpdated !== currentDate) {
                 await updateDoc(userDocRef, {
                     dailyBalance: 0,
                   });
                 }
 
-                // Determine how much to increment dailyBalance
                 let increment = Math.min(50, 250 - dailyBalance);
                 if (increment > 0) {
                     dailyBalance += increment;
-                    balance += increment; // Only add the actual increment to balance
+                    balance += increment;
                 }
 
                 await updateDoc(userDocRef, {

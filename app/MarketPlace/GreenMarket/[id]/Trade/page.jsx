@@ -100,6 +100,7 @@ export default function AddProduct() {
   };
   
   return (
+    <div className="mt-10">
     <div className={styles.container}>
       <h2 className={styles.header}>Add a New Product</h2>
       <form onSubmit={handleSubmit} className={styles.form}>
@@ -142,6 +143,7 @@ export default function AddProduct() {
           Submit
         </button>
       </form>
+    </div>
     </div>
   );
 }
