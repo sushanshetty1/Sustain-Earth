@@ -59,7 +59,7 @@ const ItemDetails = () => {
           <img
             src={item.images[0]}
             alt={item.title}
-            className="w-full h-72 sm:h-96 object-fit rounded-lg border"
+            className="w-full h-72 sm:h-96  rounded-lg border"
           />
           <div className='h-36 sm:h-44 flex gap-2 sm:gap-5 flex-row justify-between mt-4 w-full'>
             <div className='w-1/3 rounded-lg h-full'></div>

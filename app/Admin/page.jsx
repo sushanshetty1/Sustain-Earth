@@ -55,26 +55,34 @@ const Admin = () => {
     return () => unsubscribe();
   }, []);
 
-  const handleApproval = async (userId, type) => {
+  const handleApproval = async (userId, id, type) => {
     try {
       const userDocRef = doc(db, 'users', userId);
+  
+      const userDocSnap = await getDoc(userDocRef);
+      if (!userDocSnap.exists()) {
+        alert(`No user found with ID: ${userId}`);
+        return;
+      }
   
       await updateDoc(userDocRef, { type });
   
       if (type === 'Teacher') {
-        const teacherRequestRef = doc(db, 'teacherVerification', userId);
+        const teacherRequestRef = doc(db, 'teacherVerification', id);
         await deleteDoc(teacherRequestRef);
       } else if (type === 'Professional') {
-        const professionalRequestRef = doc(db, 'professionalVerification', userId);
+        const professionalRequestRef = doc(db, 'professionalVerification',id);
         await deleteDoc(professionalRequestRef);
       }
   
       alert(`User updated as ${type} successfully!`);
+      window.location.reload();
     } catch (error) {
       console.error("Error updating user:", error);
       alert("There was an error updating the user.");
     }
   };
+  
   
 
   const handleRejection = async (userId, requestType) => {
@@ -88,6 +96,7 @@ const Admin = () => {
       }
 
       alert("Request rejected and data erased successfully!");
+      window.location.reload();
     } catch (error) {
       console.error("Error rejecting request:", error);
       alert("There was an error rejecting the request.");
@@ -166,7 +175,7 @@ const Admin = () => {
 
                     <div className="mt-4 flex space-x-4">
                       <button
-                        onClick={() => handleApproval(request.id, 'Teacher')}
+                        onClick={() => handleApproval(request.userId, request.id, 'Teacher')}
                         className="bg-black text-white px-6 py-2 rounded-md shadow-md hover:bg-green-600 transition duration-200"
                       >
                         ✔️
@@ -223,7 +232,7 @@ const Admin = () => {
 
                     <div className="mt-4 flex space-x-4">
                       <button
-                        onClick={() => handleApproval(request.id, 'Professional')}
+                        onClick={() => handleApproval(request.userId, request.id, 'Professional')}
                         className="bg-green-500 text-white px-6 py-2 rounded-md shadow-md hover:bg-green-600 transition duration-200"
                       >
                         ✔️

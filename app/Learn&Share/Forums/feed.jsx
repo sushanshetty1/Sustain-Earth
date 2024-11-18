@@ -39,6 +39,38 @@ function Feed() {
     fetchPosts();
   }, [showMyPosts, currentUser]);
 
+  const updateUserBalance = async () => {
+    if (!currentUser) return;
+
+    const userDocRef = doc(db, "users", currentUser.uid);
+    try {
+      const userDoc = await getDoc(userDocRef);
+      if (!userDoc.exists()) return;
+
+      const userData = userDoc.data();
+      let dailyBalance = userData.dailyBalance || 0;
+      let balance = userData.balance || 0;
+      const lastUpdated = userData.lastUpdated || null;
+      const currentDate = new Date().toDateString();
+
+      if (lastUpdated !== currentDate) {
+        dailyBalance = 0;
+    }
+
+      // Increment dailyBalance by 5 without exceeding 250
+      if (dailyBalance < 250) {
+        const increment = Math.min(5, 250 - dailyBalance); // Ensure we don't exceed 250
+        await updateDoc(userDocRef, {
+          dailyBalance: dailyBalance + increment,
+          balance: balance + increment,
+          lastUpdated: currentDate,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating user balance: ", error);
+    }
+  };
+
   const FeedCard = ({ profilePic, name, time, title, content, views, likes = [], comments = [], id, imageUrl, userId }) => {
     const [isCommentModalVisible, setCommentModalVisible] = useState(false);
     const [commentText, setCommentText] = useState('');

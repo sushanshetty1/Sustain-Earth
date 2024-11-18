@@ -5,14 +5,16 @@ import { doc, getDoc, getFirestore, updateDoc, arrayUnion, arrayRemove } from 'f
 import firebaseApp from '../../../../firebaseConfig';
 import styled from 'styled-components';
 import { getAuth } from 'firebase/auth';
-import { Image } from 'next/image';
+import Image from 'next/image';
 
 const ClassDetail = () => {
   const [user, setUser] = useState(null);
   const auth = getAuth(firebaseApp);
+  const [rating, setRating] = useState(0);
   const [proctorData, setProctorData] = useState(null);
   const router = useRouter();
   const path = usePathname();
+  const [userRating, setUserRating] = useState(null);
   const classId = path.split('/').pop();
   const [classData, setClassData] = useState(null);
   const [interestedCount, setInterestedCount] = useState(0);
@@ -48,6 +50,7 @@ const ClassDetail = () => {
             const proctorSnap = await getDoc(proctorRef);
             if (proctorSnap.exists()) {
               setProctorData(proctorSnap.data());
+              setUserRating(proctorInfo.ratings?.[user?.uid] || null);
             }
           }
         } else {
@@ -123,6 +126,29 @@ const ClassDetail = () => {
     }
   };
 
+  const handleRatingSubmit = async () => {
+    if (!user) {
+      alert("Please log in to rate the proctor!");
+      return;
+    }
+
+    try {
+      const proctorRef = doc(db, 'users', classData.procterId);
+      await updateDoc(proctorRef, {
+        ratings: {
+          ...(proctorData.ratings || {}),
+          [user.uid]: rating,
+        },
+      });
+
+      alert("Rating submitted successfully!");
+      setUserRating(rating);
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+      alert("Failed to submit rating.");
+    }
+  };
+
   if (!classData) return <p>Loading...</p>;
   return (
     <div className="min-h-screen flex flex-col items-center justify-start p-8 bg-[#f9f6f4] text-gray-900">
@@ -186,15 +212,18 @@ const ClassDetail = () => {
         <h1 className="text-2xl font-bold mb-2">Proctor Details</h1>
         <div className="bg-gray-900 flex flex-col gap-8 text-white p-6 rounded-lg border h-80 border-gray-700 w-96">
           <div className="flex items-center mb-4">
-          <div className="w-20 h-20 bg-gray-700 rounded-full mr-4 relative">
-            {/*<Image 
-              src={proctorData.profilePic} 
-              alt="Image" 
+          <div className="w-20 h-20 bg-gray-700 rounded-full mr-4 relative overflow-hidden">
+            <Image 
+              src={proctorData.profilePic || './deaf.png'} 
+              alt="Proctor Image" 
               width={80} 
               height={80} 
-              className="rounded-full object-cover" 
-            />*/}
+              className="rounded-full object-cover"
+              style={{ width: '100%', height: '100%' }}
+              onError={(e) => (e.target.src = './deaf.png')}
+            />
           </div>
+
 
             <div className="">
               <p className="text-lg font-semibold">{proctorData.firstName}</p>
@@ -208,12 +237,12 @@ const ClassDetail = () => {
             {proctorData.bio}
           </p>
           
-          <p className="bg-transparent placeholder-gray-400 text-white  border-gray-600 w-full mb-4">
+          <p className="rating bg-transparent placeholder-gray-400 text-white  border-gray-600 w-full mb-4">
             {proctorData.email}
           </p>
-          <button className="bg-gray-700 py-2 px-6 self-end ml-36 rounded-lg h-8 w-1/4">
+          <div className="bg-gray-700 py-2 px-6 self-end ml-36 rounded-lg h-8 w-1/4">
             
-          </button>
+          </div>
       </div>
       </>
       )}
