@@ -1,19 +1,19 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { FaCrown, FaDollarSign, FaEdit } from "react-icons/fa";
+import { FaCrown } from "react-icons/fa";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { useRouter } from 'next/navigation';
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../firebaseConfig";
 import Loader from "./loader";
 import styled from "styled-components";
+import prof from "../../public/images/prof.png"
 
 const DashBoard = () => {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
-  const router = useRouter();
   const [editValues, setEditValues] = useState({
     username: "",
     email: "",
@@ -22,6 +22,9 @@ const DashBoard = () => {
     balance: 0,
   });
   const [activeSection, setActiveSection] = useState(null);
+  const [uploading, setUploading] = useState({ profilePic: false });
+
+  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -49,26 +52,77 @@ const DashBoard = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setEditValues((prevValues) => ({
-      ...prevValues,
-      [name]: value,
-    }));
-  };
-
-  const handleToggleChange = () => {
-    setShowButtons((prev) => !prev);
+    setEditValues((prevValues) => ({ ...prevValues, [name]: value }));
   };
 
   const handleSaveChanges = async () => {
     if (auth.currentUser) {
       const userRef = doc(db, "users", auth.currentUser.uid);
-      await updateDoc(userRef, {
-        ...editValues,
-      });
+      await updateDoc(userRef, editValues);
       setUserProfile(editValues);
       setIsEditing(false);
     }
   };
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://widget.cloudinary.com/v2.0/global/all.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handleImageUpload = async (imageType) => {
+    if (!window.cloudinary) {
+      alert("Cloudinary widget is not loaded yet.");
+      return;
+    }
+
+    setUploading((prev) => ({ ...prev, [imageType]: true }));
+
+    window.cloudinary.openUploadWidget(
+      {
+        cloudName: "dwkxh75ux",
+        uploadPreset: "itemspic",
+        sources: ["local", "url", "camera"],
+        cropping: true,
+        multiple: false,
+        resourceType: "image",
+      },
+      async (error, result) => {
+        setUploading((prev) => ({ ...prev, [imageType]: false }));
+        if (error) {
+          console.error("Cloudinary Upload Error:", error);
+          alert("Error uploading image.");
+          return;
+        }
+        if (result.event === "success") {
+          const imageUrl = result.info.secure_url;
+
+          if (auth.currentUser) {
+            const userRef = doc(db, "users", auth.currentUser.uid);
+            await updateDoc(userRef, { [imageType]: imageUrl });
+            setUserProfile((prev) => ({ ...prev, [imageType]: imageUrl }));
+            alert("Profile picture updated!");
+          }
+        }
+      }
+    );
+  };
+
+  const handleSectionClick = (section) => {
+    setActiveSection((prevSection) => (prevSection === section ? null : section));
+  };
+
+  const handleTeacher = () => router.push(`/DashBoard/Teacher`);
+  const handleProfessional = () => router.push(`/DashBoard/Professional`);
+
+  const isChangeButtonHidden = ["Admin", "Teacher", "Professional"].includes(
+    userProfile?.type
+  );
 
   if (loading) {
     return (
@@ -77,20 +131,6 @@ const DashBoard = () => {
       </div>
     );
   }
-
-  const handleSectionClick = (section) => {
-    setActiveSection((prevSection) =>
-      prevSection === section ? null : section
-    );
-  };
-
-  const handleTeacher = () => (
-    router.push(`/DashBoard/Teacher`)
-  );
-
-  const handleProfessional = () => (
-    router.push(`/DashBoard/Professional`)
-  );
 
   return (
     <div className="flex justify-center items-center h-screen bg-[#f9f6f4] px-4 mt-9">
@@ -107,7 +147,6 @@ const DashBoard = () => {
             <input
               name="email"
               value={editValues.email}
-              onChange={handleInputChange}
               disabled
               className="bg-gray-100 text-black w-full rounded p-2 border border-gray-300"
               placeholder="Email"
@@ -136,7 +175,13 @@ const DashBoard = () => {
         ) : (
           <div className="text-black p-4 border-2 border-gray-300 rounded-lg mb-4">
             <div className="flex gap-4 items-center">
-              <div className="w-16 h-16 rounded-full bg-gray-200"></div>
+            <div
+              onClick={() => handleImageUpload("profilePic")}
+              className="userProfile w-16 h-16 rounded-full bg-gray-200 bg-cover bg-center"
+              style={{
+                backgroundImage: `url(${userProfile?.profilePic || {prof}})`,
+              }}
+            ></div>
               <div className="text-lg flex items-center gap-2 font-semibold">
                 {userProfile?.username} <FaCrown className="text-yellow-500" />
               </div>
@@ -150,40 +195,39 @@ const DashBoard = () => {
             <div className="pl-4 text-sm text-gray-600">{userProfile?.bio}</div>
             <div className="flex items-center justify-between mt-4">
               <div className="text-sm text-gray-600">
-                <span className="font-bold">
+                <span className="font-bold mb-5">
                   User Type: {userProfile?.type}
                 </span>
-                <button
-                  onClick={handleToggleChange}
-                  className="bg-gray-200 hover:bg-gray-300 text-sm px-3 py-1 rounded text-black ml-2"
-                >
-                  {showButtons ? "Cancel" : "Change"}
-                </button>
+                {!isChangeButtonHidden && (
+                  <button
+                    onClick={() => setShowButtons(!showButtons)}
+                    className="bg-gray-200 hover:bg-gray-300 text-sm px-3 py-1 rounded text-black ml-2"
+                  >
+                    {showButtons ? "Cancel" : "Change"}
+                  </button>
+                )}
               </div>
               {showButtons && (
                 <StyledWrapper>
-                  <button onClick={handleTeacher} className="btn-31">Teacher</button>
-                  <button onClick={handleProfessional} className="btn-31">Professional</button>
+                  <button onClick={handleTeacher} className="btn-31">
+                    Teacher
+                  </button>
+                  <button onClick={handleProfessional} className="btn-31">
+                    Professional
+                  </button>
                 </StyledWrapper>
               )}
             </div>
-            {!isEditing && (
-              <div className="flex justify-end">
-          <button
-            onClick={handleEditToggle}
-            className="w-fit bg-transparent text-blue-500 rounded p-2 mt-2  flex items-center justify-center gap-2"
-          >
-            <FaEdit className="text-xl" /> Edit Profile
-          </button>
-          </div>
-        )}
-
-            <div className="flex flex-wrap justify-around bg-gray-200 text-black py-2 rounded-md mb-4">
+            <div className="flex flex-wrap justify-around bg-gray-200 text-black py-2 rounded-md mt-9 mb-4">
               {["Foodhub", "Learn&Share", "MarketPlace"].map((section) => (
                 <button
                   key={section}
                   onClick={() => handleSectionClick(section)}
-                  className={`px-4 py-2 rounded-md font-semibold ${activeSection === section ? "bg-gray-300" : "bg-gray-200"}`}
+                  className={`px-4 py-2 rounded-md font-semibold ${
+                    activeSection === section
+                      ? "bg-gray-300"
+                      : "bg-gray-200"
+                  }`}
                 >
                   {section}
                 </button>
@@ -192,26 +236,46 @@ const DashBoard = () => {
             <div className="border-2 border-gray-300 rounded-lg p-4">
               {activeSection === "Foodhub" && (
                 <div>
-                  <div>No. of Foods donated: {userProfile?.totalMealsShared}</div>
-                  <div>Amount Donated to Cause: Rs. {(userProfile?.totalDonations / 1000).toFixed(1)}K</div>
+                  <div>
+                    No. of Foods donated: {userProfile?.totalMealsShared || 0}
+                  </div>
+                  <div>
+                    Recent Food Donation:{" "}
+                    {userProfile?.recentMealShared || "No Recent Data"}
+                  </div>
                 </div>
               )}
               {activeSection === "Learn&Share" && (
                 <div>
-                  <div>List of All Classes Taken</div>
-                  <div>User Rating:</div>
+                  <div>
+                    No. of Teachings: {userProfile?.totalTeachingShared || 0}
+                  </div>
+                  <div>
+                    Recent Knowledge Share:{" "}
+                    {userProfile?.recentTeachingShared || "No Recent Data"}
+                  </div>
                 </div>
               )}
               {activeSection === "MarketPlace" && (
                 <div>
-                  <div>Number of Products Listed:</div>
-                  <div>Confirmed Trades:</div>
+                  <div>
+                    No. of Products sold: {userProfile?.totalMarketSold || 0}
+                  </div>
+                  <div>
+                    Recent Sale:{" "}
+                    {userProfile?.recentMarketSold || "No Recent Data"}
+                  </div>
                 </div>
               )}
             </div>
+            <button
+              onClick={handleEditToggle}
+              className="w-full bg-blue-500 text-white rounded p-2 mt-4 hover:bg-blue-600"
+            >
+              Edit
+            </button>
           </div>
         )}
-       
       </div>
     </div>
   );

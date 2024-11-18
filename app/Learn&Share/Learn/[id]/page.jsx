@@ -82,6 +82,10 @@ const ClassDetail = () => {
           const userDoc = await getDoc(userRef);
           if (userDoc.exists()) {
             const currentDate = new Date().toDateString();
+                const userData = userDocSnap.data();
+                let dailyBalance = userData.dailyBalance || 0;
+                let balance = userData.balance || 0;
+                const lastUpdated = userData.lastUpdated || null;
 
             if (lastUpdated !== currentDate) {
               dailyBalance = 0;
