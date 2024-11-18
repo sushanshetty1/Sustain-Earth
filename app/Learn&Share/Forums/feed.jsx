@@ -54,7 +54,9 @@ function Feed() {
       const currentDate = new Date().toDateString();
 
       if (lastUpdated !== currentDate) {
-        dailyBalance = 0;
+        await updateDoc(userDocRef, {
+        dailyBalance : 0,
+      });
     }
 
       // Increment dailyBalance by 5 without exceeding 250

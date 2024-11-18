@@ -11,9 +11,11 @@
   "dependencies": {
     "aos": "^2.3.4",
     "axios": "^1.7.7",
+    "classnames": "^2.5.1",
     "cloudinary": "^2.5.1",
     "firebase": "^11.0.1",
     "leaflet": "^1.9.4",
+    "lucide-react": "^0.460.0",
     "next": "15.0.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

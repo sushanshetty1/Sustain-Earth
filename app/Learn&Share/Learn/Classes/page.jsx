@@ -152,8 +152,10 @@ const ClassesEntry = () => {
                 const lastUpdated = userData.lastUpdated || null;
 
                 // Reset dailyBalance if it’s a new day
-                if (lastUpdated !== currentDate) {
-                    dailyBalance = 0;
+              if (lastUpdated !== currentDate) {
+                await updateDoc(userDocRef, {
+                    dailyBalance: 0,
+                  });
                 }
 
                 // Determine how much to increment dailyBalance

@@ -1,10 +1,11 @@
-"use client";
+"use client"
+import { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { usePathname, useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { firebaseApp } from "../../../../firebaseConfig";
-import Link from 'next/link';
-
+import dummyImage from "../../../../public/images/dummy-image.png";
 const db = getFirestore(firebaseApp);
 
 const ItemDetails = () => {
@@ -14,6 +15,7 @@ const ItemDetails = () => {
   const pathId = pathname.split('/').pop();
   const id = queryId || pathId;
   const [item, setItem] = useState(null);
+  const [mainImage, setMainImage] = useState(dummyImage);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -21,7 +23,9 @@ const ItemDetails = () => {
         const itemRef = doc(db, "orderCollections", id);
         const itemSnapshot = await getDoc(itemRef);
         if (itemSnapshot.exists()) {
-          setItem({ id: itemSnapshot.id, ...itemSnapshot.data() });
+          const fetchedItem = { id: itemSnapshot.id, ...itemSnapshot.data() };
+          setItem(fetchedItem);
+          setMainImage(fetchedItem.images[0] || dummyImage); // Set main image after data is fetched
         } else {
           console.error("No such document!");
         }
@@ -45,91 +49,111 @@ const ItemDetails = () => {
     typeInfo = <p>Type not available</p>;
   }
 
+  const images = [
+    item.images[0] || dummyImage,
+    item.images[1] || dummyImage,
+    item.images[2] || dummyImage,
+    item.images[3] || dummyImage,
+  ];
+
+  const thumbnails = images.slice(1);
+
+  const handleBuyNow = () => {
+    const choice = confirm('Do You Wish To Continue With Buy Now?');
+    if (choice) {
+      alert('Proceeding to buy for ₹' + item.price + '...');
+    } else {
+      alert('Proceeding to rent for ₹' + item.pricePerDay + '...');
+    }
+    router.push('/MarketPlace/GreenMarket/pay');
+  };
+
+  const handleTrade = () => {
+    alert('Opening trade portal. You can exchange your items here!');
+    router.push(`/MarketPlace/GreenMarket/${item.id}/Trade`);
+  };
+
   return (
-    <div className="container mx-auto p-4 sm:p-6 mt-7">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <div className="text-left">
-            <p className="font-bold inline-block"></p>
-            <p>
-              📌 {item.location.city}, {item.location.state.label}
-            </p>
-          </div>
-          <hr />
-          <img
-            src={item.images[0]}
-            alt={item.title}
-            className="w-full h-72 sm:h-96  rounded-lg border"
-          />
-          <div className='h-36 sm:h-44 flex gap-2 sm:gap-5 flex-row justify-between mt-4 w-full'>
-            <div className='w-1/3 rounded-lg h-full'></div>
-            <div className='w-1/3 rounded-lg h-full'></div>
-            <div className='w-1/3 rounded-lg h-full'></div>
+    <main className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-4">
+          <Card className="overflow-hidden">
+            <img
+              src={mainImage}
+              alt="Product"
+              className="w-full h-[400px] object-cover transition-opacity duration-300"
+            />
+          </Card>
+          <div className="grid grid-cols-3 gap-4">
+            {thumbnails.map((thumb, index) => (
+              <img
+                key={index}
+                src={thumb}
+                alt={`Product view ${index + 2}`}
+                className="w-full h-24 object-cover rounded-lg cursor-pointer hover:shadow-lg hover:scale-105 transition duration-300"
+                onClick={() => setMainImage(thumb)}
+              />
+            ))}
           </div>
         </div>
-        <div className='md:flex-col md:mt-12 md:text-right md:items-end flex flex-col text-center items-center'>
-          <h2 className="text-2xl sm:text-3xl font-semibold">{item.title}</h2>
-          <div className="border p-2 my-3 sm:my-4 w-full md:w-auto">
-            <p className="text-gray-700">{item.description}</p>
+
+        <div className="space-y-6">
+          <h1 className="text-3xl font-bold text-gray-900">{item.title}</h1>
+          <p className="text-gray-600 text-lg">
+            {item.description}
+          </p>
+
+          <div className="flex items-center space-x-4">
+            <i className="bi bi-geo-alt-fill text-red-500" />
+            <span className="text-gray-700">{item.location.city}, {item.location.state.label}</span>
           </div>
-          <div>
-            {item.type.sell && <p className="text-lg font-medium mt-2">Price: {item.price}</p>}
-            {item.type.rent && <p className="text-lg font-medium mt-2">Price per day: {item.pricePerDay}</p>}
+
+          <div className="space-y-2">
+            {item.type.sell && (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700 font-semibold">Sell Price:</span>
+                <span className="text-2xl font-bold text-gray-900">₹{item.price}</span>
+              </div>
+            )}
+            {item.type.rent && (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700 font-semibold">Rent Price:</span>
+                <span className="text-2xl font-bold text-green-600">₹{item.pricePerDay}/day</span>
+              </div>
+            )}
           </div>
-          <div className="text-center mt-4 flex gap-4 sm:gap-10 flex-wrap justify-center">
-            <Link href="/MarketPlace/GreenMarket/pay" target="_blank">
-              <button className="Btn">Buy Now</button>
-            </Link>
-            <Link href={`/MarketPlace/GreenMarket/${item.id}/Trade`} target="_blank">
-              <button className="Btn">Trade Now</button>
-            </Link>
+
+          <div className="space-y-4">
+            <Button
+              onClick={handleBuyNow}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+            >
+              <i className="bi bi-cart-fill mr-2" />
+              Buy Now
+            </Button>
+
+            <Button
+              onClick={handleTrade}
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              <i className="bi bi-arrow-left-right mr-2" />
+              Trade Now
+            </Button>
+          </div>
+
+          <div className="text-sm text-gray-500">
+            <p className="flex items-center gap-2">
+              <i className="bi bi-shield-check text-green-500" />
+              Secure Payment Options Available
+            </p>
+            <p className="flex items-center gap-2">
+              <i className="bi bi-truck text-blue-500" />
+              Fast Delivery Across India
+            </p>
           </div>
         </div>
       </div>
-      
-      <style jsx>{` 
-        .Btn {
-          width: 130px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background-color: rgb(15, 15, 15);
-          border: none;
-          color: white;
-          font-weight: 600;
-          gap: 8px;
-          cursor: pointer;
-          box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.103);
-          position: relative;
-          overflow: hidden;
-          transition-duration: .3s;
-        }
-
-        .Btn::before {
-          width: calc(100% + 40px);
-          aspect-ratio: 1/1;
-          position: absolute;
-          content: "";
-          background-color: white;
-          border-radius: 50%;
-          left: -20px;
-          top: 50%;
-          transform: translate(-150%, -50%);
-          transition-duration: .5s;
-          mix-blend-mode: difference;
-        }
-
-        .Btn:hover::before {
-          transform: translate(0, -50%);
-        }
-
-        .Btn:active {
-          transform: translateY(4px);
-          transition-duration: .3s;
-        }
-      `}</style>
-    </div>
+    </main>
   );
 };
 
