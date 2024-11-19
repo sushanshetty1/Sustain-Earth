@@ -55,7 +55,7 @@ function Header() {
   };
 
   return (
-    <div className="flex flex-row justify-center lg:justify-around items-center mt-12 ml-6 mr-6 sm:mb-3 mb-3">
+    <div className="flex flex-row justify-center lg:justify-around items-center mt-12 ml-6 mr-6 sm:mb-3 mb-3 ">
       <div className="lg:flex w-screen lg:justify-evenly h-7 items-center">
 
         <div className="lg:flex hidden justify-around gap-5">
@@ -96,7 +96,7 @@ function Header() {
 
         <div className="lg:flex hidden justify-between gap-3 items-center">
           {loading ? (
-            <FaSpinner className="text-gray-500 animate-spin" size={24} />
+            <FaSpinner className="text-gray-500 animate-spin mx-[160.5px]" size={24} />
           ) : user ? (
             <div className="flex items-center gap-3">
               <span className="flex items-center ml-2">

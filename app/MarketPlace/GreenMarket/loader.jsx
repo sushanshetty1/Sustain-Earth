@@ -4,113 +4,123 @@ import styled from 'styled-components';
 const Loader = () => {
   return (
     <StyledWrapper>
-      <div className="loader">
-        <div className="bar1" />
-        <div className="bar2" />
-        <div className="bar3" />
-        <div className="bar4" />
-        <div className="bar5" />
-        <div className="bar6" />
-        <div className="bar7" />
-        <div className="bar8" />
-        <div className="bar9" />
-        <div className="bar10" />
-        <div className="bar11" />
-        <div className="bar12" />
+      <div className="dot-spinner">
+        <div className="dot-spinner__dot" />
+        <div className="dot-spinner__dot" />
+        <div className="dot-spinner__dot" />
+        <div className="dot-spinner__dot" />
+        <div className="dot-spinner__dot" />
+        <div className="dot-spinner__dot" />
+        <div className="dot-spinner__dot" />
+        <div className="dot-spinner__dot" />
       </div>
     </StyledWrapper>
   );
 }
 
 const StyledWrapper = styled.div`
-  .loader {
+  .dot-spinner {
+    --uib-size: 2.8rem;
+    --uib-speed: .9s;
+    --uib-color: #183153;
     position: relative;
-    width: 54px;
-    height: 54px;
-    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    height: var(--uib-size);
+    width: var(--uib-size);
   }
 
-  .loader div {
-    width: 8%;
-    height: 24%;
-    background: rgb(128, 128, 128);
+  .dot-spinner__dot {
     position: absolute;
-    left: 50%;
-    top: 30%;
-    opacity: 0;
-    border-radius: 50px;
-    box-shadow: 0 0 3px rgba(0,0,0,0.2);
-    animation: fade458 1s linear infinite;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100%;
+    width: 100%;
   }
 
-  @keyframes fade458 {
-    from {
+  .dot-spinner__dot::before {
+    content: '';
+    height: 20%;
+    width: 20%;
+    border-radius: 50%;
+    background-color: var(--uib-color);
+    transform: scale(0);
+    opacity: 0.5;
+    animation: pulse0112 calc(var(--uib-speed) * 1.111) ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(18, 31, 53, 0.3);
+  }
+
+  .dot-spinner__dot:nth-child(2) {
+    transform: rotate(45deg);
+  }
+
+  .dot-spinner__dot:nth-child(2)::before {
+    animation-delay: calc(var(--uib-speed) * -0.875);
+  }
+
+  .dot-spinner__dot:nth-child(3) {
+    transform: rotate(90deg);
+  }
+
+  .dot-spinner__dot:nth-child(3)::before {
+    animation-delay: calc(var(--uib-speed) * -0.75);
+  }
+
+  .dot-spinner__dot:nth-child(4) {
+    transform: rotate(135deg);
+  }
+
+  .dot-spinner__dot:nth-child(4)::before {
+    animation-delay: calc(var(--uib-speed) * -0.625);
+  }
+
+  .dot-spinner__dot:nth-child(5) {
+    transform: rotate(180deg);
+  }
+
+  .dot-spinner__dot:nth-child(5)::before {
+    animation-delay: calc(var(--uib-speed) * -0.5);
+  }
+
+  .dot-spinner__dot:nth-child(6) {
+    transform: rotate(225deg);
+  }
+
+  .dot-spinner__dot:nth-child(6)::before {
+    animation-delay: calc(var(--uib-speed) * -0.375);
+  }
+
+  .dot-spinner__dot:nth-child(7) {
+    transform: rotate(270deg);
+  }
+
+  .dot-spinner__dot:nth-child(7)::before {
+    animation-delay: calc(var(--uib-speed) * -0.25);
+  }
+
+  .dot-spinner__dot:nth-child(8) {
+    transform: rotate(315deg);
+  }
+
+  .dot-spinner__dot:nth-child(8)::before {
+    animation-delay: calc(var(--uib-speed) * -0.125);
+  }
+
+  @keyframes pulse0112 {
+    0%,
+    100% {
+      transform: scale(0);
+      opacity: 0.5;
+    }
+
+    50% {
+      transform: scale(1);
       opacity: 1;
     }
-
-    to {
-      opacity: 0.25;
-    }
-  }
-
-  .loader .bar1 {
-    transform: rotate(0deg) translate(0, -130%);
-    animation-delay: 0s;
-  }
-
-  .loader .bar2 {
-    transform: rotate(30deg) translate(0, -130%);
-    animation-delay: -1.1s;
-  }
-
-  .loader .bar3 {
-    transform: rotate(60deg) translate(0, -130%);
-    animation-delay: -1s;
-  }
-
-  .loader .bar4 {
-    transform: rotate(90deg) translate(0, -130%);
-    animation-delay: -0.9s;
-  }
-
-  .loader .bar5 {
-    transform: rotate(120deg) translate(0, -130%);
-    animation-delay: -0.8s;
-  }
-
-  .loader .bar6 {
-    transform: rotate(150deg) translate(0, -130%);
-    animation-delay: -0.7s;
-  }
-
-  .loader .bar7 {
-    transform: rotate(180deg) translate(0, -130%);
-    animation-delay: -0.6s;
-  }
-
-  .loader .bar8 {
-    transform: rotate(210deg) translate(0, -130%);
-    animation-delay: -0.5s;
-  }
-
-  .loader .bar9 {
-    transform: rotate(240deg) translate(0, -130%);
-    animation-delay: -0.4s;
-  }
-
-  .loader .bar10 {
-    transform: rotate(270deg) translate(0, -130%);
-    animation-delay: -0.3s;
-  }
-
-  .loader .bar11 {
-    transform: rotate(300deg) translate(0, -130%);
-    animation-delay: -0.2s;
-  }
-
-  .loader .bar12 {
-    transform: rotate(330deg) translate(0, -130%);
-    animation-delay: -0.1s;
   }`;
 
 export default Loader;

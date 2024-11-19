@@ -6,6 +6,7 @@ import { getAuth } from "firebase/auth";
 import { firebaseApp} from "../../../firebaseConfig";
 import { getFirestore, addDoc } from "firebase/firestore";
 import { FaSpinner } from "react-icons/fa";
+import styled from 'styled-components';
 
 const db = getFirestore(firebaseApp);
 const auth = getAuth(firebaseApp);
@@ -227,8 +228,8 @@ const handleDeleteTrade = async (tradeId) => {
 };
 
   return (
-    <div className="flex flex-col lg:flex-row h-auto bg-gray-50 mt-10">
-      <div className="w-full lg:w-1/4 bg-white p-6 border-b lg:border-r border-gray-200">
+    <div className="flex flex-col lg:flex-row h-auto bg-[#f9f6f4] mt-10">
+      <div className="w-full lg:w-1/4 bg-[#f9f6f4] p-6 border-b lg:border-r border-gray-200">
         <h2 className="text-2xl font-semibold mb-6 text-gray-800">Navigation</h2>
         <button
           onClick={() => setView("add")}
@@ -250,7 +251,7 @@ const handleDeleteTrade = async (tradeId) => {
         </button>
       </div>
 
-      <div className="flex-grow p-8 bg-white">
+      <div className="flex-grow p-8 bg-[#f9f6f4]">
         {view === "add" && (
           <div>
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Add New Item</h2>
@@ -355,13 +356,14 @@ const handleDeleteTrade = async (tradeId) => {
 
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-semibold mb-2">Product Images</label>
+                <StyledWrapper>
                 <button
                   type="button"
                   onClick={handleImageUpload}
-                  className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
                 >
-                  {uploading ? "Uploading..." : "Upload Images"}
+                  <span>{uploading ? "Uploading..." : "Upload Images"}</span>
                 </button>
+                </StyledWrapper>
               </div>
 
               <div className="mb-4">
@@ -387,12 +389,13 @@ const handleDeleteTrade = async (tradeId) => {
               </div>
 
               <div className="mb-4">
+                <StyledWrapper>
                 <button
                   type="submit"
-                  className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
                 >
-                  Add Item
+                  <span>Add Item</span>
                 </button>
+                </StyledWrapper>
               </div>
             </form>
           </div>
@@ -404,7 +407,7 @@ const handleDeleteTrade = async (tradeId) => {
           </div>
         )}
         {view === "trade" && (
-  <div>
+  <div className="bg-[#f9f6f4]">
     <h2 className="text-2xl font-semibold text-gray-800 mb-6">Trade Requests</h2>
     {loading ? (
       <div className="flex justify-center items-center mt-10 h-screen">
@@ -468,6 +471,45 @@ const handleDeleteTrade = async (tradeId) => {
     </div>
   );
 };
-    
+const StyledWrapper = styled.div`
+button {
+ display: inline-block;
+ border-radius: 4px;
+ background-color: #000000;
+ border: none;
+ color: #FFFFFF;
+ text-align: center;
+ font-size: 17px;
+ padding: 16px;
+ width:100%;
+ transition: all 0.5s;
+ cursor: pointer;
+ margin: 5px;
+}
+
+button span {
+ cursor: pointer;
+ display: inline-block;
+ position: relative;
+ transition: 0.5s;
+}
+
+button span:after {
+ content: '»';
+ position: absolute;
+ opacity: 0;
+ top: 0;
+ right: -15px;
+ transition: 0.5s;
+}
+
+button:hover span {
+ padding-right: 15px;
+}
+
+button:hover span:after {
+ opacity: 1;
+ right: 0;
+}`; 
 
 export default SellNRent;

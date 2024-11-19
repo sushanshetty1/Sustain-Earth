@@ -31,9 +31,11 @@ const GreenMarket = () => {
       Empower your choices—buy, rent, and share for a more sustainable tomorrow.
       </h1>
       {loading ? (
+        <div className="flex justify-center items-center h-screen" >
         <CenterBox>
-          <Loader className="flex justify-center items-center h-[13em]" />
+          <Loader/>
         </CenterBox>
+        </div>
       ) : items.length === 0 ? (
         <CenterBox>
           <p>No items available</p>

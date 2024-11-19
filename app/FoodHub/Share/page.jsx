@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, updateDoc, increment,serverTimestamp } from 'firebase/firestore';
-import firebaseApp from '../../../firebaseConfig';
+import {firebaseApp} from '../../../firebaseConfig';
 
 const MealEntry = () => {
   const router = useRouter();

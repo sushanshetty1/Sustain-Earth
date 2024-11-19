@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { collection, getDocs, getFirestore } from 'firebase/firestore';
-import firebaseApp from '../../../firebaseConfig';
+import {firebaseApp} from '../../../firebaseConfig';
 import Link from 'next/link';
 import './Classes/SharedStyles.css';
 import Loader from '../loader';

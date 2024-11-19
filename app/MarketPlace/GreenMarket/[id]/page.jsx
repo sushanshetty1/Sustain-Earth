@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { firebaseApp } from "../../../../firebaseConfig";
 import dummyImage from "../../../../public/images/dummy-image.png";
+import Loader from '../loader';
 import Link from 'next/link';
 
 const db = getFirestore(firebaseApp);
@@ -39,7 +40,7 @@ const ItemDetails = () => {
   }, [id]);
 
   if (!item) {
-    return <div>Loading...</div>;
+    return <div className='flex justify-center items-center h-screen'><Loader/></div>;
   }
 
   let typeInfo;

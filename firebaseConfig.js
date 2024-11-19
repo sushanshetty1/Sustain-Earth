@@ -4,7 +4,6 @@ import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, increment } 
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
-// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBv7k3_r05x8CdecvF3jRpWuO7H8YwrA_g",
   authDomain: "sustain-earth-2.firebaseapp.com",
@@ -15,7 +14,6 @@ const firebaseConfig = {
   measurementId: "G-YD8LRRX3JE"
 };
 
-// Initialize Firebase
 let firebaseApp;
 try {
   firebaseApp = initializeApp(firebaseConfig);
@@ -23,7 +21,6 @@ try {
   console.error("Error initializing Firebase app:", error);
 }
 
-// Initialize Firestore, Authentication, and Storage
 let db;
 try {
   db = getFirestore(firebaseApp);
@@ -34,7 +31,6 @@ try {
 const auth = getAuth(firebaseApp);
 const storage = getStorage(firebaseApp);
 
-// Initialize Firebase Analytics if supported
 let analytics = null;
 const initializeAnalytics = async () => {
   if (typeof window !== 'undefined') {
@@ -53,5 +49,4 @@ const initializeAnalytics = async () => {
 
 initializeAnalytics();
 
-// Export the Firebase modules
 export { firebaseApp, db, analytics, auth, storage, collection, addDoc, getDocs, updateDoc, doc, increment };

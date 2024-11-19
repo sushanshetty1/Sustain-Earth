@@ -73,7 +73,7 @@ function Header() {
 
         <div className="lg:flex hidden justify-between gap-3 items-center">
           {loading ? (
-            <FaSpinner className="text-gray-500 animate-spin" size={24} />
+            <FaSpinner className="text-gray-500 animate-spin mx-[168.5px]" size={24} />
           ) : user ? (
             <div className="flex items-center gap-3">
               <span className="flex items-center ml-2">

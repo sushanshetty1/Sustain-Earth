@@ -86,8 +86,8 @@ function Header() {
 
         <div className="lg:flex hidden justify-between gap-3 items-center">
   <div style={{ height: '50px' }} className="flex items-center">
-    {loading ? (
-      <Loader />
+    {loading ? (<div className='mx-[163px]'>
+      <Loader /></div>
     ) : user ? (
       <div className="flex items-center gap-3">
         <span className="flex items-center ml-2">
