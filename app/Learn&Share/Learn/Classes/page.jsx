@@ -350,7 +350,7 @@ const ClassesEntry = () => {
       </div>
     ) : (
       <div className="flex flex-col rounded-lg  items-center justify-center min-h-screen">
-        <h1 className="text-3xl font-bold pb-8 text-green-600">Form successfully submitted💦💦💦!</h1>
+        <h1 className="text-3xl font-bold pb-8 text-green-600">Class Published Successful</h1>
         <Link href="/Learn&Share/Learn">
         <button className='w-32 bg-green-500 text-white h-12 rounded-lg font-bold'>Go back</button>
         </Link>
