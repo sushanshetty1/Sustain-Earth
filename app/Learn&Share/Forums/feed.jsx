@@ -74,7 +74,7 @@ function Feed() {
     }
   };
 
-  const FeedCa = ({ profilePic, name, time, title, content, views, likes = [], comments = [], id, imageUrl, userId }) => {
+  const FeedCard = ({ profilePic, name, time, title, content, views, likes = [], comments = [], id, imageUrl, userId }) => {
     const count = likes.length;
     const [isCommentModalVisible, setCommentModalVisible] = useState(false);
     const [commentText, setCommentText] = useState('');
