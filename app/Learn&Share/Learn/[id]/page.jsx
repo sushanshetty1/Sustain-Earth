@@ -2,10 +2,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { doc, getDoc, getFirestore, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
-import firebaseApp from '../../../../firebaseConfig';
+import {firebaseApp} from '../../../../firebaseConfig';
 import styled from 'styled-components';
 import { getAuth } from 'firebase/auth';
 import Image from 'next/image';
+import {HeartFilled, Clock, Calendar, People, Video, Star, StarHalf, Mail } from "lucide-react";
 
 const ClassDetail = () => {
   const [user, setUser] = useState(null);
@@ -155,7 +156,7 @@ const ClassDetail = () => {
       <h1 className="text-5xl font-bold text-center mb-6 text-gray-800 tracking-wide">
         {classData.className}
       </h1>
-
+\
       <div className="flex flex-col md:flex-row items-center w-full max-w-5xl">
         <img
           src={classData.imageUrl}
@@ -163,10 +164,27 @@ const ClassDetail = () => {
           className="w-full md:w-1/2 h-96 object-cover rounded-lg mb-4 md:mb-0"
         />
 
-        <div className="flex flex-col ml-0 md:ml-6 space-y-4 text-left gap-6">
-          <p><strong>Age Group:</strong> {classData.standard}</p>
-          <p><strong>Class Type:</strong> {classData.classType}</p>
-          <p><strong>Class Date:</strong> {classData.classDate}</p>
+        <div className="flex flex-col ml-0 md:ml-6 justify-between text-left gap-6">
+          <div className="mt-4 space-y-2">
+              <p className="flex items-center gap-2">
+                <i className="h-4 w-4" /> <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000"><path d="M0-240v-63q0-43 44-70t116-27q13 0 25 .5t23 2.5q-14 21-21 44t-7 48v65H0Zm240 0v-65q0-32 17.5-58.5T307-410q32-20 76.5-30t96.5-10q53 0 97.5 10t76.5 30q32 20 49 46.5t17 58.5v65H240Zm540 0v-65q0-26-6.5-49T754-397q11-2 22.5-2.5t23.5-.5q72 0 116 26.5t44 70.5v63H780Zm-455-80h311q-10-20-55.5-35T480-370q-55 0-100.5 15T325-320ZM160-440q-33 0-56.5-23.5T80-520q0-34 23.5-57t56.5-23q34 0 57 23t23 57q0 33-23 56.5T160-440Zm640 0q-33 0-56.5-23.5T720-520q0-34 23.5-57t56.5-23q34 0 57 23t23 57q0 33-23 56.5T800-440Zm-320-40q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T600-600q0 50-34.5 85T480-480Zm0-80q17 0 28.5-11.5T520-600q0-17-11.5-28.5T480-640q-17 0-28.5 11.5T440-600q0 17 11.5 28.5T480-560Zm1 240Zm-1-280Z"/></svg><strong>Age Group:</strong> {classData.standard}
+              </p>
+              <p className="flex items-center gap-2">
+                <i className="h-4 w-4" /> <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000"><path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z"/></svg><strong>Date:</strong> {classData.classDate}
+              </p>
+              <p className="flex items-center gap-2">
+                <i className="h-4 w-4" /><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000"><path d="m612-292 56-56-148-148v-184h-80v216l172 172ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-400Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/></svg><strong>Time: </strong> {classData.classTime}
+              </p>
+              <p className="flex items-center gap-2">
+              <a
+                href="https://meet.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2"
+              >
+                <i className="h-4 w-4" />
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#2854C5"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h480q33 0 56.5 23.5T720-720v180l160-160v440L720-420v180q0 33-23.5 56.5T640-160H160Zm0-80h480v-480H160v480Zm0 0v-480 480Z"/></svg> Join Google Meet
+              </a></p>
 
           <div className="flex items-center">
             <span className="text-xl font-semibold mr-3">Interested:</span>
@@ -174,6 +192,7 @@ const ClassDetail = () => {
               onChange={handleCheckboxChange} 
               checked={isInterested} />
             <span className="text-xl">{interestedCount} people are interested</span>
+          </div>
           </div>
         </div>
       </div>

@@ -35,7 +35,40 @@ body {
   }
 }
 
-
+.news-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.news-card:hover {
+  transform: translateY(-5px);
+}
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+@keyframes fadeIn {
+  from {
+      opacity: 0;
+      transform: translateY(20px);
+  }
+  to {
+      opacity: 1;
+      transform: translateY(0);
+  }
+}
+.error-message {
+  animation: shake 0.5s ease-in-out;
+}
+@keyframes shake {
+  0%,
+  100% {
+      transform: translateX(0);
+  }
+  25% {
+      transform: translateX(-10px);
+  }
+  75% {
+      transform: translateX(10px);
+  }
+}
 .wave-effect {
   color: black; /* Default text color */
   position: relative;
