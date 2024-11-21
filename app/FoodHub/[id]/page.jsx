@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { doc, getDoc, getFirestore, collection, getDocs } from 'firebase/firestore';
-import firebaseApp from '../../../firebaseConfig';
+import {firebaseApp} from '../../../firebaseConfig';
 import { getAuth } from 'firebase/auth';
 import Help from '../../../public/images/help.png';
 import Image from 'next/image';

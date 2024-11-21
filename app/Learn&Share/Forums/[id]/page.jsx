@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { db } from "../../../../firebaseConfig";
 import { useRouter, useParams } from "next/navigation";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";  //here
 import styled from 'styled-components';
 
 const EditPostPage = () => {
@@ -10,8 +11,11 @@ const EditPostPage = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [userId, setUserId] = useState("");  //here
   const router = useRouter();
   const { id } = useParams();
+  const auth = getAuth();            //here
+  const currentUser = auth.currentUser;   //here
 
   useEffect(() => {
     if (!window.cloudinary) {
@@ -36,6 +40,7 @@ const EditPostPage = () => {
           setTitle(postData.title);
           setContent(postData.content);
           setImageUrl(postData.imageUrl);
+          setUserId(postData.userId);  //here
         } else {
           console.log("No such document!");
         }
@@ -72,14 +77,32 @@ const EditPostPage = () => {
 
   const handleSave = async (e) => {
     e.preventDefault();
+
+    if (!currentUser) {
+      console.error("User is not logged in.");
+      return;
+    }
+
     try {
       const postDocRef = doc(db, "posts", id);
-      await updateDoc(postDocRef, {
+      // await updateDoc(postDocRef, {
+      //   title,
+      //   content,
+      //   imageUrl,
+      // });
+      // router.back();
+      const updateData = {
         title,
         content,
         imageUrl,
-      });
-      router.back();
+      };
+
+      if (!userId) {
+        updateData.userId = currentUser.uid;
+      }
+
+      await updateDoc(postDocRef, updateData);
+      router.back(); 
     } catch (error) {
       console.error("Error updating post:", error);
     }

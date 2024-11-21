@@ -28,14 +28,12 @@ const Home = () => {
         const cacheDocRef = doc(db, "news", type);
 
         try {
-            // Check Firestore for cached data
             const cachedDoc = await getDoc(cacheDocRef);
             if (cachedDoc.exists()) {
                 const { articles, lastFetched } = cachedDoc.data();
                 const now = Timestamp.now().toMillis();
                 const lastFetchTime = lastFetched.toMillis();
 
-                // If the data is less than 2 hours old, use cached data
                 if (now - lastFetchTime < 2 * 60 * 60 * 1000) {
                     setNews(articles);
                     setLoading(false);
@@ -43,7 +41,6 @@ const Home = () => {
                 }
             }
 
-            // Fetch fresh data from the API
             const response = await fetch(
                 `https://gnews.io/api/v4/search?q=education&country=${country}&token=${API_KEY}&lang=en&limit=9`
             );
@@ -54,7 +51,6 @@ const Home = () => {
 
             const data = await response.json();
 
-            // Save the fetched data to Firestore
             await setDoc(cacheDocRef, {
                 articles: data.articles,
                 lastFetched: Timestamp.now()

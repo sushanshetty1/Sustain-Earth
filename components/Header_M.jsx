@@ -8,14 +8,14 @@ import Image from 'next/image';
 import img from '../public/images/MarketPlace.png';
 import profilePic from '../public/images/profile.png';
 import signOutPic from '../public/images/signout.png';
-
+import {firebaseApp} from "../firebaseConfig";
 function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const auth = getAuth();
-  const db = getFirestore();
+  const db = getFirestore(firebaseApp);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {

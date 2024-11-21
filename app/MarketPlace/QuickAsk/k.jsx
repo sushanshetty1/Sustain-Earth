@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { Search, Plus, ThumbsUp, RefreshCw, MapPin, MessageSquare , Clock} from 'lucide-react';
+import { Search, Plus, Send, Clock, Tag, MapPin, MessageSquare, ThumbsUp, RefreshCw } from 'lucide-react';
 import { db, collection, getDocs, addDoc, updateDoc, doc, query, where } from '../../../firebaseConfig';
 import { getAuth } from "firebase/auth";
 
@@ -19,7 +19,7 @@ export default function App() {
   const [newMessage, setNewMessage] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentRequest, setCurrentRequest] = useState(null);
+  const [currentRequest, setCurrentRequest] = useState(null); // Store the current chat request
   const auth = getAuth();
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export default function App() {
     if (request) {
       // Move the request to the accepted section
       await updateDoc(doc(db, 'requests', id), { status: 'accepted' });
-
+  
       setRequests(prev => ({
         ...prev,
         pending: prev.pending.filter(r => r.id !== id),
@@ -221,88 +221,86 @@ export default function App() {
       {isModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
           <div className="bg-white p-8 rounded-lg w-96">
-            <h2 className="text-lg font-semibold mb-4">Create New Request</h2>
+            <h2 className="text-xl font-semibold mb-4">Create a Request</h2>
             <form onSubmit={handleSubmitRequest}>
               <input
+                type="text"
                 name="itemName"
                 placeholder="Item Name"
-                className="mb-4 w-full p-2 border border-gray-300 rounded-lg"
                 required
+                className="w-full px-4 py-2 mb-4 border rounded-lg"
               />
-              <select
+              <input
+                type="text"
                 name="category"
-                className="mb-4 w-full p-2 border border-gray-300 rounded-lg"
+                placeholder="Category"
                 required
-              >
-                <option value="Food">Food</option>
-                <option value="Water">Water</option>
-                <option value="Medicine">Medicine</option>
-                <option value="Clothes">Clothes</option>
-              </select>
+                className="w-full px-4 py-2 mb-4 border rounded-lg"
+              />
               <textarea
                 name="description"
                 placeholder="Description"
-                className="mb-4 w-full p-2 border border-gray-300 rounded-lg"
                 required
+                className="w-full px-4 py-2 mb-4 border rounded-lg"
               />
               <input
+                type="text"
                 name="duration"
                 placeholder="Duration"
-                className="mb-4 w-full p-2 border border-gray-300 rounded-lg"
                 required
+                className="w-full px-4 py-2 mb-4 border rounded-lg"
               />
-              <button
-                type="submit"
-                className="w-full py-2 bg-blue-500 text-white rounded-lg"
-              >
-                Submit Request
-              </button>
+              <div className="flex justify-between items-center mt-4">
+                <button type="submit" className="bg-blue-500 text-white px-6 py-2 rounded-lg">
+                  Submit
+                </button>
+                <button
+                  type="button"
+                  className="text-gray-500"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  Close
+                </button>
+              </div>
             </form>
-            <button
-              className="mt-4 w-full py-2 bg-red-500 text-white rounded-lg"
-              onClick={() => setIsModalOpen(false)}
-            >
-              Cancel
-            </button>
           </div>
         </div>
       )}
 
       {isChatOpen && currentRequest && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
-          <div className="bg-white p-8 rounded-lg w-96">
-            <h2 className="text-lg font-semibold mb-4">Chat with {currentRequest.title}</h2>
-            <div className="overflow-y-auto max-h-72 mb-4">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`mb-3 ${message.sender === auth.currentUser?.uid ? 'text-right' : ''}`}
-                >
-                  <p className="text-sm text-gray-600">{message.text}</p>
-                  <p className="text-xs text-gray-400">{message.timestamp}</p>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h2 className="text-xl font-semibold mb-4">Chat with {currentRequest.title}</h2>
+            <div className="space-y-4">
+              {messages.map((msg, index) => (
+                <div key={index} className="flex items-start gap-2">
+                  <div className="text-sm font-semibold text-gray-700">{msg.sender}</div>
+                  <div className="text-sm">{msg.text}</div>
                 </div>
               ))}
             </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
+            <div className="mt-4">
+              <textarea
+                className="w-full px-4 py-2 mb-4 border rounded-lg"
+                placeholder="Type a message..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-lg"
               />
-              <button
-                onClick={handleSendMessage}
-                className="bg-blue-500 text-white rounded-lg px-4"
-              >
-                Send
-              </button>
+              <div className="flex justify-between items-center">
+                <button
+                  onClick={handleSendMessage}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+                >
+                  Send
+                </button>
+                <button
+                  onClick={() => setIsChatOpen(false)}
+                  className="text-gray-500"
+                >
+                  Close
+                </button>
+              </div>
             </div>
-            <button
-              className="mt-4 w-full py-2 bg-red-500 text-white rounded-lg"
-              onClick={() => setIsChatOpen(false)}
-            >
-              Close Chat
-            </button>
           </div>
         </div>
       )}
@@ -310,6 +308,36 @@ export default function App() {
   );
 }
 
+
+function Input({ placeholder, className, value, onChange, name, required }) {
+  return (
+    <input
+      type="text"
+      placeholder={placeholder}
+      className={`border border-gray-300 rounded px-3 py-2 ${className}`}
+      value={value}
+      onChange={onChange}
+      name={name}
+      required={required}
+    />
+  );
+}
+
+function Button({ children, variant, onClick, className, type }) {
+  const variantClasses = {
+    secondary: 'bg-blue-500 hover:bg-blue-600 text-white',
+    outline: 'border border-gray-300 hover:bg-gray-100'
+  };
+  return (
+    <button
+      type={type || 'button'}
+      className={`px-4 py-2 rounded ${variantClasses[variant] || ''} ${className}`}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
 
 function Card({ children }) {
   return (
@@ -324,5 +352,85 @@ function CardContent({ children, className }) {
     <div className={className}>
       {children}
     </div>
+  );
+}
+
+function Dialog({ open, onOpenChange, children }) {
+  return (
+    open && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white rounded-lg p-6">
+          {children}
+        </div>
+      </div>
+    )
+  );
+}
+
+function DialogContent({ children }) {
+  return (
+    <div>
+      {children}
+    </div>
+  );
+}
+
+function DialogHeader({ children }) {
+  return (
+    <div className="mb-4">
+      {children}
+    </div>
+  );
+}
+
+function DialogTitle({ children }) {
+  return (
+    <h3 className="text-lg font-semibold">{children}</h3>
+  );
+}
+
+function Select({ name, children }) {
+  return (
+    <select name={name} className="border border-gray-300 rounded px-3 py-2">
+      {children}
+    </select>
+  );
+}
+
+function SelectTrigger({ children }) {
+  return (
+    <div>
+      {children}
+    </div>
+  );
+}
+
+function SelectValue({ placeholder }) {
+  return (
+    <option value="">{placeholder}</option>
+  );
+}
+
+function SelectContent({ children }) {
+  return (
+    <div>
+      {children}
+    </div>
+  );
+}
+
+function SelectItem({ value, children }) {
+  return (
+    <option value={value}>{children}</option>
+  );
+}
+
+function Textarea({ name, required }) {
+  return (
+    <textarea
+      name={name}
+      className="border border-gray-300 rounded px-3 py-2"
+      required={required}
+    />
   );
 }

@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
-import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, increment } from "firebase/firestore";
+import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, increment,where,query } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
@@ -49,4 +49,4 @@ const initializeAnalytics = async () => {
 
 initializeAnalytics();
 
-export { firebaseApp, db, analytics, auth, storage, collection, addDoc, getDocs, updateDoc, doc, increment };
+export { firebaseApp, db, analytics, auth, storage, collection, addDoc, getDocs, updateDoc, doc, increment, where ,query};

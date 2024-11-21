@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../../firebaseConfig';
 import { useRouter } from 'next/navigation'; 
-import { collection, getDocs, doc, updateDoc, deleteDoc, query, where, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteDoc, query, where, arrayUnion, arrayRemove,getDoc as getSingleDoc, } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import styled from 'styled-components';
 import Loader from './loader';
@@ -42,9 +42,9 @@ function Feed() {
   const updateUserBalance = async (views, count) => {
     if (!currentUser) return;
 // change in the next line
-    const userDocRef = doc(db, "users", currentUser.uid);
+    const userDocRef = doc(db, "users", userId);
     try {
-      const userDoc = await getDoc(userDocRef);
+      const userDoc = await getSingleDoc(userDocRef);
       if (!userDoc.exists()) return;
 
       const userData = userDoc.data();
@@ -61,7 +61,7 @@ function Feed() {
         });
       }
             
-      if ((views % 100 === 0 || likesLength % 25 === 0) && dailyBalance < 250) {
+      if ((views % 100 === 0 || count % 25 === 0) && dailyBalance < 250) {
         const increment = Math.min(5, 250 - dailyBalance);
         await updateDoc(userDocRef, {
           dailyBalance: dailyBalance + increment,
@@ -93,6 +93,7 @@ function Feed() {
     };
     useEffect(() => {
       incrementViewCount();
+      updateUserBalance(views + 1, count); //ask this one
     }, []);
     const toggleLike = async () => {
       const postDocRef = doc(db, 'posts', id);
