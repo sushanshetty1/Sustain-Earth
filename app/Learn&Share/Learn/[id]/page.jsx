@@ -79,8 +79,8 @@ const ClassDetail = () => {
           interestedUsers: arrayUnion(user.uid) 
         });
         setInterestedCount(prevCount => prevCount + 1);
-
-       
+          
+                            
         const newCount = interestedCount + 1;
         if (newCount % 4 === 0) {
           const userDoc = await getDoc(userRef);

@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { Search, Plus, ThumbsUp, RefreshCw, MapPin, MessageSquare , Clock} from 'lucide-react';
-import { db, collection, getDocs, addDoc, updateDoc, doc, query, where } from '../../../firebaseConfig';
+import { Search, Plus, ThumbsUp, RefreshCw, MapPin, MessageSquare , Clock, Tag} from 'lucide-react';
+import { db, getDocs, addDoc, updateDoc, doc, query, where } from '../../../firebaseConfig';
+import {onSnapshot, collection} from 'firebase/firestore';
 import { getAuth } from "firebase/auth";
 
 const initialMockRequests = {
@@ -23,28 +24,26 @@ export default function App() {
   const auth = getAuth();
 
   useEffect(() => {
-    const fetchRequests = async () => {
-      const requestsCollection = collection(db, 'requests');
-      const q = query(requestsCollection, where("status", "==", "pending"));
-      const querySnapshot = await getDocs(q);
-      const pendingRequests = [];
-      querySnapshot.forEach(doc => {
-        pendingRequests.push({ id: doc.id, ...doc.data() });
+    const unsubscribe = onSnapshot(collection(db, 'requests'), (snapshot) => {
+      const requestsData = [];
+      snapshot.forEach(doc => {
+        requestsData.push({ id: doc.id, ...doc.data() });
       });
 
+      const filteredRequests = requestsData.filter(req => req.status === currentTab);
       setRequests(prev => ({
         ...prev,
-        pending: pendingRequests
+        [currentTab]: filteredRequests
       }));
-    };
-
-    fetchRequests();
-  }, []);
+    });
+  
+    return () => unsubscribe();
+  }, [currentTab]);
+  
 
   const handleAcceptRequest = async (id) => {
     const request = requests.pending.find(r => r.id === id);
     if (request) {
-      // Move the request to the accepted section
       await updateDoc(doc(db, 'requests', id), { status: 'accepted' });
 
       setRequests(prev => ({
@@ -55,10 +54,26 @@ export default function App() {
     }
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 1000);
+    
+    // Refetch data from Firebase
+    const requestsCollection = collection(db, 'requests');
+    const q = query(requestsCollection, where("status", "==", "pending"));
+    const querySnapshot = await getDocs(q);
+    const pendingRequests = [];
+    querySnapshot.forEach(doc => {
+      pendingRequests.push({ id: doc.id, ...doc.data() });
+    });
+    
+    setRequests(prev => ({
+      ...prev,
+      pending: pendingRequests
+    }));
+  
+    setIsRefreshing(false);
   };
+  
 
   const handleSubmitRequest = async (e) => {
     e.preventDefault();
@@ -73,7 +88,6 @@ export default function App() {
       userId: auth.currentUser?.uid,
     };
 
-    // Add new request to Firestore
     const docRef = await addDoc(collection(db, 'requests'), newRequest);
     setRequests(prev => ({
       ...prev,
