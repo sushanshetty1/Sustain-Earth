@@ -142,7 +142,7 @@ const Card = styled.div`
 
   .card-info {
     flex-grow: 1; // Allow this section to expand and take available space
-    padding-top: 15%; // Spacing between image and text content
+    padding-top: 7%; // Spacing between image and text content
   }
 
   .card-footer {

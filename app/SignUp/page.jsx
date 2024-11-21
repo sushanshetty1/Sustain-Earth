@@ -3,9 +3,12 @@ import React, { useState , useEffect } from 'react';
 import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, updateProfile,fetchSignInMethodsForEmail } from 'firebase/auth';
 import { auth, db } from '../../firebaseConfig';
 import Logo from '../../public/images/logo-w.jpg';
+import { useRouter } from 'next/navigation';
 import {setDoc, doc } from 'firebase/firestore';
+import Image from 'next/image';
 
 const Signup = () => {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -105,6 +108,7 @@ const handleAdditionalSubmit = async (e) => {
 
         setSuccess('User profile completed successfully!');
         console.log('User data stored successfully!');
+        router.push('/');
     } catch (error) {
         setError(`Error storing user data: ${error.message}`);
         console.error('Firestore error:', error);
@@ -141,11 +145,10 @@ const handleAdditionalSubmit = async (e) => {
             type="video/mp4"
           />
         </video>
-
-        <div className="md:absolute hidden top-4 left-4 z-10">
+        <div className="absolute top-4 left-4 z-10">
           <a href="/"> 
             <button>
-              <img src={Logo} alt="Logo" className="w-42 h-14 pt-3" />
+              <Image src={Logo} alt="Logo" width={168} height={56} className="w-42 h-14 pt-3" />
             </button>
           </a>
         </div>

@@ -39,7 +39,7 @@ const Login = () => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       setSuccess('Successfully signed in with email!');
-      router.push('/');
+      router.back();
     } catch (error) {
       setError('Failed to sign in. Please check your credentials and try again.');
     } finally {

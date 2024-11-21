@@ -75,7 +75,7 @@ const Home = () => {
 
     return (
         <main className="container mx-auto px-4 py-8">
-            <h1 className="text-4xl font-bold text-center text-blue-900 mb-8">
+            <h1 className="text-4xl font-bold text-center text-black mb-8">
                 Education News
             </h1>
 
@@ -83,16 +83,16 @@ const Home = () => {
             <div className="flex justify-center gap-4 mb-8">
                 <button
                     onClick={() => setActiveTab("global")}
-                    className={`px-6 py-2 rounded-full border-2 border-blue-900 font-semibold transition-all duration-300 hover:bg-blue-900 hover:text-white ${
-                        activeTab === "global" && "bg-blue-900 text-white"
+                    className={`px-6 py-2 rounded-full border-2 border-black font-semibold transition-all duration-300 hover:bg-black hover:text-white ${
+                        activeTab === "global" && "bg-black text-white"
                     }`}
                 >
                     <i className="bi bi-globe me-2"></i>Global News
                 </button>
                 <button
                     onClick={() => setActiveTab("indian")}
-                    className={`px-6 py-2 rounded-full border-2 border-blue-900 font-semibold transition-all duration-300 hover:bg-blue-900 hover:text-white ${
-                        activeTab === "indian" && "bg-blue-900 text-white"
+                    className={`px-6 py-2 rounded-full border-2 border-black font-semibold transition-all duration-300 hover:bg-black hover:text-white ${
+                        activeTab === "indian" && "bg-black text-white"
                     }`}
                 >
                     <i className="bi bi-flag me-2"></i>Indian News

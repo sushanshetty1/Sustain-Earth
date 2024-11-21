@@ -44,7 +44,7 @@ const App = () => {
   return (
     <div className="modal">
       {submitted ? (
-        <div className="thank-you-message">
+        <div className="text-3xl ">
           <h2>THANK YOU FOR ORDERING</h2>
         </div>
       ) : (
@@ -133,14 +133,16 @@ const App = () => {
       <style jsx>{`
         .modal {
         
-          width: fit-content;
+          width: 100%;
+          display:flex;
+          justify-content: center;
+          align-items: center;
+          align-text: center;
           height: fit-content;
           background: #ffffff;
-          box-shadow: 0px 187px 75px rgba(0, 0, 0, 0.01),
-            0px 105px 63px rgba(0, 0, 0, 0.05), 0px 47px 47px rgba(0, 0, 0, 0.09),
-            0px 12px 26px rgba(0, 0, 0, 0.1), 0px 0px 0px rgba(0, 0, 0, 0.1);
-          border-radius: 26px;
-          max-width: 450px;
+         padding: 50px;
+          background:rgb(249, 246, 244);
+          
         }
 
         .form {
@@ -148,6 +150,10 @@ const App = () => {
           flex-direction: column;
           gap: 20px;
           padding: 20px;
+          max-width:450px;
+          border: 2px solid;
+          border-radius: 26px;
+          border-color: rgb(53, 59, 72);
         }
 
         .payment--options {
@@ -231,8 +237,8 @@ const App = () => {
         }
 
         .input_label {
-          font-size: 10px;
-          color: #8b8e98;
+          font-size: 15px;
+          color: rgb(35, 42, 47);
           font-weight: 600;
         }
 
@@ -288,9 +294,10 @@ const App = () => {
   color: #000; 
   font-weight: 800;
   font-size: 2.5rem;
+        width:100%;
   margin: 0;
   padding: 20px;
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+  text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);
   border: none;
   white-space: nowrap; 
 }

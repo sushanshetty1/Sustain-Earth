@@ -39,19 +39,31 @@ function Feed() {
     fetchPosts();
   }, [showMyPosts, currentUser]);
 
-  const updateUserBalance = async (views, count) => {
-    if (!currentUser) return;
-// change in the next line
+  const updateUserBalance = async (views, count, userId) => {
+    if (!currentUser || !userId) return;
+
     const userDocRef = doc(db, "users", userId);
     try {
       const userDoc = await getSingleDoc(userDocRef);
-      if (!userDoc.exists()) return;
+      if (!userDoc.exists()) 
+        {
+          console.error("Creator's user document not found for ID:", userId);
+          return;
+      }
+      console.log("Creator's data:", userDoc.data());
 
       const userData = userDoc.data();
       let dailyBalance = userData.dailyBalance || 0;
       let balance = userData.balance || 0;
       const lastUpdated = userData.lastUpdated || null;
       const currentDate = new Date().toDateString();
+
+      if (!userData.lastUpdated) {
+        await updateDoc(userDocRef, {
+          lastUpdated: currentDate,
+          dailyBalance: 0,
+        });
+      }
 
       if (lastUpdated !== currentDate) {
         dailyBalance = 0;
@@ -93,7 +105,7 @@ function Feed() {
     };
     useEffect(() => {
       incrementViewCount();
-      updateUserBalance(views + 1, count); //ask this one
+      updateUserBalance(views + 1, count,userId); //ask this one
     }, []);
     const toggleLike = async () => {
       const postDocRef = doc(db, 'posts', id);

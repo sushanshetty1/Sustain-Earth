@@ -63,7 +63,7 @@ function Header() {
             <button
               onClick={() => handleButtonClick(0)}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-              className={`text-lg rounded-lg w-15 font-bold text-gray-500 transition duration-300 mr-4`}
+              className={`text-lg rounded-lg hover:text-black w-15 font-bold text-gray-500 transition duration-300 mr-4`}
             >
               Learn
             </button>
@@ -72,7 +72,7 @@ function Header() {
             <button
               onClick={() => handleButtonClick(1)}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-              className={`text-lg rounded-lg font-bold text-gray-500 transition duration-300 mr-4 `}
+              className={`text-lg rounded-lg hover:text-black font-bold text-gray-500 transition duration-300 mr-4 `}
             >
               Forums
             </button>
@@ -81,7 +81,7 @@ function Header() {
             <button
               onClick={() => handleButtonClick(2)}
               style={{ fontFamily: '"Josefin Sans", sans-serif' }}
-              className={`text-lg rounded-lg font-bold text-gray-500 transition duration-300`}
+              className={`text-lg rounded-lg hover:text-black font-bold text-gray-500 transition duration-300`}
             >
               Articles
             </button>
@@ -89,7 +89,7 @@ function Header() {
         </div>
 
         <Link href="/">
-          <button className="h-11 lg:w-54 lg;ml-20 flex justify-center md:h-11 w-44">
+          <button className="h-11 lg:w-54 lg:ml-20 flex justify-center md:h-11 w-44">
             <Image src={img} alt="logo" width={150} height={50} />
           </button>
         </Link>
