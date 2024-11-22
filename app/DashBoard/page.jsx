@@ -10,7 +10,51 @@ import Image from "next/image";
 import { toast } from "react-hot-toast";
 import ProgressDashboard from './levelup';
 
-const ProfileSection = ({ userProfile, onImageUpload }) => (
+// New Premium Modal Component
+const PremiumModal = ({ isOpen, onClose, onUpgrade }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+        <h2 className="text-2xl font-bold mb-4 text-center">Upgrade to Premium</h2>
+        <div className="mb-4">
+          <p className="text-gray-600 text-center">
+            Unlock exclusive features and support our mission!
+          </p>
+        </div>
+        <div className="mb-4">
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <h3 className="text-xl font-semibold mb-2">Premium Plan</h3>
+            <p className="text-gray-700">Monthly Subscription: ₹499</p>
+            <ul className="list-disc list-inside text-sm text-gray-600 mt-2">
+              <li>Unlimited Access</li>
+              <li>Ad-Free Experience</li>
+              <li>Priority Support</li>
+            </ul>
+          </div>
+        </div>
+        <div className="flex justify-between">
+          <button 
+            onClick={onClose} 
+            className="w-full mr-2 bg-gray-200 text-black rounded p-2 hover:bg-gray-300 transition-colors"
+          >
+            Cancel
+          </button>
+          <button 
+            onClick={onUpgrade} 
+            className="w-full bg-blue-500 text-white rounded p-2 hover:bg-blue-600 transition-colors"
+          >
+            Upgrade Now
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Modify the ProfileSection to include premium div click handler
+const ProfileSection = ({ userProfile, onImageUpload, onPremiumClick }) => (
   <div className="flex gap-4 items-center">
     <div
       onClick={() => onImageUpload("profilePic")}
@@ -24,7 +68,22 @@ const ProfileSection = ({ userProfile, onImageUpload }) => (
       />
     </div>
     <div className="text-lg flex items-center gap-2 font-semibold">
-      {userProfile?.username} <FaCrown className="text-yellow-500" />
+      {userProfile?.username} 
+      {userProfile?.premium ? (
+        <div 
+          className="cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={onPremiumClick}
+        >
+          <FaCrown className="text-yellow-500" />
+        </div>
+      ) : (
+        <div 
+          className="cursor-pointer hover:opacity-80 transition-opacity text-gray-400"
+          onClick={onPremiumClick}
+        >
+          <FaCrown />
+        </div>
+      )}
     </div>
   </div>
 );
@@ -129,6 +188,7 @@ const DashBoard = () => {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
   const [editValues, setEditValues] = useState({
     username: "",
@@ -142,6 +202,28 @@ const DashBoard = () => {
   const [showProgress, setShowProgress] = useState(false); // New state for progress section
 
   const router = useRouter();
+
+  const handlePremiumUpgrade = async () => {
+    try {
+      if (!auth.currentUser) {
+        toast.error("You must be logged in");
+        return;
+      }
+
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      await updateDoc(userRef, { premium: true });
+      
+      // Update local state
+      setUserProfile(prev => ({ ...prev, premium: true }));
+      
+      // Close modal and show success
+      setIsPremiumModalOpen(false);
+      toast.success("Successfully upgraded to Premium!");
+    } catch (error) {
+      toast.error("Failed to upgrade to Premium");
+      console.error("Premium upgrade error:", error);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -270,6 +352,11 @@ const DashBoard = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f9f6f4]">
+      <PremiumModal 
+        isOpen={isPremiumModalOpen}
+        onClose={() => setIsPremiumModalOpen(false)}
+        onUpgrade={handlePremiumUpgrade}
+      />
       <div className="p-4">
         {/* Original Profile Section */}
         <div className="bg-white p-6 w-full max-w-2xl mx-auto rounded-lg shadow-lg transform transition duration-300 hover:scale-105 mb-8">
@@ -287,6 +374,7 @@ const DashBoard = () => {
               <ProfileSection
                 userProfile={userProfile}
                 onImageUpload={handleImageUpload}
+                onPremiumClick={() => setIsPremiumModalOpen(true)}
               />
               
               <div className="space-y-1 pl-4 text-sm text-gray-600">
