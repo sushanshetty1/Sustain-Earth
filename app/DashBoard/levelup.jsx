@@ -9,7 +9,6 @@ import { PlusCircle, X } from 'lucide-react';
 const ProgressDashboard = () => {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
-  const [friends, setFriends] = useState([]);
   const [levelFilter, setLevelFilter] = useState('all');
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [userData, setUserData] = useState(null);
@@ -19,7 +18,6 @@ const ProgressDashboard = () => {
   const [friendError, setFriendError] = useState('');
   const [trackedFriends, setTrackedFriends] = useState([]);
 
-  // ... (keep existing level thresholds and colors)
   const levelThresholds = {
     1: 0,
     2: 750,
@@ -36,7 +34,6 @@ const ProgressDashboard = () => {
     5: { bg: 'bg-red-500', text: 'text-red-500' }
   };
 
-  // Keep existing calculation functions
   const calculateLevel = (balance) => {
     let level = 1;
     for (let i = 5; i >= 1; i--) {
@@ -46,6 +43,28 @@ const ProgressDashboard = () => {
       }
     }
     return level;
+  };
+
+  const processBalanceHistory = (balanceHistory) => {
+    const sortedHistory = balanceHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
+    const lastWeek = sortedHistory.slice(-7);
+    
+    if (lastWeek.length < 7) {
+      const today = new Date();
+      const missingDays = 7 - lastWeek.length;
+      
+      for (let i = 1; i <= missingDays; i++) {
+        const missingDate = new Date(today);
+        missingDate.setDate(today.getDate() - (7 - i));
+        
+        lastWeek.unshift({
+          date: missingDate.toISOString().split('T')[0],
+          balance: lastWeek.length > 0 ? lastWeek[0].balance : 0
+        });
+      }
+    }
+    
+    return lastWeek;
   };
 
   const calculateProgress = (balance) => {
@@ -64,129 +83,175 @@ const ProgressDashboard = () => {
     return levelThresholds[currentLevel + 1] - balance;
   };
 
-  // New function to handle adding friends
+  const updateProgressData = (currentFriends) => {
+    if (!userData || !userData.balanceHistory) return;
+
+    const userBalanceHistory = processBalanceHistory(userData.balanceHistory);
+
+    const friendsProgressData = currentFriends.map(friend => {
+      const friendBalanceHistory = friend.balanceHistory 
+        ? processBalanceHistory(friend.balanceHistory)
+        : userBalanceHistory.map(entry => ({
+            date: entry.date,
+            balance: friend.balance || 0
+          }));
+      
+      return friendBalanceHistory;
+    });
+
+    const combinedProgressData = userBalanceHistory.map((entry, index) => {
+      const dataPoint = {
+        date: entry.date,
+        [userData.username || 'You']: entry.balance
+      };
+
+      currentFriends.forEach((friend, friendIndex) => {
+        dataPoint[friend.username] = friendsProgressData[friendIndex][index].balance;
+      });
+
+      return dataPoint;
+    });
+
+    setProgressData(combinedProgressData);
+  };
+
   const handleAddFriend = async (e) => {
     e.preventDefault();
     setFriendError('');
 
-    if (!newFriendUsername.trim()) {
+    if (!newFriendUsername) {
       setFriendError('Please enter a username');
       return;
     }
 
-    try {
-      // Check if friend exists
-      const usersRef = collection(db, "users");
-      const q = query(usersRef, where("username", "==", newFriendUsername.trim()));
-      const querySnapshot = await getDocs(q);
+    if (userData && newFriendUsername === userData.username) {
+      setFriendError('You cannot add yourself');
+      return;
+    }
 
-      if (querySnapshot.empty) {
+    if (trackedFriends.some(friend => friend.username === newFriendUsername)) {
+      setFriendError('This friend is already tracked');
+      return;
+    }
+
+    try {
+      const friendQuery = query(collection(db, 'users'), where('username', '==', newFriendUsername));
+      const friendSnapshot = await getDocs(friendQuery);
+
+      if (friendSnapshot.empty) {
         setFriendError('User not found');
         return;
       }
 
-      const friendDoc = querySnapshot.docs[0];
-      const friendId = friendDoc.id;
+      const friendDoc = friendSnapshot.docs[0];
+      const friendData = friendDoc.data();
 
-      if (friendId === auth.currentUser.uid) {
-        setFriendError("You can't add yourself as a friend");
-        return;
-      }
-
-      if (trackedFriends.some(friend => friend.username === newFriendUsername)) {
-        setFriendError('Friend already added');
-        return;
-      }
-
-      // Add friend to tracked friends
       const newFriend = {
-        id: friendId,
-        username: newFriendUsername,
-        balance: friendDoc.data().balance || 0
+        id: friendDoc.id,
+        username: friendData.username,
+        balance: friendData.balance || 0,
+        balanceHistory: friendData.balanceHistory || []
       };
 
-      setTrackedFriends(prev => [...prev, newFriend]);
+      const updatedFriends = [...trackedFriends, newFriend];
+      setTrackedFriends(updatedFriends);
+      updateProgressData(updatedFriends);
       setNewFriendUsername('');
-
-      // Update progress data with new friend
-      updateProgressData([...trackedFriends, newFriend]);
     } catch (error) {
-      setFriendError('Error adding friend');
       console.error('Error adding friend:', error);
+      setFriendError('An error occurred while adding friend');
     }
   };
 
   const removeFriend = (friendUsername) => {
-    setTrackedFriends(prev => prev.filter(friend => friend.username !== friendUsername));
-    updateProgressData(trackedFriends.filter(friend => friend.username !== friendUsername));
-  };
-
-  const updateProgressData = (currentFriends) => {
-    const today = new Date();
-    const lastWeek = new Array(7).fill(0).map((_, i) => {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      return date.toISOString().split('T')[0];
-    }).reverse();
-
-    const newProgressData = lastWeek.map(date => ({
-      date,
-      [userData?.username || 'You']: userData?.balance || 0,
-      ...currentFriends.reduce((acc, friend) => ({
-        ...acc,
-        [friend.username]: friend.balance
-      }), {})
-    }));
-
-    setProgressData(newProgressData);
+    const updatedFriends = trackedFriends.filter(friend => friend.username !== friendUsername);
+    setTrackedFriends(updatedFriends);
+    updateProgressData(updatedFriends);
   };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        // Get current user's data
-        const userRef = doc(db, "users", currentUser.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          const data = userSnap.data();
-          setUserData(data);
-
-          // Check if user leveled up
-          const newLevel = calculateLevel(data.balance || 0);
-          const oldLevel = calculateLevel((userData?.balance || 0));
-          if (newLevel > oldLevel) {
-            setShowLevelUpModal(true);
+        try {
+          const userRef = doc(db, "users", currentUser.uid);
+          const userSnap = await getDoc(userRef);
+          
+          if (userSnap.exists()) {
+            const data = userSnap.data();
+            setUserData(data);
+  
+            const newLevel = calculateLevel(data.balance || 0);
+            const oldLevel = calculateLevel((userData?.balance || 0));
+            if (newLevel > oldLevel) {
+              setShowLevelUpModal(true);
+            }
+  
+            const usersSnapshot = await getDocs(collection(db, "users"));
+            const usersData = usersSnapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data(),
+              level: calculateLevel(doc.data().balance || 0)
+            }));
+            setLeaderboardData(usersData);
+  
+            if (data.balanceHistory) {
+              const processedUserHistory = processBalanceHistory(data.balanceHistory);
+              
+              const initialProgressData = processedUserHistory.map(entry => ({
+                date: entry.date,
+                [data.username || 'You']: entry.balance
+              }));
+  
+              setProgressData(initialProgressData);
+            }
           }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
         }
-
-        // Get all users for leaderboard
-        const usersSnapshot = await getDocs(collection(db, "users"));
-        const usersData = usersSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          level: calculateLevel(doc.data().balance || 0)
-        }));
-        setLeaderboardData(usersData);
-
-        // Initialize progress data with just the user
-        const today = new Date();
-        const lastWeek = new Array(7).fill(0).map((_, i) => {
-          const date = new Date(today);
-          date.setDate(date.getDate() - i);
-          return date.toISOString().split('T')[0];
-        }).reverse();
-
-        const initialProgressData = lastWeek.map(date => ({
-          date,
-          [userData?.username || 'You']: userData?.balance || 0
-        }));
-
-        setProgressData(initialProgressData);
       }
     });
-
+  
     return () => unsubscribe();
   }, []);
+  
+  useEffect(() => {
+    if (userData && trackedFriends.length > 0) {
+      const fetchFriendsData = async () => {
+        try {
+          const updatedFriends = await Promise.all(
+            trackedFriends.map(async (friend) => {
+              const friendRef = doc(db, "users", friend.id);
+              const friendSnap = await getDoc(friendRef);
+              
+              if (friendSnap.exists()) {
+                const friendData = friendSnap.data();
+                return {
+                  ...friend,
+                  balance: friendData.balance || 0,
+                  balanceHistory: friendData.balanceHistory || []
+                };
+              }
+              return friend;
+            })
+          );
+  
+          setTrackedFriends(updatedFriends);
+          updateProgressData(updatedFriends);
+        } catch (error) {
+          console.error("Error fetching friends data:", error);
+        }
+      };
+  
+      fetchFriendsData();
+    } else if (userData) {
+      const processedUserHistory = processBalanceHistory(userData.balanceHistory || []);
+      const initialProgressData = processedUserHistory.map(entry => ({
+        date: entry.date,
+        [userData.username || 'You']: entry.balance
+      }));
+      setProgressData(initialProgressData);
+    }
+  }, [userData, trackedFriends.length]);
 
   const getFilteredLeaderboard = () => {
     let filtered = leaderboardData;
@@ -220,7 +285,7 @@ const ProgressDashboard = () => {
           ₹{remainingToNext} more to reach Level {currentLevel < 5 ? currentLevel + 1 : 'MAX'}
         </p>
       </div>
-
+  
       {/* Control Buttons */}
       <div className="flex flex-col md:flex-row gap-4 mb-8">
         <button 
@@ -242,7 +307,7 @@ const ProgressDashboard = () => {
           Show Progress Graph
         </button>
       </div>
-
+  
       {/* Leaderboard Section */}
       {showLeaderboard && (
         <div className="bg-white rounded-xl p-6 shadow-lg mb-8">
@@ -279,7 +344,7 @@ const ProgressDashboard = () => {
           </div>
         </div>
       )}
-
+  
       {/* Progress Graph Section */}
       {showProgress && (
         <div className="bg-white rounded-xl p-6 shadow-lg">
@@ -355,11 +420,10 @@ const ProgressDashboard = () => {
           </div>
         </div>
       )}
-
+  
       {/* Level Up Modal */}
       {showLevelUpModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-8 text-center transform transition-all duration-300 scale-95 hover:scale-100">
           <div className="bg-white rounded-xl p-8 text-center transform transition-all duration-300 scale-95 hover:scale-100">
             <h2 className="text-3xl font-bold mb-4">Level Up!</h2>
             <p className="text-xl mb-4">Congratulations! You've reached a new level!</p>
@@ -374,11 +438,10 @@ const ProgressDashboard = () => {
             </button>
           </div>
         </div>
-        </div>
       )}
     </div>
   );
-};
+}
 
 export default ProgressDashboard;
             
