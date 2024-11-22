@@ -9,8 +9,8 @@ import Loader from "./loader";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 import ProgressDashboard from './levelup';
+import Button from "./Button";
 
-// New Premium Modal Component
 const PremiumModal = ({ isOpen, onClose, onUpgrade }) => {
   if (!isOpen) return null;
 
@@ -53,38 +53,31 @@ const PremiumModal = ({ isOpen, onClose, onUpgrade }) => {
   );
 };
 
-// Modify the ProfileSection to include premium div click handler
-const ProfileSection = ({ userProfile, onImageUpload, onPremiumClick }) => (
-  <div className="flex gap-4 items-center">
-    <div
-      onClick={() => onImageUpload("profilePic")}
-      className="relative w-16 h-16 rounded-full bg-gray-200 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-    >
-      <Image
-        src={userProfile?.profilePic || "/images/prof.png"}
-        alt="Profile"
-        fill
-        className="object-cover"
-      />
+const ProfileSection = ({ userProfile, onImageUpload, onPremiumUpgrade }) => (
+  <div className="flex gap-4 items-center justify-between">
+    <div className="flex gap-4 items-center">
+      <div
+        onClick={() => onImageUpload("profilePic")}
+        className="relative w-16 h-16 rounded-full bg-gray-200 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+      >
+        <Image
+          src={userProfile?.profilePic || "/images/prof.png"}
+          alt="Profile"
+          fill
+          className="object-cover"
+        />
+      </div>
+      <div className="text-lg flex items-center gap-2 font-semibold">
+        {userProfile?.username} 
+        <FaCrown className={userProfile?.premium ? "text-yellow-500" : "text-gray-400"} />
+      </div>
     </div>
-    <div className="text-lg flex items-center gap-2 font-semibold">
-      {userProfile?.username} 
-      {userProfile?.premium ? (
-        <div 
-          className="cursor-pointer hover:opacity-80 transition-opacity"
-          onClick={onPremiumClick}
-        >
-          <FaCrown className="text-yellow-500" />
-        </div>
-      ) : (
-        <div 
-          className="cursor-pointer hover:opacity-80 transition-opacity text-gray-400"
-          onClick={onPremiumClick}
-        >
-          <FaCrown />
-        </div>
-      )}
-    </div>
+    {!userProfile?.premium && (
+      <div
+      onClick={onPremiumUpgrade}>
+      <Button/>
+      </div>
+    )}
   </div>
 );
 
@@ -374,7 +367,7 @@ const DashBoard = () => {
               <ProfileSection
                 userProfile={userProfile}
                 onImageUpload={handleImageUpload}
-                onPremiumClick={() => setIsPremiumModalOpen(true)}
+                onPremiumUpgrade={() => setIsPremiumModalOpen(true)}
               />
               
               <div className="space-y-1 pl-4 text-sm text-gray-600">
