@@ -76,49 +76,56 @@ const ClassDetail = () => {
     try {
       if (newInterestedState) {
         await updateDoc(classRef, {
-          interestedUsers: arrayUnion(user.uid) 
+          interestedUsers: arrayUnion(user.uid)
         });
         setInterestedCount(prevCount => prevCount + 1);
           
                             
-        const newCount = interestedCount + 1;
-        if (newCount % 4 === 0) {
-          const userDoc = await getDoc(userRef);
-          if (userDoc.exists()) {
-            const currentDate = new Date().toDateString();
-                const userData = userDocSnap.data();
-                let dailyBalance = userData.dailyBalance || 0;
-                let balance = userData.balance || 0;
-                const lastUpdated = userData.lastUpdated || null;
+        // const newCount = interestedCount + 1;
+        // if (newCount % 4 === 0) {
 
-            if (lastUpdated !== currentDate) {
-              dailyBalance = 0;
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists()) {
+          const currentDate = new Date().toDateString();
+          const userData = userDoc.data();
+          let dailyBalance = userData.dailyBalance || 0;
+          let balance = userData.balance || 0;
+          const lastUpdated = userData.lastUpdated || null;
+
+          if (lastUpdated !== currentDate) {
+            dailyBalance = 0;
           }
            
 
-            let newDailyBalance = dailyBalance + 20;
-            let newBalance = balance;
-
-            if (newDailyBalance > 250) {
-              newDailyBalance = 250;
-            } else {
-              newBalance += 20;
+          let newDailyBalance = dailyBalance;
+          let newBalance = balance;
+          if (newDailyBalance < 250) {
+            const remainingBalance = 250 - newDailyBalance;
+            const increment = Math.min(10, remainingBalance); // Only add up to 10 or the remaining amount
+            newDailyBalance += increment;
+  
+            if (newDailyBalance <= 250) {
+              newBalance += increment; // Add to the balance
             }
-
+          }
+  
+          // If dailyBalance is less than 250, update the Firestore
+          if (newDailyBalance > dailyBalance) {
             await updateDoc(userRef, {
               dailyBalance: newDailyBalance,
               balance: newBalance,
+              lastUpdated: currentDate, // Update the lastUpdated field to the current day
             });
           }
         }
-
+  
       } else {
         await updateDoc(classRef, {
           interestedUsers: arrayRemove(user.uid)
         });
         setInterestedCount(prevCount => prevCount - 1);
       }
-
+  
       setIsInterested(newInterestedState);
 
     } catch (error) {
