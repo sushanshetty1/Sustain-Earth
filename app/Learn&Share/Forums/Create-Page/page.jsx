@@ -56,47 +56,73 @@ const Form = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const user = auth.currentUser;
-  
+
     if (!user) {
-      console.error("User not logged in!");
-      return;
+        console.error("User not logged in!");
+        return;
     }
-  
+
     try {
-      const userDocRef = doc(db, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
-  
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-  
-        const postsCollectionRef = collection(db, 'posts');
-        await addDoc(postsCollectionRef, {
-          title: title,
-          content: content,
-          imageUrl: imageUrl,
-          views: 0,
-          likes: 0,
-          comments: [],
-          time: new Date().toLocaleString(),
-          userId: user.uid,
-          name: userData.firstName || "Unknown User",
-          profilePic: userData.profilePic || "Pic",
-        });
-  
-        setTitle('');
-        setContent('');
-        setImageUrl('');
-  
-        router.back(); 
-      } else {
-        console.error("User not found in database!");
-      }
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+
+            let balance = userData.balance || 0;
+            let dailyBalance = userData.dailyBalance || 0;
+            const currentDate = new Date().toDateString();
+
+            if (dailyBalance < 250) {
+                const increment = Math.min(25, 250 - dailyBalance);
+                dailyBalance += increment;
+
+                balance += 25;
+
+                const balanceHistory = userData.balanceHistory || [];
+                const newHistoryEntry = {
+                    balance,
+                    date: currentDate,
+                };
+                balanceHistory.push(newHistoryEntry);
+
+                await updateDoc(userDocRef, {
+                    balance,
+                    dailyBalance,
+                    balanceHistory,
+                });
+            }
+
+            const postsCollectionRef = collection(db, 'posts');
+            await addDoc(postsCollectionRef, {
+                title: title,
+                content: content,
+                imageUrl: imageUrl,
+                views: 0,
+                likes: 0,
+                comments: [],
+                time: new Date().toLocaleString(),
+                userId: user.uid,
+                name: userData.firstName || "Unknown User",
+                profilePic: userData.profilePic || "Pic",
+            });
+
+            setTitle('');
+            setContent('');
+            setImageUrl('');
+
+            router.back(); 
+        } else {
+            console.error("User not found in database!");
+        }
     } catch (error) {
-      console.error("Error adding post: ", error);
+        console.error("Error adding post: ", error);
     }
-  };
+};
+
+
   
   return (
     <div className="flex justify-center items-center min-h-screen">

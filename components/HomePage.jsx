@@ -99,7 +99,7 @@ function HomePage() {
             lineHeight: "1",
           }}
         >
-          <p className="w-80 sm:w-[450px] border-2 rounded-full font-bold flex items-center justify-center text-center bg-[#ffc8a2] border-[#ffc8a2] text-[13px] sm:text-[18px] py-2 sm:py-3">
+          <p className="w-96 sm:w-[450px] border-2 rounded-full font-bold flex items-center justify-center text-center bg-[#ffc8a2] border-[#ffc8a2] text-[16px] sm:text-[18px] py-2 mb-5 sm:py-3">
             The Community Hub for Sustainable Living
           </p>
         </div>
@@ -121,7 +121,7 @@ function HomePage() {
             fontFamily: '"Source Serif 4", Georgia, serif', 
             fontWeight: 'bold'
           }} 
-          className="mt-6 mb-6 text-[41px] font-semibold block lg:hidden"
+          className="mt-14 text-[35px] font-semibold block lg:hidden"
         >
           Join the Global Movement for Sustainable Impact.
         </p>

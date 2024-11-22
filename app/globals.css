@@ -86,7 +86,15 @@ body {
 .spinner {
   animation: spin 1s linear infinite;
 }
+@keyframes glow {
+  0% { box-shadow: 0 0 5px rgba(13, 148, 136, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(13, 148, 136, 0.8); }
+  100% { box-shadow: 0 0 5px rgba(13, 148, 136, 0.5); }
+}
 
+.level-up {
+  animation: glow 2s infinite;
+}
 @keyframes spin {
   from {
     transform: rotate(0deg);

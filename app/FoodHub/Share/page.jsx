@@ -45,71 +45,82 @@ const MealEntry = () => {
 
   const handleLocationAndSubmit = async () => {
     if (!user) return;
-  
+
     try {
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
-      });
-  
-      const userLocation = {
-        lat: position.coords.latitude,
-        lon: position.coords.longitude,
-      };
-  
-      await setDoc(doc(db, 'mealsCollection', user.uid), {
-        ...formData,
-        type: option,
-        location: userLocation,
-      });
-  
-      const userRef = doc(db, 'users', user.uid);
-      const userDoc = await getDoc(userRef);
-  
-      const today = new Date();
-      const todayString = today.toISOString().split("T")[0];
-  
-      let balanceIncrement = formData.meals * 12;
-      let newBalance = balanceIncrement;
-      let lastUpdated = todayString;
-      
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-  
-        if (userData.lastUpdated === todayString) {
-          const remainingBalanceForToday = 250 - (userData.dailyBalance || 0);
-  
-          balanceIncrement = Math.min(balanceIncrement, remainingBalanceForToday);
+        const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+        });
+
+        const userLocation = {
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+        };
+
+        await setDoc(doc(db, 'mealsCollection', user.uid), {
+            ...formData,
+            type: option,
+            location: userLocation,
+        });
+
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+
+        const today = new Date();
+        const todayString = today.toISOString().split("T")[0];
+
+        let balanceIncrement = formData.meals * 12;
+        let newBalance = balanceIncrement;
+        let lastUpdated = todayString;
+
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            if (userData.lastUpdated === todayString) {
+                const remainingBalanceForToday = 250 - (userData.dailyBalance || 0);
+                balanceIncrement = Math.min(balanceIncrement, remainingBalanceForToday);
+            }
+
+            newBalance = userData.balance + balanceIncrement;
+
+            const balanceHistory = userData.balanceHistory || [];
+            const newHistoryEntry = {
+                balance: newBalance,
+                date: todayString,
+            };
+            balanceHistory.push(newHistoryEntry);
+
+            await updateDoc(userRef, {
+                totalMealsShared: increment(formData.meals),
+                dailyBalance: (userData.lastUpdated === todayString)
+                    ? increment(balanceIncrement)
+                    : balanceIncrement,
+                balance: newBalance,
+                lastUpdated: todayString,
+                balanceHistory,
+            });
+        } else {
+            await setDoc(userRef, {
+                totalMealsShared: formData.meals,
+                dailyBalance: balanceIncrement,
+                balance: newBalance,
+                lastUpdated: todayString,
+                balanceHistory: [{
+                    balance: newBalance,
+                    date: todayString,
+                }],
+            });
         }
-  
-        newBalance = userData.balance + balanceIncrement;
-  
-        await updateDoc(userRef, {
-          totalMealsShared: increment(formData.meals),
-          dailyBalance: (userData.lastUpdated === todayString)
-            ? increment(balanceIncrement)
-            : balanceIncrement,
-          balance: newBalance,
-          lastUpdated: todayString
-        });
-      } else {
-        await setDoc(userRef, {
-          totalMealsShared: formData.meals,
-          dailyBalance: balanceIncrement,
-          balance: newBalance,
-          lastUpdated: todayString,
-        });
-      }
-  
-      setSubmitted(true);
+
+        setSubmitted(true);
     } catch (error) {
-      if (error.code === 'PERMISSION_DENIED') {
-        alert("Location access must be given");
-      } else {
-        alert("Error obtaining location or saving data. Please try again.");
-        console.error("Location or Firestore error:", error);
-      }
+        if (error.code === 'PERMISSION_DENIED') {
+            alert("Location access must be given");
+        } else {
+            alert("Error obtaining location or saving data. Please try again.");
+            console.error("Location or Firestore error:", error);
+        }
     }
-  };
+};
+
   
     
 

@@ -34,10 +34,23 @@ const Form = () => {
     let value = parseFloat(e.target.value) || placeholderAmount;
     if (value < 0) value = 0;
     if (value > 1000000) value = 1000000;
-  
     setAmount(value);
   };
-  
+
+  const handleDailyBalanceReset = async (userRef, userDoc) => {
+    const userData = userDoc.data();
+    const lastUpdated = userData.lastDailyReset;
+    const currentDate = new Date();
+    const today = currentDate.toISOString().split("T")[0];
+
+    if (!lastUpdated || lastUpdated.split("T")[0] !== today) {
+      await updateDoc(userRef, {
+        dailyBalance: 250,
+        lastDailyReset: currentDate.toISOString(),
+      });
+      console.log("Daily balance reset to 250 for the new day.");
+    }
+  };
 
   const handleHelpPercentageChange = (e) => {
     setHelpPercentage(e.target.value);
@@ -62,67 +75,89 @@ const Form = () => {
   
     const donationRef = doc(db, "donationCollections", donationId);
     const donationDoc = await getDoc(donationRef);
+    const userRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userRef);
   
-    if (donationDoc.exists()) {
-      const donationData = donationDoc.data();
-      const donationGoal = donationData.goal || 0;
-      const currentAmount = donationData.amount || 0;
-  
-      if (currentAmount + amount > donationGoal) {
-        alert(`Donation exceeds the goal of ₹${donationGoal}. Please reduce your donation.`);
-        return;
-      }
-  
-      if (amount < 10) {
-        alert("Donation amount should be at least ₹10.");
-        return;
-      } else if (amount > 1000000) {
-        alert("Donation amount should not exceed ₹10,00,000.");
-        return;
-      }
-  
-      const newDonation = { name, amount, date: new Date() };
-  
-      try {
-        await updateDoc(donationRef, {
-          amount: currentAmount + amount,
-        });
-        await addDoc(collection(db, "donationCollections", donationId, "donations"), newDonation);
-  
-        const userRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userRef);
-  
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          const newTotalDonations = (userData.totalDonations || 0) + amount;
-          let newBalance = userData.balance || 0;
-  
-          const additionalBalance = Math.floor(newTotalDonations / 250) * 25;
-  
-          await updateDoc(userRef, {
-            totalDonations: newTotalDonations,
-            balance: newBalance + additionalBalance,
-          });
-        } else {
-          await setDoc(userRef, {
-            totalDonations: amount,
-            balance: Math.floor(amount / 250) * 25,
-          });
-        }
-  
-        alert("Thank You For Your Valuable Donation!");
-        router.back();
-      } catch (error) {
-        console.error("Error saving donation information: ", error);
-        alert("Failed to save donation information. Please try again.");
-      }
-    } else {
+    if (!donationDoc.exists()) {
       console.log("Donation document does not exist.");
+      alert("Donation not found. Please try again later.");
+      return;
+    }
+  
+    if (!userDoc.exists()) {
+      console.log("User document does not exist.");
+      alert("User not found. Please try again later.");
+      return;
+    }
+  
+    const donationData = donationDoc.data();
+    const donationGoal = donationData.goal || 0;
+    const currentAmount = donationData.amount || 0;
+  
+    if (amount < 10) {
+      alert("Donation amount should be at least ₹10.");
+      return;
+    } else if (amount > 1000000) {
+      alert("Donation amount should not exceed ₹10,00,000.");
+      return;
+    }
+  
+    if (currentAmount + amount > donationGoal) {
+      alert(`Donation exceeds the goal of ₹${donationGoal}. Please reduce your donation.`);
+      return;
+    }
+  
+    const userData = userDoc.data();
+    let dailyBalance = userData.dailyBalance || 250;
+  
+    let coinsToAdd = 0;
+    if (dailyBalance > 0) {
+      const eligibleForCoins = Math.min(dailyBalance, amount);
+      coinsToAdd = Math.floor(eligibleForCoins / 250) * 25;
+      dailyBalance -= eligibleForCoins;
+    }
+  
+    const newBalanceHistoryEntry = { date: new Date().toISOString(), balance: userData.balance };
+    const newDonation = { name, amount, date: new Date() };
+  
+    try {
+      let currentDonationAmount = 0;
+      if (donationDoc.exists()) {
+        currentDonationAmount = donationData.amount || 0;
+      }
+  
+      await updateDoc(donationRef, {
+        amount: currentDonationAmount + amount,
+      });
+  
+      await addDoc(collection(db, "donationCollections", donationId, "donations"), newDonation);
+  
+      const newTotalDonations = (userData.totalDonations || 0) + amount;
+  
+      if (dailyBalance > 0) {
+        await updateDoc(userRef, {
+          totalDonations: newTotalDonations,
+          balance: (userData.balance || 0) + coinsToAdd,
+          dailyBalance: dailyBalance,
+          balanceHistory: [...(userData.balanceHistory || []), newBalanceHistoryEntry],
+        });
+      } else {
+        await updateDoc(userRef, {
+          totalDonations: newTotalDonations,
+          dailyBalance: dailyBalance,
+          balanceHistory: [...(userData.balanceHistory || []), newBalanceHistoryEntry],
+        });
+      }
+  
+      alert("Thank You For Your Valuable Donation!");
+      router.back();
+    } catch (error) {
+      console.error("Error saving donation information: ", error);
+      alert("Failed to save donation information. Please try again.");
     }
   };
   
   
-
   return (
     <StyledWrapper>
       <div className="container">

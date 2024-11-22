@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { collection, getDocs, getFirestore } from 'firebase/firestore';
+import { collection, getDocs, getFirestore, deleteDoc, doc } from 'firebase/firestore';
 import {firebaseApp} from '../../../firebaseConfig';
 import Link from 'next/link';
 import './Classes/SharedStyles.css';
@@ -9,26 +9,91 @@ import Loader from '../loader';
 
 const Home = () => {
   const [classesData, setClassesData] = useState([]);
-  const [loading, setLoading] = useState(true); // Add loading state
+  const [filteredClasses, setFilteredClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('recent');
   const db = getFirestore(firebaseApp);
+
+  const deleteExpiredClasses = async (classes) => {
+    const now = new Date();
+    for (const classItem of classes) {
+      const classDate = new Date(classItem.classDate);
+      const [hours, minutes] = classItem.classTime.split(':');
+      classDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+      if (classDate < now) {
+        // Delete from Firestore
+        try {
+          await deleteDoc(doc(db, 'classesCollection', classItem.id));
+        } catch (error) {
+          console.error('Error deleting expired class:', error);
+        }
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchClassesData = async () => {
       const querySnapshot = await getDocs(collection(db, 'classesCollection'));
       const data = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-      setClassesData(data);
-      setLoading(false); // Stop loading once data is fetched
+      
+      // Delete expired classes
+      await deleteExpiredClasses(data);
+      
+      // Fetch updated data after deletion
+      const updatedSnapshot = await getDocs(collection(db, 'classesCollection'));
+      const updatedData = updatedSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      
+      setClassesData(updatedData);
+      filterClasses(updatedData, 'recent');
+      setLoading(false);
     };
 
     fetchClassesData();
+
+    // Set up interval to check for expired classes every minute
+    const interval = setInterval(() => {
+      if (classesData.length > 0) {
+        fetchClassesData();
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
   }, [db]);
+
+  const filterClasses = (data, tab) => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayAfterTomorrow = new Date(today);
+    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+    
+    // Reset hours to start of day for accurate comparison
+    today.setHours(0, 0, 0, 0);
+    tomorrow.setHours(0, 0, 0, 0);
+    dayAfterTomorrow.setHours(0, 0, 0, 0);
+
+    const filtered = data.filter(classItem => {
+      const classDate = new Date(classItem.classDate);
+      classDate.setHours(0, 0, 0, 0);
+
+      if (tab === 'recent') {
+        return classDate >= today && classDate <= dayAfterTomorrow;
+      } else {
+        return classDate > dayAfterTomorrow;
+      }
+    });
+
+    setFilteredClasses(filtered);
+    setActiveTab(tab);
+  };
 
   return (
     <div className="text-white min-h-screen p-6 font-sans ">
       <header className="flex flex-col md:flex-row items-center justify-center md:justify-between mb-16 ">
         <div className="md:ml-[180px] mt-10 md:w-1/2 mb-8 md:mb-0">
           <p className="text-3xl md:text-4xl w-fit font-bold mb-4 text-black">
-            "Unlock Your Learning <br/><span className='ml-0 md:ml-48'>Potential Today"</span>
+            "Unlock Your Learning <br/><span className='ml-0 lg:ml-48'>Potential Today"</span>
           </p>
           <p className="text-base md:text-lg mb-6 text-black">
             Explore a world of knowledge, master new skills, and achieve your academic goals with expert guidance and interactive resources designed for you.
@@ -47,8 +112,19 @@ const Home = () => {
       <section className="text-center">
         <h2 className="text-xl md:text-2xl mb-4 text-black">Explore our platform to gain knowledge and enhance your skills.</h2>
         <nav className="flex justify-center space-x-6 mb-8 text-gray-400">
-          <div className="text-blue-400 border-b-2 border-red-500 pb-1">Recent</div>
-          <div href="#" className="hover:text-blue-400">Upcoming</div>
+        <button 
+  onClick={() => filterClasses(classesData, 'recent')}
+  className={`pb-1 border-b-2 ${activeTab === 'recent' ? 'text-black border-red-500' : 'border-transparent hover:text-black hover:font-semibold'} transition-all ease-out duration-500`}
+>
+  Recent
+</button>
+<button 
+  onClick={() => filterClasses(classesData, 'upcoming')}
+  className={`pb-1 border-b-2 ${activeTab === 'upcoming' ? 'text-black border-red-500' : 'border-transparent hover:text-black'} transition-all ease-out duration-500`}
+>
+  Upcoming
+</button>
+
         </nav>
 
         {loading ? ( 
@@ -57,7 +133,7 @@ const Home = () => {
           </div>
         ) : (
           <div className="flex flex-wrap justify-center gap-6 ">
-            {classesData.map((classData) => (
+            {filteredClasses.map((classData) => (
               <Link href={`/Learn&Share/Learn/${classData.id}`} key={classData.id}>
                 <div className="article-wrapper">
                   <div className="container-project">

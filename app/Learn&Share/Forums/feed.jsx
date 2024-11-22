@@ -44,47 +44,57 @@ function Feed() {
 
     const userDocRef = doc(db, "users", userId);
     try {
-      const userDoc = await getSingleDoc(userDocRef);
-      if (!userDoc.exists()) 
-        {
-          console.error("Creator's user document not found for ID:", userId);
-          return;
-      }
-      console.log("Creator's data:", userDoc.data());
+        const userDoc = await getSingleDoc(userDocRef);
+        if (!userDoc.exists()) {
+            console.error("Creator's user document not found for ID:", userId);
+            return;
+        }
+        console.log("Creator's data:", userDoc.data());
 
-      const userData = userDoc.data();
-      let dailyBalance = userData.dailyBalance || 0;
-      let balance = userData.balance || 0;
-      const lastUpdated = userData.lastUpdated || null;
-      const currentDate = new Date().toDateString();
+        const userData = userDoc.data();
+        let dailyBalance = userData.dailyBalance || 0;
+        let balance = userData.balance || 0;
+        const lastUpdated = userData.lastUpdated || null;
+        const currentDate = new Date().toDateString();
 
-      if (!userData.lastUpdated) {
-        await updateDoc(userDocRef, {
-          lastUpdated: currentDate,
-          dailyBalance: 0,
-        });
-      }
+        if (!userData.lastUpdated) {
+            await updateDoc(userDocRef, {
+                lastUpdated: currentDate,
+                dailyBalance: 0,
+            });
+        }
 
-      if (lastUpdated !== currentDate) {
-        dailyBalance = 0;
-        await updateDoc(userDocRef, {
-          dailyBalance: 0,
-          lastUpdated: currentDate,
-        });
-      }
-            
-      if ((views % 100 === 0 || count % 25 === 0) && dailyBalance < 250) {
-        const increment = Math.min(5, 250 - dailyBalance);
-        await updateDoc(userDocRef, {
-          dailyBalance: dailyBalance + increment,
-          balance: balance + increment,
-          
-        });
-      }
+        if (lastUpdated !== currentDate) {
+            dailyBalance = 0;
+            await updateDoc(userDocRef, {
+                dailyBalance: 0,
+                lastUpdated: currentDate,
+            });
+        }
+
+        if ((views % 100 === 0 || count % 25 === 0) && dailyBalance < 250) {
+            const increment = Math.min(5, 250 - dailyBalance);
+            dailyBalance += increment;
+            balance += increment;
+
+            const balanceHistory = userData.balanceHistory || [];
+            const newHistoryEntry = {
+                balance,
+                date: currentDate,
+            };
+            balanceHistory.push(newHistoryEntry);
+
+            await updateDoc(userDocRef, {
+                dailyBalance,
+                balance,
+                balanceHistory,
+            });
+        }
     } catch (error) {
-      console.error("Error updating user balance: ", error);
+        console.error("Error updating user balance: ", error);
     }
-  };
+};
+
 
   const FeedCard = ({ profilePic, name, time, title, content, views, likes = [], comments = [], id, imageUrl, userId }) => {
     const count = likes.length;

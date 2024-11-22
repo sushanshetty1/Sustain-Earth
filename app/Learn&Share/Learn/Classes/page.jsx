@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';   
 import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc } from 'firebase/firestore';
-import firebaseApp from '../../../../firebaseConfig';
+import {firebaseApp} from '../../../../firebaseConfig';
 import Link from 'next/link';
 
 const ClassesEntry = () => {
@@ -131,51 +131,60 @@ const ClassesEntry = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!user) return;
-
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            await addDoc(collection(db, 'classesCollection'), formData);
-
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-
-            if (userDocSnap.exists()) {
-                const currentDate = new Date().toDateString();
-                const userData = userDocSnap.data();
-                let dailyBalance = userData.dailyBalance || 0;
-                let balance = userData.balance || 0;
-                const lastUpdated = userData.lastUpdated || null;
-
+      e.preventDefault();
+      if (!user) return;
+  
+      setIsLoading(true);
+      setError(null);
+  
+      try {
+          await addDoc(collection(db, 'classesCollection'), formData);
+  
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+  
+          if (userDocSnap.exists()) {
+              const currentDate = new Date().toDateString();
+              const userData = userDocSnap.data();
+              let dailyBalance = userData.dailyBalance || 0;
+              let balance = userData.balance || 0;
+              const lastUpdated = userData.lastUpdated || null;
+              const balanceHistory = userData.balanceHistory || [];
+  
               if (lastUpdated !== currentDate) {
-                await updateDoc(userDocRef, {
-                    dailyBalance: 0,
+                  await updateDoc(userDocRef, {
+                      dailyBalance: 0,
                   });
-                }
-
-                let increment = Math.min(50, 250 - dailyBalance);
-                if (increment > 0) {
-                    dailyBalance += increment;
-                    balance += increment;
-                }
-
-                await updateDoc(userDocRef, {
-                    dailyBalance,
-                    balance,
-                    lastUpdated: currentDate,
-                });
-            }
-            setSubmitted(true);
-        } catch (error) {
-            console.error("Error saving class data:", error);
-            setError("Error saving class data");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+              }
+  
+              let increment = Math.min(50, 250 - dailyBalance);
+              if (increment > 0) {
+                  dailyBalance += increment;
+                  balance += increment;
+              }
+  
+              const newHistoryEntry = {
+                  balance,
+                  date: currentDate,
+              };
+              balanceHistory.push(newHistoryEntry);
+  
+              await updateDoc(userDocRef, {
+                  dailyBalance,
+                  balance,
+                  lastUpdated: currentDate,
+                  balanceHistory,
+              });
+          }
+          setSubmitted(true);
+      } catch (error) {
+          console.error("Error saving class data:", error);
+          setError("Error saving class data");
+      } finally {
+          setIsLoading(false);
+      }
+  };
+  
 
     return !submitted ? (
       <div className="flex items-center justify-center min-h-screen bg-[#f9f6f4] ">

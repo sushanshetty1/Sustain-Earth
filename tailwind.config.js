@@ -14,6 +14,9 @@ module.exports = {
       fontFamily: {
         roboto: ['Roboto', 'sans-serif'],
       },
+      animation: {
+        'pulse': 'glow 2s infinite',
+      }
     },
   },
   plugins: [],
