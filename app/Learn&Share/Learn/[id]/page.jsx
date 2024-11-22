@@ -80,9 +80,7 @@ const ClassDetail = () => {
         });
         setInterestedCount(prevCount => prevCount + 1);
           
-                            
-        // const newCount = interestedCount + 1;
-        // if (newCount % 4 === 0) {
+      
 
         const userDoc = await getDoc(userRef);
         if (userDoc.exists()) {
@@ -97,25 +95,26 @@ const ClassDetail = () => {
           }
            
 
-          let newDailyBalance = dailyBalance;
-          let newBalance = balance;
-          if (newDailyBalance < 250) {
-            const remainingBalance = 250 - newDailyBalance;
-            const increment = Math.min(10, remainingBalance); // Only add up to 10 or the remaining amount
-            newDailyBalance += increment;
+          const checkboxHistory = userData.checkboxHistory || {};
+          if (!checkboxHistory[classId]) {
+            // First-time interaction with this checkbox
+            if (dailyBalance < 250) {
+              const remainingBalance = 250 - dailyBalance;
+              const increment = Math.min(10, remainingBalance); // Add up to 10 or the remaining balance
+              dailyBalance += increment;
+              balance += increment;
   
-            if (newDailyBalance <= 250) {
-              newBalance += increment; // Add to the balance
+              // Update Firestore with new balances and history
+              await updateDoc(userRef, {
+                dailyBalance,
+                balance,
+                lastUpdated: currentDate,
+                checkboxHistory: {
+                  ...checkboxHistory,
+                  [classId]: true, // Mark this class checkbox as interacted
+                },
+              });
             }
-          }
-  
-          // If dailyBalance is less than 250, update the Firestore
-          if (newDailyBalance > dailyBalance) {
-            await updateDoc(userRef, {
-              dailyBalance: newDailyBalance,
-              balance: newBalance,
-              lastUpdated: currentDate, // Update the lastUpdated field to the current day
-            });
           }
         }
   
