@@ -120,7 +120,8 @@ const ClassesEntry = () => {
     };
 
     const handleLearningDelete = async (item) => {
-        try {
+        
+      try {
             const updatedLearning = formData.whatYouWillLearn.filter((learn) => learn !== item);
             setFormData((prev) => ({
                 ...prev,
