@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../../firebaseConfig';
 import { useRouter } from 'next/navigation'; 
-import { collection, getDoc ,getDocs, doc, updateDoc, deleteDoc, query, where, arrayUnion, arrayRemove, getDoc as getSingleDoc } from 'firebase/firestore';
+import { collection, getDoc, getDocs, doc, updateDoc, deleteDoc, query, where, arrayUnion, arrayRemove, getDoc as getSingleDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import styled from 'styled-components';
 import Loader from './loader';
-import { PlusCircle, UserCircle, Eye, Heart, MessageCircle, X } from 'lucide-react';
+import { PlusCircle, UserCircle, Eye, Heart, MessageCircle, X, Reply, Trash2 } from 'lucide-react';
 
 const StyledModal = styled.div`
   .modal {
@@ -211,14 +211,324 @@ function Feed() {
       console.error("Error updating user balance: ", error);
     }
   };
-  
+
   const FeedCard = ({ profilePic, name, time, title, content, views, likes = [], comments = [], id, imageUrl, userId }) => {
     const [isCommentModalVisible, setCommentModalVisible] = useState(false);
     const [commentText, setCommentText] = useState('');
-    const [commentList, setCommentList] = useState(comments);
+    const [commentList, setCommentList] = useState(comments.map(comment => ({
+      ...comment,
+      likes: Array.isArray(comment.likes) ? comment.likes : [],
+      replies: Array.isArray(comment.replies) ? comment.replies.map(reply => ({
+        ...reply,
+        likes: Array.isArray(reply.likes) ? reply.likes : []
+      })) : []
+    })));
     const [localLikes, setLocalLikes] = useState(likes);
     const [liked, setLiked] = useState(Array.isArray(likes) && likes.includes(currentUser?.uid));
+    const [replyingTo, setReplyingTo] = useState(null);
+    const [userType, setUserType] = useState(null);
+
+    useEffect(() => {
+      const fetchUserType = async () => {
+        if (currentUser) {
+          try {
+            const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+            if (userDoc.exists()) {
+              setUserType(userDoc.data().type || 'User');
+            }
+          } catch (error) {
+            console.error("Error fetching user type:", error);
+          }
+        }
+      };
+      fetchUserType();
+    }, [currentUser]);
+
+    const handleCommentLike = async (commentIndex, isReply = false, parentIndex = null) => {
+      if (!currentUser) return;
+
+      try {
+        const updatedComments = [...commentList];
+        let targetComment;
+
+        if (isReply) {
+          targetComment = updatedComments[parentIndex].replies[commentIndex];
+        } else {
+          targetComment = updatedComments[commentIndex];
+        }
+
+        // Ensure likes array exists
+        if (!Array.isArray(targetComment.likes)) {
+          targetComment.likes = [];
+        }
+
+        const isLiked = targetComment.likes.includes(currentUser.uid);
+
+        if (isLiked) {
+          targetComment.likes = targetComment.likes.filter(uid => uid !== currentUser.uid);
+        } else {
+          targetComment.likes.push(currentUser.uid);
+        }
+
+        setCommentList(updatedComments);
+        
+        const postDocRef = doc(db, 'posts', id);
+        await updateDoc(postDocRef, {
+          comments: updatedComments
+        });
+      } catch (error) {
+        console.error("Error updating comment likes:", error);
+      }
+    };
+
+    const handleReply = async (e, parentCommentIndex) => {
+      e.preventDefault();
+      if (!commentText.trim() || !currentUser) return;
+
+      try {
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        const userData = userDoc.data();
+
+        const newReply = {
+          text: commentText,
+          user: currentUser.displayName || 'Anonymous',
+          userId: currentUser.uid,
+          timestamp: new Date().toISOString(),
+          profilePic: userData?.profilePic || null,
+          likes: []
+        };
+
+        const updatedComments = [...commentList];
+        if (!Array.isArray(updatedComments[parentCommentIndex].replies)) {
+          updatedComments[parentCommentIndex].replies = [];
+        }
+        updatedComments[parentCommentIndex].replies.push(newReply);
+        setCommentList(updatedComments);
+        setCommentText('');
+        setReplyingTo(null);
+
+        const postDocRef = doc(db, 'posts', id);
+        await updateDoc(postDocRef, {
+          comments: updatedComments
+        });
+      } catch (error) {
+        console.error("Error adding reply:", error);
+      }
+    };
+
+    const handleDeleteComment = async (commentIndex, replyIndex = null) => {
+      if (!currentUser) return;
+
+      try {
+        const updatedComments = [...commentList];
+        const comment = updatedComments[commentIndex];
+
+        const canDelete = 
+          currentUser.uid === userId || // Post creator
+          currentUser.uid === comment.userId || // Comment creator
+          userType === 'Admin'; // Admin user
+
+        if (!canDelete) {
+          console.log("No permission to delete comment");
+          return;
+        }
+
+        if (replyIndex !== null) {
+          // Delete reply
+          if (Array.isArray(comment.replies)) {
+            comment.replies.splice(replyIndex, 1);
+          }
+        } else {
+          // Delete entire comment
+          updatedComments.splice(commentIndex, 1);
+        }
+
+        setCommentList(updatedComments);
+        
+        const postDocRef = doc(db, 'posts', id);
+        await updateDoc(postDocRef, {
+          comments: updatedComments
+        });
+      } catch (error) {
+        console.error("Error deleting comment:", error);
+      }
+    };
+        
+    const CommentComponent = ({ 
+      comment, 
+      index, 
+      isReply = false, 
+      parentIndex = null, 
+      handleCommentLike, 
+      handleDeleteComment, 
+      handleReply,
+      currentUser, 
+      userType, 
+      userId,
+      commentText,
+      setCommentText,
+      replyingTo,
+      setReplyingTo
+    }) => {
+      const [isLiked, setIsLiked] = useState(
+        Array.isArray(comment.likes) && currentUser && comment.likes.includes(currentUser?.uid)
+      );
     
+      useEffect(() => {
+        setIsLiked(Array.isArray(comment.likes) && currentUser && comment.likes.includes(currentUser?.uid));
+      }, [comment.likes, currentUser]);
+      
+      const handleLikeClick = () => {
+        if (!currentUser) return;
+        setIsLiked(!isLiked);
+        handleCommentLike(index, isReply, parentIndex);
+      };
+    
+      const formatTimestamp = (timestamp) => {
+        const now = new Date();
+        const commentDate = new Date(timestamp);
+        const diffInHours = Math.floor((now - commentDate) / (1000 * 60 * 60));
+        
+        if (diffInHours < 1) {
+          return 'Just now';
+        } else if (diffInHours < 24) {
+          return `${diffInHours} hours ago`;
+        } else {
+          const diffInDays = Math.floor(diffInHours / 24);
+          return `${diffInDays} days ago`;
+        }
+      };
+    
+      return (
+        <div className={`bg-white p-4 rounded-lg border border-gray-100 shadow-sm 
+          ${isReply ? 'ml-8 border-l-4 border-l-[#5f9ea0]' : ''}`}>
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+              {comment.profilePic ? (
+                <img 
+                  src={comment.profilePic} 
+                  alt={comment.user} 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://via.placeholder.com/40';
+                  }}
+                />
+              ) : (
+                <UserCircle className="text-gray-400" />
+              )}
+            </div>
+            
+            <div className="flex-grow">
+              <div className="flex items-center justify-between mb-1">
+                <div>
+                  <h3 className="font-semibold text-gray-800">{comment.user}</h3>
+                  <p className="text-xs text-gray-500">{formatTimestamp(comment.timestamp)}</p>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  {currentUser && (
+                    <>
+                      {!isReply && (
+                        <button 
+                          onClick={() => setReplyingTo(index)}
+                          className="flex items-center gap-1 text-gray-500 hover:text-[#5f9ea0] transition-colors duration-200"
+                        >
+                          <Reply size={16} />
+                          <span className="text-sm">Reply</span>
+                        </button>
+                      )}
+                      <button 
+                        onClick={handleLikeClick}
+                        className={`flex items-center gap-1 transition-all duration-200 hover:scale-105
+                          ${isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'}`}
+                      >
+                        <Heart 
+                          size={16} 
+                          className={isLiked ? 'fill-current' : ''} 
+                        />
+                        <span className="text-sm">
+                          {Array.isArray(comment.likes) ? comment.likes.length : 0}
+                        </span>
+                      </button>
+                      {(currentUser.uid === userId || currentUser.uid === comment.userId || userType === 'Admin') && (
+                        <button 
+                          onClick={() => handleDeleteComment(isReply ? parentIndex : index, isReply ? index : null)}
+                          className="text-gray-400 hover:text-red-500 transition-colors duration-200"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+              
+              <p className="text-gray-700 mt-2 leading-relaxed">{comment.text}</p>
+              
+              {Array.isArray(comment.replies) && comment.replies.length > 0 && !isReply && (
+                <div className="mt-4 space-y-3">
+                  {comment.replies.map((reply, replyIndex) => (
+                    <CommentComponent 
+                      key={replyIndex}
+                      comment={reply}
+                      index={replyIndex}
+                      isReply={true}
+                      parentIndex={index}
+                      handleCommentLike={handleCommentLike}
+                      handleDeleteComment={handleDeleteComment}
+                      handleReply={handleReply}
+                      currentUser={currentUser}
+                      userType={userType}
+                      userId={userId}
+                      commentText={commentText}
+                      setCommentText={setCommentText}
+                      replyingTo={replyingTo}
+                      setReplyingTo={setReplyingTo}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {replyingTo === index && (
+            <div className="mt-4 pl-12">
+              <form onSubmit={(e) => handleReply(e, index)} className="space-y-3">
+                <textarea 
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  className="w-full p-3 bg-gray-50 text-gray-800 border border-gray-200 rounded-lg 
+                    focus:ring-2 focus:ring-[#5f9ea0] focus:border-transparent outline-none resize-none 
+                    placeholder-gray-400 transition-all duration-200"
+                  rows="2"
+                  placeholder="Write a reply..."
+                />
+                <div className="flex gap-2">
+                  <button 
+                    type="submit"
+                    className="bg-[#5f9ea0] hover:bg-[#4f8e90] text-white font-medium py-2 px-4 
+                      rounded-lg transition duration-200 ease-in-out hover:shadow-md"
+                  >
+                    Reply
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setReplyingTo(null)}
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 
+                      rounded-lg transition duration-200 ease-in-out"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+      );
+    };
+
     const incrementViewCount = async () => {
       const postDocRef = doc(db, 'posts', id);
       try {
@@ -465,30 +775,21 @@ function Feed() {
                 <div className="p-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
                   <div className="space-y-4">
                     {commentList.map((comment, index) => (
-                      <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                            {comment.profilePic ? (
-                              <img 
-                                src={comment.profilePic} 
-                                alt={comment.user} 
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  e.target.onerror = null;
-                                  e.target.src = 'https://via.placeholder.com/40';
-                                }}
-                              />
-                            ) : (
-                              <i className="bi bi-person-fill text-gray-600"></i>
-                            )}
-                          </div>
-                          <div>
-                            <h3 className="font-medium text-gray-800">{comment.user}</h3>
-                            <p className="text-sm text-gray-500">{formatTimestamp(comment.timestamp)}</p>
-                          </div>
-                        </div>
-                        <p className="text-gray-700">{comment.text}</p>
-                      </div>
+                      <CommentComponent 
+                        key={index}
+                        comment={comment}
+                        index={index}
+                        handleCommentLike={handleCommentLike}
+                        handleDeleteComment={handleDeleteComment}
+                        handleReply={handleReply}
+                        currentUser={currentUser}
+                        userType={userType}
+                        userId={userId}
+                        commentText={commentText}
+                        setCommentText={setCommentText}
+                        replyingTo={replyingTo}
+                        setReplyingTo={setReplyingTo}
+                      />
                     ))}
                   </div>
                 </div>

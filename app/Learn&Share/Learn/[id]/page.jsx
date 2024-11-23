@@ -162,7 +162,7 @@ const ClassDetail = () => {
       <h1 className="text-5xl font-bold text-center mb-6 text-gray-800 tracking-wide">
         {classData.className}
       </h1>
-\
+
       <div className="flex flex-col md:flex-row items-center w-full max-w-5xl">
         <img
           src={classData.imageUrl}
@@ -183,7 +183,7 @@ const ClassDetail = () => {
               </p>
               <p className="flex items-center gap-2">
               <a
-                href="https://meet.google.com"
+                href={classData.classLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2"
@@ -225,13 +225,7 @@ const ClassDetail = () => {
           ))}
         </ul>
       </div>
-
-      <div className="mt-8 w-full max-w-5xl text-left">
-        <h3 className="text-2xl font-bold mb-2">Google Meet Link</h3>
-        <a href={classData.googleMeetLink} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
-          Join Meeting
-        </a>
-      </div>
+    
       {proctorData && (
         <>
         <h1 className="text-2xl font-bold mb-2">Proctor Details</h1>

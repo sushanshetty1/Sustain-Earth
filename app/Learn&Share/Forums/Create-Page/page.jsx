@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { db } from "../../../../firebaseConfig";
 import { useRouter } from "next/navigation";
 import { getAuth } from "firebase/auth";
-import { collection, addDoc, doc, getDoc } from "firebase/firestore";
+import { collection, addDoc, doc, getDoc, updateDoc } from "firebase/firestore";
 
 const Form = () => {
   const [cloudinaryLoaded, setCloudinaryLoaded] = useState(false);
