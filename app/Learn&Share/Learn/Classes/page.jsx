@@ -182,7 +182,8 @@ const ClassesEntry = () => {
           setError("Error saving class data");
       } finally {
           setIsLoading(false);
-      }
+        }
+        
   };
   
 

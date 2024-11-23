@@ -5,12 +5,12 @@ import img1 from '../public/images/x.png';
 import img2 from '../public/images/insta.png';
 import img3 from '../public/images/f.png';
 import logo from '../public/images/logo.jpg';
-
+import Link from 'next/link';
 function Footer() {
   return (
     <div className="mb-6 pt-16 sm:pt-8 lg:pt-12">
       <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-between md:justify-around px-4 lg:px-20">
-        
+        <Link href="/">
         <Image 
           src={logo} 
           alt="Sustainable Living Hub Logo" 
@@ -18,11 +18,11 @@ function Footer() {
           height={48} 
           className="h-12 w-40 sm:h-10 sm:w-36 lg:h-12 lg:w-40" 
         />
-        
+        </Link>
         <div className="flex flex-col sm:flex-row sm:gap-6 text-center sm:text-left">
-          <button className="text-gray-600 hover:text-black font-medium">About Us</button>
+          <Link href="/About"><button className="text-gray-600 hover:text-black font-medium">About Us</button></Link>
           <button className="text-gray-600 hover:text-black font-medium">Contact Us</button>
-          <button className="text-gray-600 hover:text-black font-medium">Privacy Policy</button>
+          <Link href="/PrivacyPolicy"> <button className="text-gray-600 hover:text-black font-medium">Privacy Policy</button></Link>
           <button className="text-gray-600 hover:text-black font-medium">Terms of Service</button>
         </div>
         

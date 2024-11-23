@@ -70,7 +70,7 @@ const Find = () => {
                 {response.name}
                 <div className="text-gray-500 font-normal text-sm pt-3">
                   Meals Available: <span className="font-semibold">{response.meals}</span><br />
-                  Location: {response.location ? `${response.location.lat}, ${response.location.lon}` : 'Location not available'}
+                  Address: <span className="font-semibold">{response.address || 'Address not available'}</span>
                 </div>
               </div>
             </div>

@@ -16,6 +16,7 @@ const MealEntry = () => {
     meals: 1,
     mealType: 'veg',
     imageUrl: '',
+    address: '', 
   });
   const [submitted, setSubmitted] = useState(false);
 
@@ -198,6 +199,19 @@ const MealEntry = () => {
             />
           </div>
 
+          <div>
+            <label className="block text-gray-600 font-medium mb-1">Address:</label>
+            <input
+              type="text"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              required
+              className="w-full p-2.5 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
+              placeholder="Enter full address"
+            />
+          </div>
+          
           <div>
             <label className="block text-gray-600 font-medium mb-1">Meal Type:</label>
             <select
