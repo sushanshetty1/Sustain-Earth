@@ -20,7 +20,6 @@ const ClassesEntry = () => {
   const auth = getAuth(firebaseApp);
   const db = getFirestore(firebaseApp);
 
-  // State Management
   const [user, setUser] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [cloudinaryLoaded, setCloudinaryLoaded] = useState(false);
@@ -42,9 +41,7 @@ const ClassesEntry = () => {
     classLink: '',
   });
 
-  // Effects
   useEffect(() => {
-    // Cloudinary Script Loading
     if (!window.cloudinary) {
       const script = document.createElement("script");
       script.src = "https://upload-widget.cloudinary.com/global/all.js";
@@ -55,7 +52,6 @@ const ClassesEntry = () => {
       setCloudinaryLoaded(true);
     }
 
-    // Auth State Management
     onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
         router.push('/Login');
@@ -66,7 +62,6 @@ const ClassesEntry = () => {
     });
   }, [auth, router]);
 
-  // Event Handlers
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -205,7 +200,6 @@ const ClassesEntry = () => {
     }
   };
 
-  // UI Components
   const FormInput = ({ label, type, name, value, onChange, required = false, placeholder = '' }) => (
     <div>
       <label className="block text-gray-600 font-medium mb-1">{label}:</label>

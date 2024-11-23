@@ -257,7 +257,6 @@ function Feed() {
           targetComment = updatedComments[commentIndex];
         }
 
-        // Ensure likes array exists
         if (!Array.isArray(targetComment.likes)) {
           targetComment.likes = [];
         }
@@ -325,9 +324,9 @@ function Feed() {
         const comment = updatedComments[commentIndex];
 
         const canDelete = 
-          currentUser.uid === userId || // Post creator
-          currentUser.uid === comment.userId || // Comment creator
-          userType === 'Admin'; // Admin user
+          currentUser.uid === userId ||
+          currentUser.uid === comment.userId ||
+          userType === 'Admin';
 
         if (!canDelete) {
           console.log("No permission to delete comment");
@@ -335,12 +334,10 @@ function Feed() {
         }
 
         if (replyIndex !== null) {
-          // Delete reply
           if (Array.isArray(comment.replies)) {
             comment.replies.splice(replyIndex, 1);
           }
         } else {
-          // Delete entire comment
           updatedComments.splice(commentIndex, 1);
         }
 
@@ -354,7 +351,7 @@ function Feed() {
         console.error("Error deleting comment:", error);
       }
     };
-        
+
     const CommentComponent = ({ 
       comment, 
       index, 
@@ -644,21 +641,7 @@ function Feed() {
 
       fetchCommentUserProfiles();
     }, []);
-    
-    const formatTimestamp = (timestamp) => {
-      const now = new Date();
-      const commentDate = new Date(timestamp);
-      const diffInHours = Math.floor((now - commentDate) / (1000 * 60 * 60));
-      
-      if (diffInHours < 1) {
-        return 'Just now';
-      } else if (diffInHours < 24) {
-        return `${diffInHours} hours ago`;
-      } else {
-        const diffInDays = Math.floor(diffInHours / 24);
-        return `${diffInDays} days ago`;
-      }
-    };
+
     const closeModal = () => {
       const commentBox = document.querySelector('.comment-box');
       commentBox?.classList.remove('show');

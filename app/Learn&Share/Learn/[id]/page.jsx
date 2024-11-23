@@ -6,7 +6,8 @@ import {firebaseApp} from '../../../../firebaseConfig';
 import styled from 'styled-components';
 import { getAuth } from 'firebase/auth';
 import Image from 'next/image';
-import {HeartFilled, Clock, Calendar, People, Video, Star, StarHalf, Mail } from "lucide-react";
+import { Calendar, Users, Star, Clock, Mail, MessageSquare, Heart, Award } from 'lucide-react';
+import ReactStars from 'react-stars'
 
 const ClassDetail = () => {
   const [user, setUser] = useState(null);
@@ -97,21 +98,19 @@ const ClassDetail = () => {
 
           const checkboxHistory = userData.checkboxHistory || {};
           if (!checkboxHistory[classId]) {
-            // First-time interaction with this checkbox
             if (dailyBalance < 250) {
               const remainingBalance = 250 - dailyBalance;
-              const increment = Math.min(10, remainingBalance); // Add up to 10 or the remaining balance
+              const increment = Math.min(10, remainingBalance);
               dailyBalance += increment;
               balance += increment;
   
-              // Update Firestore with new balances and history
               await updateDoc(userRef, {
                 dailyBalance,
                 balance,
                 lastUpdated: currentDate,
                 checkboxHistory: {
                   ...checkboxHistory,
-                  [classId]: true, // Mark this class checkbox as interacted
+                  [classId]: true,
                 },
               });
             }
@@ -156,6 +155,204 @@ const ClassDetail = () => {
     }
   };
 
+  const ProctorCard = ({ proctorData, db, user, classData }) => {
+    const [rating, setRating] = useState(0);
+    const [averageRating, setAverageRating] = useState(0);
+    const [userRating, setUserRating] = useState(0);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+  
+    useEffect(() => {
+      if (proctorData && proctorData.ratings) {
+        const ratings = Object.values(proctorData.ratings);
+        const avg = ratings.length > 0 
+          ? ratings.reduce((a, b) => a + b, 0) / ratings.length 
+          : 0;
+        setAverageRating(Number(avg.toFixed(1)));
+  
+        if (user && proctorData.ratings[user.uid]) {
+          setUserRating(proctorData.ratings[user.uid]);
+          setRating(proctorData.ratings[user.uid]);
+        }
+      }
+    }, [proctorData, user]);
+  
+    const handleRatingSubmit = async (newRating) => {
+      if (!user) {
+        alert("Please log in to rate the proctor!");
+        return;
+      }
+  
+      if (!proctorData || !classData?.procterId) {
+        console.error("Missing proctor data or ID");
+        return;
+      }
+  
+      setIsSubmitting(true);
+  
+      try {
+        const proctorRef = doc(db, 'users', classData.procterId);
+        const proctorSnap = await getDoc(proctorRef);
+        
+        if (!proctorSnap.exists()) {
+          throw new Error("Proctor document not found");
+        }
+  
+        const currentRatings = proctorSnap.data().ratings || {};
+        const newRatings = {
+          ...currentRatings,
+          [user.uid]: newRating
+        };
+  
+        const ratingsArray = Object.values(newRatings);
+        const newAverage = ratingsArray.reduce((a, b) => a + b, 0) / ratingsArray.length;
+  
+        await updateDoc(proctorRef, {
+          ratings: newRatings,
+          averageRating: newAverage
+        });
+  
+        setRating(newRating);
+        setUserRating(newRating);
+        setAverageRating(Number(newAverage.toFixed(1)));
+        
+        if (classData.id) {
+          const classRef = doc(db, 'classesCollection', classData.id);
+          await updateDoc(classRef, {
+            proctorRating: newAverage
+          });
+        }
+  
+      } catch (error) {
+        console.error("Error submitting rating:", error);
+        alert("Failed to submit rating. Please try again.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+  
+    if (!proctorData) return null;
+  
+    return (
+      <div className="font-['Inter'] w-full max-w-4xl mx-auto mt-12 mb-8">
+        <h1 className="text-3xl font-bold mb-8 text-gray-800">Proctor Details</h1>
+        
+        <div className="bg-white rounded-2xl shadow-xl p-8 transition-all duration-300 hover:shadow-2xl">
+          {/* Header Section */}
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-8 mb-8 pb-8 border-b border-gray-100">
+            <div className="relative">
+              <div className="w-32 h-32 rounded-2xl overflow-hidden ring-4 ring-blue-100">
+                <Image 
+                  src={proctorData.profilePic || '/deaf.png'} 
+                  alt="Proctor Image" 
+                  width={128}
+                  height={128}
+                  className="object-cover w-full h-full"
+                  onError={(e) => {e.currentTarget.src = '/deaf.png'}}
+                />
+              </div>
+            </div>
+            
+            <div className="flex-grow">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full">
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                    {proctorData.firstName} {proctorData.lastName}
+                  </h2>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm font-medium">
+                      {proctorData.type}
+                    </span>
+                  </div>
+                </div>
+                <button className="mt-4 md:mt-0 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition duration-200 flex items-center justify-center gap-2">
+                  <MessageSquare className="w-5 h-5" />
+                  <span>Join Class</span>
+                </button>
+              </div>
+            </div>
+          </div>
+  
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-gray-50 rounded-xl p-4 transition-all duration-200 hover:bg-gray-100">
+              <div className="flex items-center gap-3 mb-2">
+                <Users className="w-5 h-5 text-blue-600" />
+                <span className="text-gray-600 font-medium">Students Taught</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-800">{proctorData.studentsCount || '250+'}</p>
+            </div>
+            
+            <div className="bg-gray-50 rounded-xl p-4 transition-all duration-200 hover:bg-gray-100">
+              <div className="flex items-center gap-3 mb-2">
+                <Calendar className="w-5 h-5 text-blue-600" />
+                <span className="text-gray-600 font-medium">Classes Completed</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-800">{proctorData.classesCompleted || '120'}</p>
+            </div>
+            
+            <div className="bg-gray-50 rounded-xl p-4 transition-all duration-200 hover:bg-gray-100">
+              <div className="flex items-center gap-3 mb-2">
+                <Star className="w-5 h-5 text-blue-600" />
+                <span className="text-gray-600 font-medium">Rating</span>
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <p className="text-2xl font-bold text-gray-800">{averageRating}</p>
+                  <div className="flex text-yellow-400">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star 
+                        key={star} 
+                        className={`w-4 h-4 ${star <= averageRating ? 'fill-current' : ''}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                {user && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-600 mb-1">Your Rating:</p>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => !isSubmitting && handleRatingSubmit(star)}
+                          className={`focus:outline-none ${isSubmitting ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                          disabled={isSubmitting}
+                        >
+                          <Star 
+                            className={`w-6 h-6 ${star <= userRating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+  
+          {/* Bio Section */}
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">About Me</h3>
+            <p className="text-gray-600 leading-relaxed">
+              {proctorData.bio || "Experienced educator passionate about making learning accessible and enjoyable for all students. Specialized in creating inclusive learning environments and adapting teaching methods to individual needs."}
+            </p>
+          </div>
+  
+          {/* Teaching Philosophy */}
+          <div className="bg-gray-50 rounded-xl p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-800">
+              <Heart className="w-5 h-5 text-blue-600" />
+              Teaching Philosophy
+            </h3>
+            <p className="text-gray-600">
+              {proctorData.philosophy || "Every student has unique potential. My role is to create an inclusive environment where all students can thrive and achieve their learning goals."}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (!classData) return <p>Loading...</p>;
   return (
     <div className="min-h-screen flex flex-col items-center justify-start p-8 bg-[#f9f6f4] text-gray-900">
@@ -191,6 +388,7 @@ const ClassDetail = () => {
                 <i className="h-4 w-4" />
                 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#2854C5"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h480q33 0 56.5 23.5T720-720v180l160-160v440L720-420v180q0 33-23.5 56.5T640-160H160Zm0-80h480v-480H160v480Zm0 0v-480 480Z"/></svg> Join Google Meet
               </a></p>
+               </div>
 
           <div className="flex items-center">
             <span className="text-xl font-semibold mr-3">Interested:</span>
@@ -198,9 +396,18 @@ const ClassDetail = () => {
               onChange={handleCheckboxChange} 
               checked={isInterested} />
             <span className="text-xl">{interestedCount} people are interested</span>
+            
+            
+           
+            
           </div>
-          </div>
+          <div className="flex items-center">
+          <span className="text-xl font-semibold mr-3 ">Ratings:</span>
+            <ReactStars count={5} size={24} color2={'#ffd700'} />
         </div>
+          
+        </div>
+        
       </div>
 
       <div className="mt-8 w-full max-w-5xl text-left">
@@ -225,46 +432,7 @@ const ClassDetail = () => {
           ))}
         </ul>
       </div>
-    
-      {proctorData && (
-        <>
-        <h1 className="text-2xl font-bold mb-2">Proctor Details</h1>
-        <div className="bg-gray-900 flex flex-col gap-8 text-white p-6 rounded-lg border h-80 border-gray-700 w-96">
-          <div className="flex items-center mb-4">
-          <div className="w-20 h-20 bg-gray-700 rounded-full mr-4 relative overflow-hidden">
-            <Image 
-              src={proctorData.profilePic || './deaf.png'} 
-              alt="Proctor Image" 
-              width={80} 
-              height={80} 
-              className="rounded-full object-cover"
-              style={{ width: '100%', height: '100%' }}
-              onError={(e) => (e.target.src = './deaf.png')}
-            />
-          </div>
-
-
-            <div className="">
-              <p className="text-lg font-semibold">{proctorData.firstName}</p>
-            </div>
-            <button className="ml-auto bg-gray-700 py-1 px-7 rounded-lg">
-              {proctorData.type}
-            </button>
-          </div>
-          
-          <p className="bg-transparent placeholder-gray-400 text-white  border-gray-600 w-full mb-4">
-            {proctorData.bio}
-          </p>
-          
-          <p className="rating bg-transparent placeholder-gray-400 text-white  border-gray-600 w-full mb-4">
-            {proctorData.email}
-          </p>
-          <div className="bg-gray-700 py-2 px-6 self-end ml-36 rounded-lg h-8 w-1/4">
-            
-          </div>
-      </div>
-      </>
-      )}
+      <ProctorCard proctorData={proctorData} />
     </div>
   );
 };
@@ -287,6 +455,8 @@ const Checkbox = ({ onChange, checked, disabled }) => {
     </StyledWrapper>
   );
 };
+
+
 const StyledWrapper = styled.div`
   .heart-container {
     --heart-color: rgb(255, 91, 137);
@@ -370,6 +540,40 @@ const StyledWrapper = styled.div`
       transform: scale(1);
       opacity: 0;
     }
+  //here we need to change    
+.rating:not(:checked) > input {
+  position: absolute;
+  appearance: none;
+}
+
+.rating:not(:checked) > label {
+  float: right;
+  cursor: pointer;
+  font-size: 30px;
+  color: #666;
+}
+
+.rating:not(:checked) > label:before {
+  content: '★';
+}
+
+.rating > input:checked + label:hover,
+.rating > input:checked + label:hover ~ label,
+.rating > input:checked ~ label:hover,
+.rating > input:checked ~ label:hover ~ label,
+.rating > label:hover ~ input:checked ~ label {
+  color: #e58e09;
+}
+
+.rating:not(:checked) > label:hover,
+.rating:not(:checked) > label:hover ~ label {
+  color: #ff9e0b;
+}
+
+.rating > input:checked ~ label {
+  color: #ffa723;
+}
+
   }`
 ;
 

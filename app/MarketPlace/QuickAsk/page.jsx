@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, Plus, ThumbsUp, RefreshCw, MapPin, MessageSquare, Clock, Tag, Trash2, Loader2 } from 'lucide-react';
 import { db, getDocs, addDoc, updateDoc, doc, query, where } from '../../../firebaseConfig';
 import { onSnapshot, collection, orderBy, serverTimestamp, getDoc, deleteDoc, writeBatch } from 'firebase/firestore';
@@ -28,10 +28,16 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentRequest, setCurrentRequest] = useState(null);
   const [error, setError] = useState(null);
+  const [loadingStates, setLoadingStates] = useState({
+    acceptRequest: {},
+    deleteRequest: {},
+    submitRequest: false
+  });
+  
   const openRequestsCount = requests.pending.length;
   const acceptedRequestsCount = requests.accepted.length;
   const auth = getAuth();
-
+  
   const getUserLocation = () => {
     return new Promise((resolve, reject) => {
       if (navigator.geolocation) {
@@ -75,6 +81,11 @@ export default function App() {
       return;
     }
 
+    setLoadingStates(prev => ({
+      ...prev,
+      deleteRequest: { ...prev.deleteRequest, [requestId]: true }
+    }));
+
     try {
       const requestRef = doc(db, 'requests', requestId);
       const requestSnap = await getDoc(requestRef);
@@ -101,7 +112,6 @@ export default function App() {
       });
       
       batch.delete(requestRef);
-      
       await batch.commit();
 
       setRequests(prev => ({
@@ -110,8 +120,6 @@ export default function App() {
         myRequests: prev.myRequests.filter(r => r.id !== requestId)
       }));
 
-      setError(null);
-      
       if (currentRequest?.id === requestId) {
         setIsChatOpen(false);
         setCurrentRequest(null);
@@ -126,6 +134,7 @@ export default function App() {
         });
       }
 
+      setError(null);
     } catch (error) {
       console.error('Error deleting request:', error);
       setError(
@@ -133,6 +142,11 @@ export default function App() {
           ? 'You do not have permission to delete this request'
           : 'Failed to delete request. Please try again.'
       );
+    } finally {
+      setLoadingStates(prev => ({
+        ...prev,
+        deleteRequest: { ...prev.deleteRequest, [requestId]: false }
+      }));
     }
   };
 
@@ -277,6 +291,11 @@ export default function App() {
         setError('You must be logged in to accept requests');
         return;
       }
+
+      setLoadingStates(prev => ({
+        ...prev,
+        acceptRequest: { ...prev.acceptRequest, [id]: true }
+      }));
   
       const requestRef = doc(db, 'requests', id);
       const requestSnap = await getDoc(requestRef);
@@ -286,7 +305,7 @@ export default function App() {
         return;
       }
   
-      const requestData = requestSnap.data();
+      const requestData = { ...requestSnap.data(), id };
   
       if (requestData.status !== 'pending') {
         setError('This request has already been accepted');
@@ -304,33 +323,48 @@ export default function App() {
         acceptedAt: serverTimestamp()
       });
   
-      const messagesRef = collection(db, 'requests', id, 'messages');
+      const messagesRef = collection(requestRef, 'messages');
       await addDoc(messagesRef, {
         text: 'Request accepted! You can now chat with each other.',
         timestamp: serverTimestamp(),
         system: true,
-        sender: auth.currentUser.uid
+        sender: 'system'
       });
   
-      setRequests(prev => ({
-        pending: prev.pending.filter(r => r.id !== id),
-        accepted: [...prev.accepted, { 
-          ...requestData, 
-          id,
+      setRequests(prev => {
+        const updatedRequest = {
+          ...requestData,
           status: 'accepted',
-          acceptedBy: auth.currentUser.uid 
-        }],
-        myRequests: prev.myRequests
+          acceptedBy: auth.currentUser.uid,
+          acceptedAt: new Date()
+        };
+        
+        return {
+          pending: prev.pending.filter(r => r.id !== id),
+          accepted: [...prev.accepted, updatedRequest],
+          myRequests: prev.myRequests
+        };
+      });
+  
+      const unsubscribe = await fetchRequestMessages(id);
+      setMessageUnsubscribes(prev => ({
+        ...prev,
+        [id]: unsubscribe
       }));
   
       setError(null);
     } catch (error) {
       console.error('Error accepting request:', error);
-      if (error.code === 'permission-denied') {
-        setError('You do not have permission to accept this request.');
-      } else {
-        setError('Failed to accept request. Please try again.');
-      }
+      setError(
+        error.code === 'permission-denied' 
+          ? 'You do not have permission to accept this request.'
+          : 'Failed to accept request. Please try again.'
+      );
+    } finally {
+      setLoadingStates(prev => ({
+        ...prev,
+        acceptRequest: { ...prev.acceptRequest, [id]: false }
+      }));
     }
   };
 
@@ -370,78 +404,40 @@ export default function App() {
       return;
     }
   
+    setLoadingStates(prev => ({ ...prev, submitRequest: true }));
+
     try {
       const formData = new FormData(e.target);
-      const itemName = formData.get('itemName');
-      const category = formData.get('category');
-      const description = formData.get('description');
-      const duration = formData.get('duration');
-  
       const requestData = {
-        title: itemName,
-        category,
-        description,
-        duration,
+        title: formData.get('itemName'),
+        category: formData.get('category'),
+        description: formData.get('description'),
+        duration: formData.get('duration'),
         status: 'pending',
-        userId: currentUser.uid
+        userId: currentUser.uid,
+        createdAt: serverTimestamp()
       };
   
-      let locationData = null;
-      try {
-        locationData = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              resolve({
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude
-              });
-            },
-            (error) => {
-              console.warn('Location not available:', error);
-              resolve(null);
-            },
-            { 
-              enableHighAccuracy: true, 
-              timeout: 5000, 
-              maximumAge: 0 
-            }
-          );
-        });
-  
-        if (locationData) {
-          requestData.location = {
-            latitude: locationData.latitude,
-            longitude: locationData.longitude
-          };
-        }
-      } catch (locationError) {
-        console.warn('Location retrieval failed:', locationError);
+      let locationData = await getUserLocation();
+      if (locationData) {
+        requestData.location = locationData;
       }
   
       const docRef = await addDoc(collection(db, 'requests'), requestData);
-  
-      setRequests(prev => ({
-        ...prev,
-        myRequests: [...prev.myRequests, { 
-          id: docRef.id, 
-          ...requestData 
-        }]
-      }));
-  
+      
+      // Don't update local state - let the snapshot listener handle it
       setIsModalOpen(false);
       setError(null);
+      e.target.reset();
   
     } catch (error) {
       console.error('Error submitting request:', error);
-      
-      let errorMessage = 'Failed to submit request.';
-      if (error.code === 'permission_denied') {
-        errorMessage = 'You do not have permission to create a request.';
-      } else if (error.code === 'unavailable') {
-        errorMessage = 'Service is currently unavailable. Please try again later.';
-      }
-  
-      setError(errorMessage);
+      setError(error.code === 'permission-denied' 
+        ? 'You do not have permission to create a request.'
+        : 'Failed to submit request. Please try again.'
+      );
+    } finally {
+      setLoadingStates(prev => ({ ...prev, submitRequest: false }));
     }
   };
 
@@ -548,11 +544,29 @@ export default function App() {
     
     const ChatModal = () => {
       const [localMessage, setLocalMessage] = useState('');
+      const messagesEndRef = useRef(null);
+      const chatContainerRef = useRef(null);
+      const [isInitialLoad, setIsInitialLoad] = useState(true);
       
+      useEffect(() => {
+        // Only scroll to bottom on initial load
+        if (isInitialLoad && messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView();
+          setIsInitialLoad(false);
+        }
+      }, [requestChats[currentRequest?.id], isInitialLoad]);
+    
+      // Reset initial load state when opening a new chat
+      useEffect(() => {
+        if (currentRequest) {
+          setIsInitialLoad(true);
+        }
+      }, [currentRequest?.id]);
+    
       const handleKeyPress = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
-          handleSendMessage();
+          handleLocalSendMessage();
         }
       };
     
@@ -568,7 +582,6 @@ export default function App() {
     
           const messagesRef = collection(db, 'requests', currentRequest.id, 'messages');
           await addDoc(messagesRef, messageData);
-    
           setLocalMessage('');
         } catch (error) {
           console.error('Error sending message:', error);
@@ -582,8 +595,12 @@ export default function App() {
             <h2 className="text-lg font-semibold mb-4">
               Chat about {currentRequest.title}
             </h2>
-            <div className="flex-1 overflow-y-auto mb-4 min-h-[300px] p-4 bg-gray-50 rounded-lg">
+            <div 
+              ref={chatContainerRef}
+              className="flex-1 overflow-y-auto mb-4 min-h-[300px] p-4 bg-gray-50 rounded-lg"
+            >
               {renderMessages(currentRequest.id)}
+              <div ref={messagesEndRef} />
             </div>
             <div className="flex gap-2">
               <input
@@ -614,6 +631,7 @@ export default function App() {
         </div>
       );
     };
+
     const LoadingSpinner = () => (
       <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
         <div className="flex flex-col items-center gap-4">
@@ -708,15 +726,6 @@ export default function App() {
                 <MapPin className="h-4 w-4" />
                 {request.distance || 'Distance not available'}
               </span>
-              {canDeleteRequest(request) && (
-                <button
-                  onClick={() => handleDeleteRequest(request.id)}
-                  className="p-1 text-red-500 hover:text-red-700"
-                  title="Delete request"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              )}
             </div>
           </div>
   
@@ -733,26 +742,46 @@ export default function App() {
           </div>
   
           {currentTab === 'pending' && request.userId !== auth.currentUser?.uid ? (
-            <button
-              className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-lg w-full hover:bg-blue-600"
-              onClick={() => handleAcceptRequest(request.id)}
-            >
-              <ThumbsUp className="mr-2 h-4 w-4" />
-              Accept
-            </button>
-          ) : (
-            <button
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg w-full hover:bg-green-600"
-              onClick={() => openChat(request)}
-            >
-              <MessageSquare className="h-4 w-4" />
-              Chat
-            </button>
-          )}
-        </div>
+                <button
+                  className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-lg w-full hover:bg-blue-600 disabled:bg-blue-300"
+                  onClick={() => handleAcceptRequest(request.id)}
+                  disabled={loadingStates.acceptRequest[request.id]}
+                >
+                  {loadingStates.acceptRequest[request.id] ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <ThumbsUp className="mr-2 h-4 w-4" />
+                  )}
+                  {loadingStates.acceptRequest[request.id] ? 'Accepting...' : 'Accept'}
+                </button>
+              ) : (
+                <button
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg w-full hover:bg-green-600"
+                  onClick={() => openChat(request)}
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Chat
+                </button>
+              )}
+
+              {canDeleteRequest(request) && (
+                <button
+                  onClick={() => handleDeleteRequest(request.id)}
+                  className="mt-2 flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg w-full hover:bg-red-600 disabled:bg-red-300"
+                  disabled={loadingStates.deleteRequest[request.id]}
+                >
+                  {loadingStates.deleteRequest[request.id] ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                  {loadingStates.deleteRequest[request.id] ? 'Deleting...' : 'Delete'}
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
-      ))}
-    </div>
 
       <button
         className="fixed bottom-6 right-6 rounded-full bg-blue-500 text-white p-4 shadow-lg"
@@ -796,14 +825,23 @@ export default function App() {
               />
               <button
                 type="submit"
-                className="w-full py-2 bg-blue-500 text-white rounded-lg"
+                className="w-full py-2 bg-blue-500 text-white rounded-lg flex items-center justify-center disabled:bg-blue-300"
+                disabled={loadingStates.submitRequest}
               >
-                Submit Request
+                {loadingStates.submitRequest ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  'Submit Request'
+                )}
               </button>
             </form>
             <button
               className="mt-4 w-full py-2 bg-red-500 text-white rounded-lg"
               onClick={() => setIsModalOpen(false)}
+              disabled={loadingStates.submitRequest}
             >
               Cancel
             </button>
