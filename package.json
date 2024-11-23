@@ -24,6 +24,7 @@
     "react-leaflet": "^4.2.1",
     "react-router-dom": "^6.28.0",
     "react-select": "^5.8.2",
+    "react-stars": "^2.2.5",
     "react-toast": "^1.0.3",
     "recharts": "^2.13.3",
     "styled-components": "^6.1.13"
