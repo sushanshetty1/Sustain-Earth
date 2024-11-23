@@ -214,7 +214,6 @@ function Feed() {
 
   const FeedCard = ({ profilePic, name, time, title, content, views, likes = [], comments = [], id, imageUrl, userId }) => {
     const [isCommentModalVisible, setCommentModalVisible] = useState(false);
-    const [commentText, setCommentText] = useState('');
     const [commentList, setCommentList] = useState(comments.map(comment => ({
       ...comment,
       likes: Array.isArray(comment.likes) ? comment.likes : [],
@@ -227,6 +226,8 @@ function Feed() {
     const [liked, setLiked] = useState(Array.isArray(likes) && likes.includes(currentUser?.uid));
     const [replyingTo, setReplyingTo] = useState(null);
     const [userType, setUserType] = useState(null);
+    const [commentText, setCommentText] = useState('');
+    const [replyText, setReplyText] = useState('');
 
     useEffect(() => {
       const fetchUserType = async () => {
@@ -246,75 +247,87 @@ function Feed() {
 
     const handleCommentLike = async (commentIndex, isReply = false, parentIndex = null) => {
       if (!currentUser) return;
-
+    
       try {
         const updatedComments = [...commentList];
         let targetComment;
-
-        if (isReply) {
-          targetComment = updatedComments[parentIndex].replies[commentIndex];
+        let likes;
+    
+        if (isReply && parentIndex !== null) {
+          targetComment = updatedComments[parentIndex]?.replies?.[commentIndex];
         } else {
           targetComment = updatedComments[commentIndex];
         }
-
+    
+        if (!targetComment) {
+          console.error("Target comment not found");
+          return;
+        }
+    
         if (!Array.isArray(targetComment.likes)) {
           targetComment.likes = [];
         }
-
-        const isLiked = targetComment.likes.includes(currentUser.uid);
-
-        if (isLiked) {
-          targetComment.likes = targetComment.likes.filter(uid => uid !== currentUser.uid);
+    
+        const likeIndex = targetComment.likes.indexOf(currentUser.uid);
+        
+        if (likeIndex > -1) {
+          targetComment.likes.splice(likeIndex, 1);
         } else {
           targetComment.likes.push(currentUser.uid);
         }
-
-        setCommentList(updatedComments);
-        
+    
         const postDocRef = doc(db, 'posts', id);
         await updateDoc(postDocRef, {
           comments: updatedComments
         });
+    
+        setCommentList(updatedComments);
+        
       } catch (error) {
         console.error("Error updating comment likes:", error);
       }
     };
+    
 
-    const handleReply = async (e, parentCommentIndex) => {
-      e.preventDefault();
-      if (!commentText.trim() || !currentUser) return;
+const handleReply = async (e, parentCommentIndex) => {
+    e.preventDefault();
+    if (!replyText.trim() || !currentUser) return;
 
-      try {
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        const userData = userDoc.data();
+    try {
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userDocRef);
+      const userData = userDoc.data();
 
-        const newReply = {
-          text: commentText,
-          user: currentUser.displayName || 'Anonymous',
-          userId: currentUser.uid,
-          timestamp: new Date().toISOString(),
-          profilePic: userData?.profilePic || null,
-          likes: []
-        };
+      const newReply = {
+        text: replyText.trim(),
+        user: currentUser.displayName || 'Anonymous',
+        userId: currentUser.uid,
+        timestamp: new Date().toISOString(),
+        profilePic: userData?.profilePic || null,
+        likes: []
+      };
 
-        const updatedComments = [...commentList];
-        if (!Array.isArray(updatedComments[parentCommentIndex].replies)) {
-          updatedComments[parentCommentIndex].replies = [];
-        }
-        updatedComments[parentCommentIndex].replies.push(newReply);
-        setCommentList(updatedComments);
-        setCommentText('');
-        setReplyingTo(null);
-
-        const postDocRef = doc(db, 'posts', id);
-        await updateDoc(postDocRef, {
-          comments: updatedComments
-        });
-      } catch (error) {
-        console.error("Error adding reply:", error);
+      const updatedComments = [...commentList];
+      
+      if (!Array.isArray(updatedComments[parentCommentIndex].replies)) {
+        updatedComments[parentCommentIndex].replies = [];
       }
-    };
+      
+      updatedComments[parentCommentIndex].replies.push(newReply);
+
+      const postDocRef = doc(db, 'posts', id);
+      await updateDoc(postDocRef, {
+        comments: updatedComments
+      });
+
+      setCommentList(updatedComments);
+      setReplyText('');
+      setReplyingTo(null);
+
+    } catch (error) {
+      console.error("Error adding reply:", error);
+    }
+  };
 
     const handleDeleteComment = async (commentIndex, replyIndex = null) => {
       if (!currentUser) return;
@@ -369,33 +382,41 @@ function Feed() {
       setReplyingTo
     }) => {
       const [isLiked, setIsLiked] = useState(
-        Array.isArray(comment.likes) && currentUser && comment.likes.includes(currentUser?.uid)
+        Array.isArray(comment?.likes) && currentUser && comment.likes.includes(currentUser?.uid)
       );
     
       useEffect(() => {
-        setIsLiked(Array.isArray(comment.likes) && currentUser && comment.likes.includes(currentUser?.uid));
-      }, [comment.likes, currentUser]);
+        if (comment?.likes) {
+          setIsLiked(Array.isArray(comment.likes) && currentUser && comment.likes.includes(currentUser?.uid));
+        }
+      }, [comment?.likes, currentUser]);
       
       const handleLikeClick = () => {
         if (!currentUser) return;
-        setIsLiked(!isLiked);
         handleCommentLike(index, isReply, parentIndex);
       };
     
       const formatTimestamp = (timestamp) => {
+        if (!timestamp) return 'Unknown time';
         const now = new Date();
         const commentDate = new Date(timestamp);
+        
+        if (isNaN(commentDate.getTime())) return 'Invalid date';
+        
         const diffInHours = Math.floor((now - commentDate) / (1000 * 60 * 60));
         
         if (diffInHours < 1) {
-          return 'Just now';
+          const diffInMinutes = Math.floor((now - commentDate) / (1000 * 60));
+          return diffInMinutes <= 1 ? 'Just now' : `${diffInMinutes} minutes ago`;
         } else if (diffInHours < 24) {
-          return `${diffInHours} hours ago`;
+          return `${diffInHours} ${diffInHours === 1 ? 'hour' : 'hours'} ago`;
         } else {
           const diffInDays = Math.floor(diffInHours / 24);
-          return `${diffInDays} days ago`;
+          return `${diffInDays} ${diffInDays === 1 ? 'day' : 'days'} ago`;
         }
       };
+    
+      if (!comment) return null;
     
       return (
         <div className={`bg-white p-4 rounded-lg border border-gray-100 shadow-sm 
@@ -405,7 +426,7 @@ function Feed() {
               {comment.profilePic ? (
                 <img 
                   src={comment.profilePic} 
-                  alt={comment.user} 
+                  alt={comment.user || 'User'} 
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.target.onerror = null;
@@ -420,7 +441,7 @@ function Feed() {
             <div className="flex-grow">
               <div className="flex items-center justify-between mb-1">
                 <div>
-                  <h3 className="font-semibold text-gray-800">{comment.user}</h3>
+                  <h3 className="font-semibold text-gray-800">{comment.user || 'Anonymous'}</h3>
                   <p className="text-xs text-gray-500">{formatTimestamp(comment.timestamp)}</p>
                 </div>
                 
@@ -449,7 +470,9 @@ function Feed() {
                           {Array.isArray(comment.likes) ? comment.likes.length : 0}
                         </span>
                       </button>
-                      {(currentUser.uid === userId || currentUser.uid === comment.userId || userType === 'Admin') && (
+                      {(currentUser.uid === userId || 
+                        currentUser.uid === comment.userId || 
+                        userType === 'Admin') && (
                         <button 
                           onClick={() => handleDeleteComment(isReply ? parentIndex : index, isReply ? index : null)}
                           className="text-gray-400 hover:text-red-500 transition-colors duration-200"
@@ -464,11 +487,11 @@ function Feed() {
               
               <p className="text-gray-700 mt-2 leading-relaxed">{comment.text}</p>
               
-              {Array.isArray(comment.replies) && comment.replies.length > 0 && !isReply && (
+              {!isReply && Array.isArray(comment.replies) && comment.replies.length > 0 && (
                 <div className="mt-4 space-y-3">
                   {comment.replies.map((reply, replyIndex) => (
                     <CommentComponent 
-                      key={replyIndex}
+                      key={`${reply.timestamp}-${replyIndex}`}
                       comment={reply}
                       index={replyIndex}
                       isReply={true}
@@ -487,41 +510,49 @@ function Feed() {
                   ))}
                 </div>
               )}
+              
+              {replyingTo === index && !isReply && (
+                <div className="mt-4 pl-12">
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    handleReply(e, index);
+                  }} className="space-y-3">
+                    <textarea 
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      className="w-full p-3 bg-gray-50 text-gray-800 border border-gray-200 rounded-lg 
+                        focus:ring-2 focus:ring-[#5f9ea0] focus:border-transparent outline-none resize-none 
+                        placeholder-gray-400 transition-all duration-200"
+                      rows="2"
+                      placeholder="Write a reply..."
+                    />
+                    <div className="flex gap-2">
+                      <button 
+                        type="submit"
+                        disabled={!commentText.trim()}
+                        className="bg-[#5f9ea0] hover:bg-[#4f8e90] text-white font-medium py-2 px-4 
+                          rounded-lg transition duration-200 ease-in-out hover:shadow-md disabled:opacity-50 
+                          disabled:cursor-not-allowed"
+                      >
+                        Reply
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setReplyingTo(null);
+                          setCommentText('');
+                        }}
+                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 
+                          rounded-lg transition duration-200 ease-in-out"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
             </div>
           </div>
-          
-          {replyingTo === index && (
-            <div className="mt-4 pl-12">
-              <form onSubmit={(e) => handleReply(e, index)} className="space-y-3">
-                <textarea 
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  className="w-full p-3 bg-gray-50 text-gray-800 border border-gray-200 rounded-lg 
-                    focus:ring-2 focus:ring-[#5f9ea0] focus:border-transparent outline-none resize-none 
-                    placeholder-gray-400 transition-all duration-200"
-                  rows="2"
-                  placeholder="Write a reply..."
-                />
-                <div className="flex gap-2">
-                  <button 
-                    type="submit"
-                    className="bg-[#5f9ea0] hover:bg-[#4f8e90] text-white font-medium py-2 px-4 
-                      rounded-lg transition duration-200 ease-in-out hover:shadow-md"
-                  >
-                    Reply
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => setReplyingTo(null)}
-                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 
-                      rounded-lg transition duration-200 ease-in-out"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
         </div>
       );
     };
@@ -580,38 +611,39 @@ function Feed() {
       }
     };
 
-    const handleCommentSubmit = async (e) => {
-      e.preventDefault();
-      if (!commentText.trim() || !currentUser) return;
+const handleCommentSubmit = async (e) => {
+  e.preventDefault();
+  if (!commentText.trim() || !currentUser) return;
 
-      try {
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        const userData = userDoc.data();
+  try {
+    const userDocRef = doc(db, 'users', currentUser.uid);
+    const userDoc = await getDoc(userDocRef);
+    const userData = userDoc.data();
 
-        const postDocRef = doc(db, 'posts', id);
-        const timestamp = new Date().toISOString();
-        
-        const newComment = {
-          text: commentText,
-          user: currentUser.displayName || 'Anonymous',
-          timestamp,
-          userId: currentUser.uid,
-          profilePic: userData?.profilePic || null
-        };
-        
-        const updatedComments = [...commentList, newComment];
-        setCommentList(updatedComments);
-        setCommentText('');
-        
-        await updateDoc(postDocRef, { 
-          comments: updatedComments
-        });
-      } catch (error) {
-        console.error("Error adding comment: ", error);
-        setCommentList(commentList);
-      }
+    const newComment = {
+      text: commentText.trim(),
+      user: currentUser.displayName || 'Anonymous',
+      userId: currentUser.uid,
+      timestamp: new Date().toISOString(),
+      profilePic: userData?.profilePic || null,
+      likes: [],
+      replies: []
     };
+
+    const updatedComments = [...commentList, newComment];
+
+    const postDocRef = doc(db, 'posts', id);
+    await updateDoc(postDocRef, { 
+      comments: updatedComments
+    });
+
+    setCommentList(updatedComments);
+    setCommentText('');
+    
+  } catch (error) {
+    console.error("Error adding comment:", error);
+  }
+};
 
     useEffect(() => {
       const fetchCommentUserProfiles = async () => {

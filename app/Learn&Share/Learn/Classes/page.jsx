@@ -21,6 +21,7 @@ const ClassesEntry = () => {
   const db = getFirestore(firebaseApp);
 
   const [user, setUser] = useState(null);
+  const [userType, setUserType] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [cloudinaryLoaded, setCloudinaryLoaded] = useState(false);
   const [minRequirement, setMinRequirement] = useState('');
@@ -39,9 +40,14 @@ const ClassesEntry = () => {
     minimumRequirements: [],
     whatYouWillLearn: [],
     classLink: '',
+    isPremium: false,
+    procterId: '',
+    createdAt: new Date().toISOString(),
+    status: 'upcoming' // can be 'upcoming', 'ongoing', or 'completed'
   });
 
   useEffect(() => {
+    // Load Cloudinary widget
     if (!window.cloudinary) {
       const script = document.createElement("script");
       script.src = "https://upload-widget.cloudinary.com/global/all.js";
@@ -52,70 +58,94 @@ const ClassesEntry = () => {
       setCloudinaryLoaded(true);
     }
 
-    onAuthStateChanged(auth, (currentUser) => {
+    // Check authentication and fetch user type
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
         router.push('/Login');
       } else {
         setUser(currentUser);
         setFormData(prev => ({ ...prev, procterId: currentUser.uid }));
+        
+        try {
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUserType(userData.type);
+          }
+        } catch (error) {
+          console.error("Error fetching user type:", error);
+          setError("Error fetching user data");
+        }
       }
     });
-  }, [auth, router]);
+
+    // Cleanup subscription
+    return () => unsubscribe();
+  }, [auth, router, db]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    let processedValue = value;
+
+    // Special handling for isPremium field
+    if (name === 'isPremium') {
+      processedValue = value === 'true';
+    }
+
+    setFormData(prev => ({ ...prev, [name]: processedValue }));
   };
 
   const handleImageUpload = () => {
-    if (cloudinaryLoaded && window.cloudinary) {
-      window.cloudinary.openUploadWidget(
-        {
-          cloudName: "dwkxh75ux",
-          uploadPreset: "sharepics",
-          sources: ["local", "url", "camera"],
-          cropping: true,
-          multiple: false,
-          resourceType: "image",
-        },
-        (error, result) => {
-          if (!error && result && result.event === "success") {
-            setFormData(prev => ({
-              ...prev,
-              imageUrl: result.info.secure_url,
-            }));
-            console.log("Image uploaded:", result.info.secure_url);
-          } else {
-            console.log("Upload error:", error);
-          }
-        }
-      );
-    } else {
-      console.log("Cloudinary is not loaded yet.");
+    if (!cloudinaryLoaded || !window.cloudinary) {
+      setError("Image upload is not ready yet. Please try again in a moment.");
+      return;
     }
+
+    window.cloudinary.openUploadWidget(
+      {
+        cloudName: "dwkxh75ux",
+        uploadPreset: "sharepics",
+        sources: ["local", "url", "camera"],
+        cropping: true,
+        multiple: false,
+        resourceType: "image",
+      },
+      (error, result) => {
+        if (!error && result && result.event === "success") {
+          setFormData(prev => ({
+            ...prev,
+            imageUrl: result.info.secure_url,
+          }));
+          console.log("Image uploaded:", result.info.secure_url);
+        } else if (error) {
+          console.error("Upload error:", error);
+          setError("Failed to upload image. Please try again.");
+        }
+      }
+    );
   };
 
   const handleRequirementAdd = () => {
-    if (minRequirement) {
+    if (minRequirement.trim()) {
       setFormData(prev => ({
         ...prev,
-        minimumRequirements: [...prev.minimumRequirements, minRequirement],
+        minimumRequirements: [...prev.minimumRequirements, minRequirement.trim()],
       }));
       setMinRequirement('');
     }
   };
 
   const handleLearningAdd = () => {
-    if (learningPoint) {
+    if (learningPoint.trim()) {
       setFormData(prev => ({
         ...prev,
-        whatYouWillLearn: [...prev.whatYouWillLearn, learningPoint],
+        whatYouWillLearn: [...prev.whatYouWillLearn, learningPoint.trim()],
       }));
       setLearningPoint('');
     }
   };
 
-  const handleRequirementDelete = async (item) => {
+  const handleRequirementDelete = (item) => {
     try {
       const updatedRequirements = formData.minimumRequirements.filter(
         req => req !== item
@@ -130,7 +160,7 @@ const ClassesEntry = () => {
     }
   };
 
-  const handleLearningDelete = async (item) => {
+  const handleLearningDelete = (item) => {
     try {
       const updatedLearning = formData.whatYouWillLearn.filter(
         learn => learn !== item
@@ -145,16 +175,41 @@ const ClassesEntry = () => {
     }
   };
 
+  const validateFormData = () => {
+    if (!formData.className.trim()) return "Class name is required";
+    if (!formData.standard.trim()) return "Standard is required";
+    if (!formData.classDate.trim()) return "Class date is required";
+    if (!formData.classTime.trim()) return "Class time is required";
+    if (!formData.classLink.trim()) return "Class link is required";
+    if (!formData.description.trim()) return "Description is required";
+    if (formData.minimumRequirements.length === 0) return "At least one minimum requirement is required";
+    if (formData.whatYouWillLearn.length === 0) return "At least one learning point is required";
+    if (!formData.imageUrl) return "Class image is required";
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) return;
+
+    const validationError = validateFormData();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      await addDoc(collection(db, 'classesCollection'), formData);
+      // Add the class data to Firestore
+      const classRef = await addDoc(collection(db, 'classesCollection'), {
+        ...formData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
 
+      // Update user's balance and history
       const userDocRef = doc(db, 'users', user.uid);
       const userDocSnap = await getDoc(userDocRef);
 
@@ -166,35 +221,39 @@ const ClassesEntry = () => {
         const lastUpdated = userData.lastUpdated || null;
         const balanceHistory = userData.balanceHistory || [];
 
+        // Reset daily balance if it's a new day
         if (lastUpdated !== currentDate) {
-          await updateDoc(userDocRef, {
-            dailyBalance: 0,
-          });
+          dailyBalance = 0;
         }
 
+        // Calculate balance increment (max 50 points per class, up to 250 daily)
         let increment = Math.min(50, 250 - dailyBalance);
         if (increment > 0) {
           dailyBalance += increment;
           balance += increment;
+
+          const newHistoryEntry = {
+            balance,
+            date: currentDate,
+            type: 'class_creation',
+            classId: classRef.id,
+            points: increment
+          };
+          balanceHistory.push(newHistoryEntry);
+
+          await updateDoc(userDocRef, {
+            dailyBalance,
+            balance,
+            lastUpdated: currentDate,
+            balanceHistory,
+          });
         }
-
-        const newHistoryEntry = {
-          balance,
-          date: currentDate,
-        };
-        balanceHistory.push(newHistoryEntry);
-
-        await updateDoc(userDocRef, {
-          dailyBalance,
-          balance,
-          lastUpdated: currentDate,
-          balanceHistory,
-        });
       }
+
       setSubmitted(true);
     } catch (error) {
       console.error("Error saving class data:", error);
-      setError("Error saving class data");
+      setError("Failed to save class data. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -239,6 +298,7 @@ const ClassesEntry = () => {
             <li key={index} className="flex items-center justify-between">
               {item}
               <button
+                type="button"
                 onClick={() => onDelete(item)}
                 className="ml-2 text-red-600 hover:text-red-800"
               >
@@ -334,9 +394,25 @@ const ClassesEntry = () => {
               value={formData.description}
               onChange={handleChange}
               required
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200 min-h-[100px]"
             />
           </div>
+
+          {(userType === "Teacher" || userType === "Professional") && (
+            <div>
+              <label className="block text-gray-600 font-medium mb-1">Class Access:</label>
+              <select
+                name="isPremium"
+                value={formData.isPremium}
+                onChange={handleChange}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
+                required
+              >
+                <option value={false}>Free</option>
+                <option value={true}>Premium Only</option>
+              </select>
+            </div>
+          )}
 
           <ListSection
             title="Minimum Requirements"
@@ -376,20 +452,30 @@ const ClassesEntry = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full p-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200"
+            className="w-full p-3 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Submitting...' : 'Submit'}
           </button>
 
           {error && (
-            <div className="text-red-600 text-center mt-2">
-              {error}
-            </div>
-          )}
-        </form>
-      </div>
+            <div className="text-red-600 text-center mt-2 p-2 bg-red-50 rounded-md">
+            {error}
+          </div>
+        )}
+      </form>
+
+      {/* Loading overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-lg">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-2 text-gray-800">Saving class data...</p>
+          </div>
+        </div>
+      )}
     </div>
-  );
+  </div>
+);
 };
 
 export default ClassesEntry;

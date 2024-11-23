@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { FaCrown } from "react-icons/fa";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, collection, addDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../firebaseConfig";
@@ -16,38 +16,60 @@ const PremiumModal = ({ isOpen, onClose, onUpgrade }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
-        <h2 className="text-2xl font-bold mb-4 text-center">Upgrade to Premium</h2>
-        <div className="mb-4">
-          <p className="text-gray-600 text-center">
-            Unlock exclusive features and support our mission!
-          </p>
+    <div className="bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
+      <h2 className="text-3xl font-bold mb-4 text-center text-white">Upgrade to Premium</h2>
+      <div className="mb-4">
+        <p className="text-gray-300 text-center">
+          Get exclusive features and be a part of our mission to grow!
+        </p>
+      </div>
+      <div className="mb-4">
+        <div className="bg-gray-700 p-4 rounded-lg">
+          <h3 className="text-xl font-semibold mb-2 text-white">Premium Plan</h3>
+          <p className="text-gray-400">Monthly Subscription: ₹59</p>
+          <ul className="list-disc list-inside text-sm text-gray-300 mt-2">
+            <li>Boost your Daily Coin Limit by +100</li>
+            <li>Challenge as many friends as you like</li>
+            <li>Gain VIP Access to Expert-Led Premium Classes</li>
+          </ul>
         </div>
-        <div className="mb-4">
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <h3 className="text-xl font-semibold mb-2">Premium Plan</h3>
-            <p className="text-gray-700">Monthly Subscription: ₹499</p>
-            <ul className="list-disc list-inside text-sm text-gray-600 mt-2">
-              <li>Unlimited Access</li>
-              <li>Ad-Free Experience</li>
-              <li>Priority Support</li>
-            </ul>
-          </div>
-        </div>
-        <div className="flex justify-between">
-          <button 
-            onClick={onClose} 
-            className="w-full mr-2 bg-gray-200 text-black rounded p-2 hover:bg-gray-300 transition-colors"
-          >
-            Cancel
-          </button>
-          <button 
-            onClick={onUpgrade} 
-            className="w-full bg-blue-500 text-white rounded p-2 hover:bg-blue-600 transition-colors"
-          >
-            Upgrade Now
-          </button>
-        </div>
+      </div>
+      <div className="flex justify-between">
+        <button 
+          onClick={onClose} 
+          className="w-full mr-2 bg-gray-600 text-white rounded p-2 hover:bg-gray-500 transition-colors"
+        >
+          Cancel
+        </button>
+        <button 
+          onClick={onUpgrade} 
+          className="w-full bg-indigo-600 text-white rounded p-2 hover:bg-indigo-700 transition-colors"
+        >
+          Upgrade Now
+        </button>
+      </div>
+    </div>
+    </div>
+  );
+};
+const PremiumDeadline = ({ premiumEndDate }) => {
+  if (!premiumEndDate) return null;
+
+  const endDate = new Date(premiumEndDate);
+  const today = new Date();
+  const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+  
+  return (
+    <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-4 py-2 rounded-lg shadow-md">
+      <FaCrown className="text-white text-lg" />
+      <div className="flex flex-col">
+        <span className="font-semibold">Premium Active</span>
+        <span className="text-sm">
+          {daysLeft > 0 
+            ? `${daysLeft} days remaining`
+            : "Expires today"
+          }
+        </span>
       </div>
     </div>
   );
@@ -68,14 +90,14 @@ const ProfileSection = ({ userProfile, onImageUpload, onPremiumUpgrade }) => (
         />
       </div>
       <div className="text-lg flex items-center gap-2 font-semibold">
-        {userProfile?.username} 
-        <FaCrown className={userProfile?.premium ? "text-yellow-500" : "text-gray-400"} />
+        {userProfile?.username}
       </div>
     </div>
-    {!userProfile?.premium && (
-      <div
-      onClick={onPremiumUpgrade}>
-      <Button/>
+    {userProfile?.premium ? (
+      <PremiumDeadline premiumEndDate={userProfile.premiumEndDate} />
+    ) : (
+      <div onClick={onPremiumUpgrade}>
+        <Button />
       </div>
     )}
   </div>
@@ -121,7 +143,6 @@ const EditForm = ({ editValues, onInputChange, onSave }) => (
   </div>
 );
 
-// Stats Section Component
 const StatsSection = ({ section, userProfile }) => {
   const statsConfig = {
     Foodhub: [
@@ -192,10 +213,9 @@ const DashBoard = () => {
   });
   const [activeSection, setActiveSection] = useState(null);
   const [uploading, setUploading] = useState({ profilePic: false });
-  const [showProgress, setShowProgress] = useState(false); // New state for progress section
+  const [showProgress, setShowProgress] = useState(false);
 
   const router = useRouter();
-
   const handlePremiumUpgrade = async () => {
     try {
       if (!auth.currentUser) {
@@ -203,20 +223,73 @@ const DashBoard = () => {
         return;
       }
 
+      const currentDate = new Date();
+      const endDate = new Date(currentDate);
+      endDate.setMonth(endDate.getMonth() + 1);
+
       const userRef = doc(db, "users", auth.currentUser.uid);
-      await updateDoc(userRef, { premium: true });
+      await updateDoc(userRef, {
+        premium: true,
+        premiumEndDate: endDate.toISOString()
+      });
+
+      const revenueCollectionRef = collection(db, "revenueCollections");
+      await addDoc(revenueCollectionRef, {
+        userId: auth.currentUser.uid,
+        username: userProfile?.username,
+        date: currentDate.toISOString(),
+        amount: 59,
+        type: 'premium_subscription',
+        paymentStatus: 'completed',
+        subscriptionPeriod: {
+          start: currentDate.toISOString(),
+          end: endDate.toISOString()
+        }
+      });
       
-      // Update local state
-      setUserProfile(prev => ({ ...prev, premium: true }));
+      setUserProfile(prev => ({
+        ...prev,
+        premium: true,
+        premiumEndDate: endDate.toISOString()
+      }));
       
-      // Close modal and show success
       setIsPremiumModalOpen(false);
       toast.success("Successfully upgraded to Premium!");
+      
+      window.location.reload();
     } catch (error) {
       toast.error("Failed to upgrade to Premium");
       console.error("Premium upgrade error:", error);
     }
   };
+  useEffect(() => {
+    const checkPremiumStatus = async () => {
+      if (userProfile?.premium && userProfile?.premiumEndDate) {
+        const endDate = new Date(userProfile.premiumEndDate);
+        const now = new Date();
+        
+        if (endDate < now) {
+          try {
+            const userRef = doc(db, "users", auth.currentUser.uid);
+            await updateDoc(userRef, {
+              premium: false,
+              premiumEndDate: null
+            });
+            
+            setUserProfile(prev => ({
+              ...prev,
+              premium: false,
+              premiumEndDate: null
+            }));
+          } catch (error) {
+            console.error("Error updating expired premium status:", error);
+          }
+        }
+      }
+    };
+
+    checkPremiumStatus();
+  }, [userProfile]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {

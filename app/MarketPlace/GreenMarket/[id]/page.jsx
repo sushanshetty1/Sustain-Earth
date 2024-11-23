@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { firebaseApp } from "../../../../firebaseConfig";
 import dummyImage from "../../../../public/images/dummy-image.png";
 import Loader from '../loader';
@@ -21,6 +21,8 @@ const ItemDetails = () => {
   const id = queryId || pathId;
   const [item, setItem] = useState(null);
   const [mainImage, setMainImage] = useState(dummyImage);
+  const [showAddressPopup, setShowAddressPopup] = useState(false);
+  const [address, setAddress] = useState("");
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -63,14 +65,19 @@ const ItemDetails = () => {
 
   const thumbnails = images.slice(1);
 
-  const handleBuyNow = () => {
-    const choice = confirm('Do You Wish To Continue With Buy Now?');
-    if (choice) {
-      alert('Proceeding to buy for ₹' + item.price + '...');
-    } else {
-      alert('Proceeding to rent for ₹' + item.pricePerDay + '...');
+  
+   const handleBuyNow = () => {
+    setShowAddressPopup(true); // Show the address popup
+  };
+  
+  const handleAddressSubmit = () => {
+    if (!address.trim()) {
+      alert("Please enter a valid address.");
+      return;
     }
-    router.push('/MarketPlace/GreenMarket/pay');
+    alert(`Address saved: ${address}`);
+    setShowAddressPopup(false); // Close the popup
+    router.push('/MarketPlace/GreenMarket/pay'); // Redirect to the payment page
   };
 
   const handleTrade = () => {
@@ -149,9 +156,35 @@ const ItemDetails = () => {
               <path d="M280-80q-33 0-56.5-23.5T200-160q0-33 23.5-56.5T280-240q33 0 56.5 23.5T360-160q0 33-23.5 56.5T280-80Zm400 0q-33 0-56.5-23.5T600-160q0-33 23.5-56.5T680-240q33 0 56.5 23.5T760-160q0 33-23.5 56.5T680-80ZM246-720l96 200h280l110-200H246Zm-38-80h590q23 0 35 20.5t1 41.5L692-482q-11 20-29.5 31T622-440H324l-44 80h480v80H280q-45 0-68-39.5t-2-78.5l54-98-144-304H40v-80h130l38 80Zm134 280h280-280Z" />
             </svg>
             Buy Now
-            
           </Button>
-          
+          {showAddressPopup && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="bg-white rounded-lg p-6 w-96">
+      <h2 className="text-xl font-bold mb-4">Enter Delivery Address</h2>
+      <textarea
+        className="w-full p-2 border rounded"
+        placeholder="Enter your address"
+        value={address}
+        onChange={(e) => setAddress(e.target.value)}
+      />
+      <div className="flex justify-between mt-4">
+        <Button
+          onClick={handleAddressSubmit}
+          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+        >
+          Save Address
+        </Button>
+        <Button
+          onClick={() => setShowAddressPopup(false)}
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+        >
+          Cancel
+        </Button>
+      </div>
+    </div>
+  </div>
+)}
+
 
           <Button
             onClick={handleTrade}
@@ -169,7 +202,6 @@ const ItemDetails = () => {
             </svg>
             <span>Trade Now</span>
           </Button>
-          
 
           </div>
 

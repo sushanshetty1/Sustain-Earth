@@ -20,6 +20,8 @@ const ClassDetail = () => {
   const classId = path.split('/').pop();
   const [classData, setClassData] = useState(null);
   const [interestedCount, setInterestedCount] = useState(0);
+  const [averageRating, setAverageRating] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInterested, setIsInterested] = useState(false); 
   const db = getFirestore(firebaseApp);
 
@@ -132,26 +134,87 @@ const ClassDetail = () => {
     }
   };
 
-  const handleRatingSubmit = async () => {
+  // const handleRatingSubmit = async () => {
+  //   if (!user) {
+  //     alert("Please log in to rate the proctor!");
+  //     return;
+  //   }
+
+  //   try {
+  //     const proctorRef = doc(db, 'users', classData.procterId);
+  //     await updateDoc(proctorRef, {
+  //       ratings: {
+  //         ...(proctorData.ratings || {}),
+  //         [user.uid]: rating,
+  //       },
+  //     });
+
+  //     alert("Rating submitted successfully!");
+  //     setUserRating(rating);
+  //   } catch (error) {
+  //     console.error("Error submitting rating:", error);
+  //     alert("Failed to submit rating.");
+  //   }
+  // };
+
+  const handleRatingChange = async (newRating) => {
     if (!user) {
       alert("Please log in to rate the proctor!");
       return;
     }
-
+  
+    if (!proctorData || !classData?.procterId) {
+      console.error("Missing proctor data or ID");
+      return;
+    }
+  
+    setRating(newRating);
+    setIsSubmitting(true);
+  
     try {
       const proctorRef = doc(db, 'users', classData.procterId);
+      const proctorSnap = await getDoc(proctorRef);
+      
+      if (!proctorSnap.exists()) {
+        throw new Error("Proctor document not found");
+      }
+  
+      const currentRatings = proctorSnap.data().ratings || {};
+      const newRatings = {
+        ...currentRatings,
+        [user.uid]: newRating
+      };
+  
+      const ratingsArray = Object.values(newRatings);
+      const newAverage = ratingsArray.reduce((a, b) => a + b, 0) / ratingsArray.length;
+  
+      // Update proctor document with new rating
       await updateDoc(proctorRef, {
-        ratings: {
-          ...(proctorData.ratings || {}),
-          [user.uid]: rating,
-        },
+        ratings: newRatings,
+        averageRating: newAverage
       });
-
+  
+      // Update class document with new proctor rating if class ID exists
+      if (classData.id) {
+        const classRef = doc(db, 'classesCollection', classData.id);
+        await updateDoc(classRef, {
+          proctorRating: newAverage
+        });
+      }
+  
+      setUserRating(newRating);
+      //extra
+      setRating(newRating);
+      setAverageRating(Number(newAverage.toFixed(1)));
       alert("Rating submitted successfully!");
-      setUserRating(rating);
+  
     } catch (error) {
       console.error("Error submitting rating:", error);
-      alert("Failed to submit rating.");
+      alert("Failed to submit rating. Please try again.");
+      // Revert to previous rating if submission fails
+      setRating(userRating);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -210,6 +273,13 @@ const ClassDetail = () => {
           ratings: newRatings,
           averageRating: newAverage
         });
+
+        if (classData.id) {
+          const classRef = doc(db, 'classesCollection', classData.id);
+          await updateDoc(classRef, {
+            proctorRating: newAverage
+          });
+        }
   
         setRating(newRating);
         setUserRating(newRating);
@@ -231,6 +301,53 @@ const ClassDetail = () => {
     };
   
     if (!proctorData) return null;
+
+    useEffect(() => {
+      const fetchClassData = async () => {
+        if (classId && user) {
+          const classRef = doc(db, 'classesCollection', classId);
+          const docSnap = await getDoc(classRef);
+  
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setClassData(data);
+            setInterestedCount(data.interestedUsers ? data.interestedUsers.length : 0);
+            setIsInterested(data.interestedUsers?.includes(user.uid) || false);
+  
+            if (data.procterId) {
+              const proctorRef = doc(db, 'users', data.procterId);
+              const proctorSnap = await getDoc(proctorRef);
+              if (proctorSnap.exists()) {
+                const proctorData = proctorSnap.data();
+                setProctorData(proctorData);
+  
+                //this
+                if (proctorData.ratings && proctorData.ratings[user.uid]) {
+                  const userRatingValue = proctorData.ratings[user.uid];
+                  setUserRating(userRatingValue);
+                  setRating(userRatingValue);
+                }
+
+                // Set proctor ratings
+                if (proctorData.ratings) {
+                  const ratings = Object.values(proctorData.ratings);
+                  const avg = ratings.length > 0 
+                    ? ratings.reduce((a, b) => a + b, 0) / ratings.length 
+                    : 0;
+                  setAverageRating(Number(avg.toFixed(1)));
+                  setUserRating(proctorData.ratings[user.uid] || 0);
+                }
+              }
+            }
+          } else {
+            router.push('/404');
+          }
+        }
+      };
+  
+      fetchClassData();
+    }, [classId, db, router, user]);
+  
   
     return (
       <div className="font-['Inter'] w-full max-w-4xl mx-auto mt-12 mb-8">
@@ -395,16 +512,42 @@ const ClassDetail = () => {
             <Checkbox
               onChange={handleCheckboxChange} 
               checked={isInterested} />
-            <span className="text-xl">{interestedCount} people are interested</span>
-            
-            
-           
-            
+            <span className="text-xl">{interestedCount} people are interested</span>         
           </div>
-          <div className="flex items-center">
-          <span className="text-xl font-semibold mr-3 ">Ratings:</span>
-            <ReactStars count={5} size={24} color2={'#ffd700'} />
-        </div>
+
+          <div className='flex-row flex'  >
+      <div className="flex items-center flex-row gap-3 mb-2">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000"><path d="m384-334 96-74 96 74-36-122 90-64H518l-38-124-38 124H330l90 64-36 122ZM233-120l93-304L80-600h304l96-320 96 320h304L634-424l93 304-247-188-247 188Zm247-369Z"/></svg>
+        <span className="text-xl font-semibold mr-3">Rating:</span>
+      </div>
+      <div className="flex justify-center mb-4 items-center gap-2">
+        {/* <div className="flex items-center gap-2">
+          <p className="text-2xl font-bold text-gray-800">{averageRating}</p>
+          <ReactStars
+            count={5}
+            value={averageRating}
+            size={24}
+            color2={'#ffd700'}
+            edit={false}
+            half={true}
+          />
+        </div> */}
+        {user && (
+          <div className="mt-2">
+            {/* <p className="text-sm text-gray-600 mb-1">Your Rating:</p> */}
+            <ReactStars
+              count={5}
+              onChange={handleRatingChange}
+              size={24}
+              value={userRating}
+              half={true}
+              color2={'#ffd700'}
+              disabled={isSubmitting}
+            />
+          </div>
+        )}
+      </div>
+    </div>
           
         </div>
         
