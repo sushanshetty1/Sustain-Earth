@@ -118,7 +118,7 @@ graph TD
    npm install
    ```
 
-3. **Configure Firebase**
+3. **Configure Firebase [Skip this section; all the keys are included in the code 😉]**
    ```env
    NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
