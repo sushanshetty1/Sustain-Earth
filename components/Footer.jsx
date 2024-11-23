@@ -21,7 +21,7 @@ function Footer() {
         </Link>
         <div className="flex flex-col sm:flex-row sm:gap-6 text-center sm:text-left">
           <Link href="/About"><button className="text-gray-600 hover:text-black font-medium">About Us</button></Link>
-          <button className="text-gray-600 hover:text-black font-medium">Contact Us</button>
+          <Link href="/Contact"><button className="text-gray-600 hover:text-black font-medium">Contact Us</button></Link>
           <Link href="/PrivacyPolicy"> <button className="text-gray-600 hover:text-black font-medium">Privacy Policy</button></Link>
           <button className="text-gray-600 hover:text-black font-medium">Terms of Service</button>
         </div>

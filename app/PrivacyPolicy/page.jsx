@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import React from 'react';
 
 const PrivacyPolicy = () => {
@@ -81,21 +82,23 @@ const PrivacyPolicy = () => {
               <h2 className="text-2xl font-bold text-gray-800 mb-2">Questions about our policy?</h2>
               <p className="text-gray-600">We're here to help with any privacy-related concerns.</p>
             </div>
+            
             <div className="flex space-x-4">
-              <a 
-                href="mailto:privacy@example.com" 
+              {/* Fixed the nested anchor tags issue */}
+              <Link 
+                href="/Contact" 
                 className="flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
               >
                 <i className="bi bi-envelope-fill mr-2"></i>
                 Contact Us
-              </a>
+              </Link>
             </div>
           </div>
         </div>
 
         {/* Footer */}
         <div className="text-center mt-16 text-sm text-gray-500">
-          <p>Last updated: November 2024 | <a href="#" className="text-indigo-600 hover:text-indigo-700">Terms of Service</a></p>
+          <p>Last updated: November 2024 | <Link href="/terms" className="text-indigo-600 hover:text-indigo-700">Terms of Service</Link></p>
         </div>
       </main>
     </div>

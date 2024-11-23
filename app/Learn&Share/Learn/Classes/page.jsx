@@ -22,6 +22,8 @@ const ClassesEntry = () => {
         description: '',
         minimumRequirements: [],
         whatYouWillLearn: [],
+        classLink: '',
+        
     });
     const [submitted, setSubmitted] = useState(false);
     const [cloudinaryLoaded, setCloudinaryLoaded] = useState(false);
@@ -253,6 +255,19 @@ const ClassesEntry = () => {
               />
             </div>
   
+            <div>
+                <label className="block text-gray-600 font-medium mb-1">Class Link:</label>
+                <input
+                type="url"
+                name="classLink"
+                value={formData.classLink}
+                onChange={handleChange}
+                 placeholder="Enter Google Meet link"
+                required
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
+              />
+            </div>
+            
             <div>
               <label className="block text-gray-600 font-medium mb-1">Description:</label>
               <textarea
