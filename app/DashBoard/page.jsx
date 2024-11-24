@@ -39,7 +39,7 @@ const PremiumModal = ({ isOpen, onClose, onUpgrade }) => {
           <h3 className="text-xl font-semibold mb-2 text-white">Premium Plan</h3>
           <p className="text-gray-400">Monthly Subscription: ₹59</p>
           <ul className="list-disc list-inside text-sm text-gray-300 mt-2">
-            <li>Boost your Daily Coin Limit by +10</li>
+            <li>Boost your Daily Coin Limit by +100</li>
             <li>Challenge as many friends as you like</li>
             <li>Gain VIP Access to Expert-Led Premium Classes</li>
           </ul>
@@ -155,6 +155,56 @@ const EditForm = ({ editValues, onInputChange, onSave }) => (
 );
 
 const StatsSection = ({ section, userProfile }) => {
+  const formatDate = (dateString) => {
+    if (!dateString) return "No date";
+    
+    try {
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+      }
+      return dateString;
+    } catch (error) {
+      console.error("Date parsing error:", error);
+      return dateString;
+    }
+  };
+
+  const isDatePassed = (dateString) => {
+    if (!dateString) return false;
+    
+    try {
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return date < new Date();
+      }
+      return false;
+    } catch (error) {
+      console.error("Date comparison error:", error);
+      return false;
+    }
+  };
+
+  const handleCertificateClick = async (teaching) => {
+    try {
+      const { handleCertificateGeneration } = await import('./certificateGenerator');
+      const success = await handleCertificateGeneration(teaching, userProfile.firstName);
+      
+      if (success) {
+        toast.success('Certificate generated successfully!');
+      } else {
+        toast.error('Failed to generate certificate');
+      }
+    } catch (error) {
+      console.error('Certificate generation error:', error);
+      toast.error('Failed to generate certificate');
+    }
+  };
+
   const statsConfig = {
     Foodhub: [
       {
@@ -173,11 +223,40 @@ const StatsSection = ({ section, userProfile }) => {
     "Learn&Share": [
       {
         label: "No. of Teachings",
-        value: userProfile?.totalTeachingShared || 0
+        value: userProfile?.numberOfTeaching || 0
       },
       {
         label: "Recent Knowledge Share",
-        value: userProfile?.recentTeachingShared || "No Recent Data"
+        CustomComponent: () => {
+          const recentTeaching = userProfile?.recentTeaching || [];
+          
+          if (!recentTeaching.length) {
+            return <span className="text-gray-500">No Recent Data</span>;
+          }
+
+          return (
+            <div className="space-y-2">
+              {recentTeaching.map((teaching, index) => (
+                <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                  <div className="flex flex-col">
+                    <span className="font-medium">{teaching.title || teaching[1] || "Untitled"}</span>
+                    <span className="text-sm text-gray-500">
+                      {formatDate(teaching.date || teaching[0])}
+                    </span>
+                  </div>
+                  {isDatePassed(teaching.date || teaching[0]) && (
+                    <button 
+                      onClick={() => handleCertificateClick(teaching)}
+                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded text-sm transition-colors"
+                    >
+                      Get Certificate
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+        }
       }
     ],
     MarketPlace: [
@@ -196,18 +275,25 @@ const StatsSection = ({ section, userProfile }) => {
   if (!stats) return null;
 
   return (
-    <div className="space-y-2">
-      {stats.map(({ label, value, prefix = "", className = "" }, index) => (
-        <div key={index}>
-          {label}:{" "}
-          <span className={`font-semibold ml-3 ${className}`}>
-            {prefix}{value}
-          </span>
+    <div className="space-y-4">
+      {stats.map(({ label, value, prefix = "", className = "", CustomComponent }, index) => (
+        <div key={index} className="flex flex-col">
+          <span className="text-gray-600">{label}:</span>
+          <div className="mt-1">
+            {CustomComponent ? (
+              <CustomComponent />
+            ) : (
+              <span className={`font-semibold ${className}`}>
+                {prefix}{value}
+              </span>
+            )}
+          </div>
         </div>
       ))}
     </div>
   );
 };
+
 
 const DashBoard = () => {
   const [userProfile, setUserProfile] = useState(null);

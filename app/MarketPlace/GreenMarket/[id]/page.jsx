@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc,collection, setDoc } from "firebase/firestore";
 import { firebaseApp } from "../../../../firebaseConfig";
 import dummyImage from "../../../../public/images/dummy-image.png";
 import Loader from '../loader';
@@ -20,22 +20,37 @@ const ItemDetails = () => {
   const pathId = pathname.split('/').pop();
   const id = queryId || pathId;
   const [item, setItem] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [mainImage, setMainImage] = useState(dummyImage);
   const [showAddressPopup, setShowAddressPopup] = useState(false);
   const [address, setAddress] = useState("");
 
   useEffect(() => {
     const fetchItem = async () => {
-      if (id) {
-        const itemRef = doc(db, "orderCollections", id);
-        const itemSnapshot = await getDoc(itemRef);
-        if (itemSnapshot.exists()) {
-          const fetchedItem = { id: itemSnapshot.id, ...itemSnapshot.data() };
-          setItem(fetchedItem);
-          setMainImage(fetchedItem.images[0] || dummyImage);
-        } else {
-          console.error("No such document!");
+      setIsLoading(true);
+      try {
+        if (id) {
+          console.log("Fetching document with ID:", id);
+          const itemRef = doc(db, "orderCollections", id);
+          const itemSnapshot = await getDoc(itemRef);
+          if (itemSnapshot.exists()) {
+            const fetchedData = itemSnapshot.data();
+            console.log("Raw Firestore data:", fetchedData);
+            const fetchedItem = { id: itemSnapshot.id, ...itemSnapshot.data() };
+            
+            console.log("Fetched item:", fetchedItem);
+            console.log("userId value:", fetchedItem.userId);
+            setItem(fetchedItem);
+            setMainImage(fetchedItem.images[0] || dummyImage);
+          } else {
+            console.error("No such document!");
+          }
         }
+      }
+      catch (error) {
+        console.error("Error fetching item:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchItem();
@@ -66,24 +81,83 @@ const ItemDetails = () => {
   const thumbnails = images.slice(1);
 
   
-   const handleBuyNow = () => {
-    setShowAddressPopup(true); // Show the address popup
-  };
-  
-  const handleAddressSubmit = () => {
-    if (!address.trim()) {
-      alert("Please enter a valid address.");
+  const handleBuyNow = () => {
+    console.log("Current item state:", item);
+    if (!item) {
+      alert("Please wait for item data to load.");
       return;
     }
-    alert(`Address saved: ${address}`);
-    setShowAddressPopup(false); // Close the popup
-    router.push('/MarketPlace/GreenMarket/pay'); // Redirect to the payment page
+    if (!item.userId) {
+      console.error("Missing userId in item:", item);
+      alert("Unable to process purchase. Missing seller information.");
+      return;
+    }
+    setShowAddressPopup(true);
   };
 
-  const handleTrade = () => {
-    alert('Opening trade portal. You can exchange your items here!');
-    router.push(`/MarketPlace/GreenMarket/${item.id}/Trade`);
-  };
+
+  const handleAddressSubmit = async () => {
+    console.log("Submitting order with item:", item);
+
+  if (!address.trim()) {
+    alert("Please enter a valid address.");
+    return;
+    }
+    
+     if (!item) {
+      alert("Please wait for item data to load.");
+      return;
+    }
+
+    if (!item.userId) {
+      console.error("Current item state:", item);
+      alert("Unable to process order. Missing seller information.");
+      return;
+    }
+    
+   try {
+    const confirmedOrder = {
+      address: address,
+      title: item.title,
+      mainImage: mainImage,
+      price: item.type.sell ? item.price : null,
+      pricePerDay: item.type.rent ? item.pricePerDay : null,
+      userId: item.userId,
+      timestamp: new Date().toISOString(),
+      status: 'pending',
+      itemId: id
+    };
+
+     console.log("Saving order:", confirmedOrder);
+     
+    const confirmedOrdersRef = doc(collection(db, "confirmedOrders")); // Auto-generate a new document ID
+    await setDoc(confirmedOrdersRef, confirmedOrder);
+
+    alert("Order confirmed and saved!");
+    setShowAddressPopup(false); // Close the popup
+    router.push('/MarketPlace/GreenMarket/pay'); // Redirect to the payment page
+  } catch (error) {
+    console.error("Error saving order: ", error);
+    alert("There was an issue saving your order. Please try again.");
+  }
+};
+
+if (isLoading) {
+  return <div className='flex justify-center items-center h-screen'><Loader/></div>;
+}
+
+  if (!item) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-center">
+          <p className="text-xl text-gray-600 mb-4">Item not found</p>
+          <Button onClick={() => router.push('/MarketPlace/GreenMarket')}>
+            Return to Market
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-6xl bg-white mt-11">
@@ -187,7 +261,7 @@ const ItemDetails = () => {
 
 
           <Button
-            onClick={handleTrade}
+            // onClick={handleTrade}
             className="w-full bg-green-600 hover:bg-green-700 flex items-center justify-center space-x-2 p-2 rounded"
             aria-label="Trade Now"
           >

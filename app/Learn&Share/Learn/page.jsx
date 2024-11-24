@@ -156,7 +156,7 @@ const Home = () => {
   const handleUpgradeClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    window.location.href = '/premium-upgrade';
+    window.location.href = '/DashBoard';
   };
 
   const ClassCard = ({ classData }) => {

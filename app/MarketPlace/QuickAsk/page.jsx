@@ -425,7 +425,6 @@ export default function App() {
   
       const docRef = await addDoc(collection(db, 'requests'), requestData);
       
-      // Don't update local state - let the snapshot listener handle it
       setIsModalOpen(false);
       setError(null);
       e.target.reset();
@@ -549,14 +548,12 @@ export default function App() {
       const [isInitialLoad, setIsInitialLoad] = useState(true);
       
       useEffect(() => {
-        // Only scroll to bottom on initial load
         if (isInitialLoad && messagesEndRef.current) {
           messagesEndRef.current.scrollIntoView();
           setIsInitialLoad(false);
         }
       }, [requestChats[currentRequest?.id], isInitialLoad]);
     
-      // Reset initial load state when opening a new chat
       useEffect(() => {
         if (currentRequest) {
           setIsInitialLoad(true);
@@ -801,16 +798,20 @@ export default function App() {
                 className="mb-4 w-full p-2 border border-gray-300 rounded-lg"
                 required
               />
-              <select
-                name="category"
-                className="mb-4 w-full p-2 border border-gray-300 rounded-lg"
-                required
-              >
-                <option value="Food">Food</option>
-                <option value="Water">Water</option>
-                <option value="Medicine">Medicine</option>
-                <option value="Clothes">Clothes</option>
-              </select>
+            <select
+              name="category"
+              className="mb-4 w-full p-2 border border-gray-300 rounded-lg"
+              required
+            >
+              <option value="Hammer">Hammer</option>
+              <option value="ToolKit">Tool Kit</option>
+              <option value="Medicine">Medicine</option>
+              <option value="Clothes">Clothes</option>
+              <option value="FirstAid">First Aid Kit</option>
+              <option value="Blankets">Blankets</option>
+              <option value="Sanitation">Sanitation Supplies</option>
+              <option value="PowerBank">Power Bank</option>
+            </select>
               <textarea
                 name="description"
                 placeholder="Description"
