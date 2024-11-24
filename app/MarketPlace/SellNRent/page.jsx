@@ -39,6 +39,10 @@ const SellNRent = () => {
   });
   const [productCity, setProductCity] = useState("");
   const [productState, setProductState] = useState({ value: "", label: "" });
+  const [orders, setOrders] = useState([]);
+  const [yourOrders, setYourOrders] = useState([]);
+  const [orderLoading, setOrderLoading] = useState(false);
+  const [yourOrdersLoading, setYourOrdersLoading] = useState(false);
 
   const categoryOptions = [
     "Electronics", "Computers & Accessories", "Mobile Phones & Accessories", "Home Appliances", "Furniture",
@@ -91,6 +95,14 @@ const SellNRent = () => {
   }, []);
 
   useEffect(() => {
+    if (view === "orders") {
+      fetchOrders();
+    } else if (view === "yourOrders") {
+      fetchYourOrders();
+    }
+  }, [view]);
+
+  useEffect(() => {
     if (view === "trade") {
       fetchTradeRequests();
     }
@@ -138,7 +150,73 @@ const SellNRent = () => {
     }
   };
   
-  
+  const fetchOrders = async () => {
+    setOrderLoading(true);
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Please log in to view orders.");
+        return;
+      }
+
+      const ordersQuery = query(
+        collection(db, "confirmedOrders"),
+        where("userId", "==", user.uid)
+      );
+
+      const querySnapshot = await getDocs(ordersQuery);
+      const ordersData = [];
+
+      querySnapshot.forEach((doc) => {
+        ordersData.push({
+          id: doc.id,
+          ...doc.data(),
+          date: doc.data().date ? new Date(doc.data().date.seconds * 1000).toLocaleDateString() : new Date().toLocaleDateString()
+        });
+      });
+
+      setOrders(ordersData);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      alert("Failed to load orders. Please try again.");
+    } finally {
+      setOrderLoading(false);
+    }
+  };
+
+  const fetchYourOrders = async () => {
+    setYourOrdersLoading(true);
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Please log in to view your orders.");
+        return;
+      }
+
+      const yourOrdersQuery = query(
+        collection(db, "confirmedOrders"),
+        where("buyerId", "==", user.uid)
+      );
+
+      const querySnapshot = await getDocs(yourOrdersQuery);
+      const yourOrdersData = [];
+
+      querySnapshot.forEach((doc) => {
+        yourOrdersData.push({
+          id: doc.id,
+          ...doc.data(),
+          date: doc.data().date ? new Date(doc.data().date.seconds * 1000).toLocaleDateString() : new Date().toLocaleDateString()
+        });
+      });
+
+      setYourOrders(yourOrdersData);
+    } catch (error) {
+      console.error("Error fetching your orders:", error);
+      alert("Failed to load your orders. Please try again.");
+    } finally {
+      setYourOrdersLoading(false);
+    }
+  };
 
   const handleImageUpload = () => {
     if (window.cloudinary) {
@@ -254,25 +332,65 @@ const SellNRent = () => {
     }
   };
 
+  const handleShippedStatus = async (orderId) => {
+    try {
+      const orderRef = doc(db, "confirmedOrders", orderId);
+      await updateDoc(orderRef, {
+        status: "shipped",
+        shippedDate: new Date()
+      });
+      
+      setOrders(orders.map(order => {
+        if (order.id === orderId) {
+          return {
+            ...order,
+            status: "shipped",
+            shippedDate: new Date().toLocaleDateString()
+          };
+        }
+        return order;
+      }));
+
+      alert("Order status updated to shipped!");
+    } catch (error) {
+      console.error("Error updating shipping status:", error);
+      alert("Failed to update shipping status. Please try again.");
+    }
+  };
+
   return (
     <div className="flex flex-col lg:flex-row h-auto bg-[#f9f6f4] mt-10">
       <div className="w-full lg:w-1/4 bg-[#f9f6f4] p-6 border-b lg:border-r border-gray-200">
         <h2 className="text-2xl font-semibold mb-6 text-gray-800">Navigation</h2>
         <button
           onClick={() => setView("add")}
-          className="w-full text-left py-3 px-5 mb-3 rounded-md text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+          className={`w-full text-left py-3 px-5 mb-3 rounded-md text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ${
+            view === "add" ? "bg-gray-200" : ""
+          }`}
         >
           Add Item
         </button>
         <button
           onClick={() => setView("orders")}
-          className="w-full text-left py-3 px-5 mb-3 rounded-md text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+          className={`w-full text-left py-3 px-5 mb-3 rounded-md text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ${
+            view === "orders" ? "bg-gray-200" : ""
+          }`}
         >
-          Orders
+          My Listed Orders
+        </button>
+        <button
+          onClick={() => setView("yourOrders")}
+          className={`w-full text-left py-3 px-5 mb-3 rounded-md text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ${
+            view === "yourOrders" ? "bg-gray-200" : ""
+          }`}
+        >
+          Your Orders
         </button>
         <button
           onClick={() => setView("trade")}
-          className="w-full text-left py-3 px-5 mb-3 rounded-md text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+          className={`w-full text-left py-3 px-5 mb-3 rounded-md text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ${
+            view === "trade" ? "bg-gray-200" : ""
+          }`}
         >
           Trade
         </button>
@@ -428,9 +546,121 @@ const SellNRent = () => {
           </div>
         )}
         {view === "orders" && (
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Orders</h2>
-            {/* Orders content */}
+            <div className="bg-[#f9f6f4]">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-6">My Listed Orders</h2>
+              {orderLoading ? (
+                <div className="flex justify-center items-center mt-10">
+                  <FaSpinner className="animate-spin text-4xl" />
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="text-center text-gray-600 mt-10">
+                  <p>No orders available at this time.</p>
+                </div>
+              ) : (
+                <div className="ml-4 sm:ml-20 mt-10 mr-4 sm:mr-20 flex flex-wrap gap-6 p-6">
+                  {orders.map((order) => (
+                    <div
+                      key={order.id}
+                      className="w-full sm:w-[300px] bg-white p-4 rounded-lg transition-transform transform hover:scale-105 shadow-lg"
+                    >
+                      <div className="image_slot bg-gray-200 w-full h-[180px] sm:h-[200px] rounded-t-lg">
+                        {order.mainImage ? (
+                          <img 
+                            src={order.mainImage} 
+                            alt={order.title} 
+                            className="w-full h-full object-cover rounded-t-lg" 
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center h-full">
+                            <p className="text-gray-500">No image available</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="font-semibold text-gray-700 p-2 text-lg">
+                        <h3 className="text-xl mb-2">{order.title || "Unnamed Item"}</h3>
+                        <div className="text-gray-500 font-normal text-sm space-y-2">
+                          <p>
+                            Delivery Address: <span className="font-semibold">{order.address || "N/A"}</span>
+                          </p>
+                          <p>
+                            Order Date: <span className="font-semibold">{order.date || "Unknown"}</span>
+                          </p>
+                          <p className="text-blue-600">
+                            Status: <span className="font-semibold capitalize">{order.status || "pending"}</span>
+                          </p>
+                          {order.shippedDate && (
+                            <p>
+                              Shipped Date: <span className="font-semibold">{order.shippedDate}</span>
+                            </p>
+                          )}
+                        </div>
+                        {(!order.status || order.status !== "shipped") && (
+                          <button
+                            onClick={() => handleShippedStatus(order.id)}
+                            className="mt-4 w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition duration-200"
+                          >
+                            Mark as Shipped
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+        {view === "yourOrders" && (
+          <div className="bg-[#f9f6f4]">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Your Orders</h2>
+            {yourOrdersLoading ? (
+              <div className="flex justify-center items-center mt-10">
+                <FaSpinner className="animate-spin text-4xl" />
+              </div>
+            ) : yourOrders.length === 0 ? (
+              <div className="text-center text-gray-600 mt-10">
+                <p>You haven't placed any orders yet.</p>
+              </div>
+            ) : (
+              <div className="ml-4 sm:ml-20 mt-10 mr-4 sm:mr-20 flex flex-wrap gap-6 p-6">
+                {yourOrders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="w-full sm:w-[300px] bg-white p-4 rounded-lg transition-transform transform hover:scale-105 shadow-lg"
+                  >
+                    <div className="image_slot bg-gray-200 w-full h-[180px] sm:h-[200px] rounded-t-lg">
+                      {order.mainImage ? (
+                        <img 
+                          src={order.mainImage} 
+                          alt={order.title} 
+                          className="w-full h-full object-cover rounded-t-lg" 
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <p className="text-gray-500">No image available</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="font-semibold text-gray-700 p-2 text-lg">
+                      <h3 className="text-xl mb-2">{order.title || "Unnamed Item"}</h3>
+                      <div className="text-gray-500 font-normal text-sm space-y-2">
+                        <p>
+                          Shipping Address: <span className="font-semibold">{order.address || "N/A"}</span>
+                        </p>
+                        <p>
+                          Order Date: <span className="font-semibold">{order.date || "Unknown"}</span>
+                        </p>
+                        {order.status && (
+                          <p className="text-blue-600">
+                            Status: <span className="font-semibold capitalize">{order.status}</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
         {view === "trade" && (

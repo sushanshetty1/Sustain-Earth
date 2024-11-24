@@ -129,12 +129,13 @@ const ItemDetails = () => {
       userId: item.userId,
       timestamp: new Date().toISOString(),
       status: 'pending',
-      itemId: id
+      itemId: id,
+      buyerId: currentUser.uid,
     };
 
      console.log("Saving order:", confirmedOrder);
      
-    const confirmedOrdersRef = doc(collection(db, "confirmedOrders")); // Auto-generate a new document ID
+    const confirmedOrdersRef = doc(collection(db, "confirmedOrders"));
      await setDoc(confirmedOrdersRef, confirmedOrder);
      
      try {
@@ -149,12 +150,11 @@ const ItemDetails = () => {
         currentUser: currentUser.uid,
         itemId: id
       });
-      // Handle the error appropriately
     }
 
     alert("Order confirmed and saved!");
-    setShowAddressPopup(false); // Close the popup
-     router.push('/MarketPlace/GreenMarket/pay'); // Redirect to the payment page
+    setShowAddressPopup(false);
+     router.push('/MarketPlace/GreenMarket/pay');
   } catch (error) {
     console.error("Error saving order: ", error);
     alert("There was an issue saving your order. Please try again.");
@@ -251,34 +251,32 @@ if (isLoading) {
             Buy Now
           </Button>
           {showAddressPopup && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-    <div className="bg-white rounded-lg p-6 w-96">
-      <h2 className="text-xl font-bold mb-4">Enter Delivery Address</h2>
-      <textarea
-        className="w-full p-2 border rounded"
-        placeholder="Enter your address"
-        value={address}
-        onChange={(e) => setAddress(e.target.value)}
-      />
-      <div className="flex justify-between mt-4">
-        <Button
-          onClick={handleAddressSubmit}
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
-        >
-          Save Address
-        </Button>
-        <Button
-          onClick={() => setShowAddressPopup(false)}
-          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-        >
-          Cancel
-        </Button>
-      </div>
-    </div>
-  </div>
-)}
-
-
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="bg-white rounded-lg p-6 w-96">
+                <h2 className="text-xl font-bold mb-4">Enter Delivery Address</h2>
+                <textarea
+                  className="w-full p-2 border rounded"
+                  placeholder="Enter your address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                />
+                <div className="flex justify-between mt-4">
+                  <Button
+                    onClick={handleAddressSubmit}
+                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+                  >
+                    Save Address
+                  </Button>
+                  <Button
+                    onClick={() => setShowAddressPopup(false)}
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
           <Button
             onClick={handleTrade}
             className="w-full bg-green-600 hover:bg-green-700 flex items-center justify-center space-x-2 p-2 rounded"
