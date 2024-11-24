@@ -8,6 +8,7 @@ import { getAuth } from 'firebase/auth';
 import Image from 'next/image';
 import { Calendar, Users, Star, Clock, Mail, MessageSquare, Heart, Award } from 'lucide-react';
 import ReactStars from 'react-stars'
+import Loader from './loader';
 
 const ClassDetail = () => {
   const [user, setUser] = useState(null);
@@ -397,7 +398,7 @@ const ClassDetail = () => {
     );
   };
 
-  if (!classData) return <p>Loading...</p>;
+  if (!classData) return <div className='min-h-screen flex items-center justify-center'><Loader/></div>;
   return (
     <div className="min-h-screen flex flex-col items-center justify-start p-8 bg-[#f9f6f4] text-gray-900">
       <h1 className="text-5xl font-bold text-center mb-6 text-gray-800 tracking-wide">

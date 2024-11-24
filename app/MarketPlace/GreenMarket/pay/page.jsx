@@ -34,6 +34,10 @@ const App = () => {
     event.preventDefault();
     console.log('Form submitted:', { cardholderName, cardNumber, expiryDate, cvv });
     
+    setSubmitted(true);
+  setTimeout(() => {
+    router.push('/MarketPlace/GreenMarket');
+  }, 3000);
  
 };
 

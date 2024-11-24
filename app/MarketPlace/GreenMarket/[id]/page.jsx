@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { getFirestore, doc, getDoc,collection, setDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc,collection, setDoc, deleteDoc } from "firebase/firestore";
 import { firebaseApp } from "../../../../firebaseConfig";
 import dummyImage from "../../../../public/images/dummy-image.png";
 import Loader from '../loader';
@@ -80,6 +80,10 @@ const ItemDetails = () => {
 
   const thumbnails = images.slice(1);
 
+  const handleTrade = () => {
+    alert('Opening trade portal. You can exchange your items here!');
+    router.push(`/MarketPlace/GreenMarket/${item.id}/Trade`);
+  };
   
   const handleBuyNow = () => {
     console.log("Current item state:", item);
@@ -131,11 +135,26 @@ const ItemDetails = () => {
      console.log("Saving order:", confirmedOrder);
      
     const confirmedOrdersRef = doc(collection(db, "confirmedOrders")); // Auto-generate a new document ID
-    await setDoc(confirmedOrdersRef, confirmedOrder);
+     await setDoc(confirmedOrdersRef, confirmedOrder);
+     
+     try {
+      const itemRef = doc(db, "orderCollections", id);
+      await deleteDoc(itemRef);
+      console.log("Successfully deleted item from orderCollections");
+    } catch (deleteError) {
+      console.error("Delete error details:", {
+        error: deleteError,
+        errorMessage: deleteError.message,
+        errorCode: deleteError.code,
+        currentUser: currentUser.uid,
+        itemId: id
+      });
+      // Handle the error appropriately
+    }
 
     alert("Order confirmed and saved!");
     setShowAddressPopup(false); // Close the popup
-    router.push('/MarketPlace/GreenMarket/pay'); // Redirect to the payment page
+     router.push('/MarketPlace/GreenMarket/pay'); // Redirect to the payment page
   } catch (error) {
     console.error("Error saving order: ", error);
     alert("There was an issue saving your order. Please try again.");
@@ -261,7 +280,7 @@ if (isLoading) {
 
 
           <Button
-            // onClick={handleTrade}
+            onClick={handleTrade}
             className="w-full bg-green-600 hover:bg-green-700 flex items-center justify-center space-x-2 p-2 rounded"
             aria-label="Trade Now"
           >

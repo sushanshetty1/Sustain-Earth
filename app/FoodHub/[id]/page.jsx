@@ -6,7 +6,7 @@ import {firebaseApp} from '../../../firebaseConfig';
 import { getAuth } from 'firebase/auth';
 import Help from '../../../public/images/help.png';
 import Image from 'next/image';
-
+import Loader from './loader';
 const DonationDetails = () => {
   const [user, setUser] = useState(null);
   const [donationData, setDonationData] = useState(null);
@@ -48,7 +48,7 @@ const DonationDetails = () => {
     fetchDonationData();
   }, [donationId, user]);
 
-  if (!donationData) return <p>Loading...</p>;
+  if (!donationData) return <div className='flex justify-center items-center h-screen'><Loader/></div>;
 
   const ProgressBar = ({ amount, goal }) => (
     <div className="w-full bg-gray-300 rounded-full h-4 mt-2">

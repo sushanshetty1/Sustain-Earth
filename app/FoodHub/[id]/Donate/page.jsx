@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { db } from "../../../../firebaseConfig";
 import { collection, addDoc, doc, getDoc, updateDoc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import Loader from "../loader";
 
 const Form = () => {
   const placeholderAmount = 0;
@@ -48,8 +49,9 @@ const Form = () => {
         dailyBalance: 250,
         lastDailyReset: currentDate.toISOString(),
       });
-      console.log("Daily balance reset to 250 for the new day.");
+      return 250;
     }
+    return userData.dailyBalance || 0;
   };
 
   const handleHelpPercentageChange = (e) => {
@@ -66,6 +68,49 @@ const Form = () => {
 
   const helpingMoney = (amount * helpPercentage) / 100;
   const total = amount + helpingMoney;
+
+  const saveToRevenueCollections = async (helpingMoney) => {
+    try {
+      await addDoc(collection(db, "revenueCollections"), {
+        amount: helpingMoney,
+        date: new Date(),
+        paymentStatus: "completed",
+        type: "platform_contribution",
+        userId: user.uid,
+        username: name,
+        donationId: donationId
+      });
+      console.log("Revenue collection saved successfully");
+    } catch (error) {
+      console.error("Error saving revenue collection: ", error);
+      throw error;
+    }
+  };
+
+  const calculateCoinsAndBalance = (currentDailyBalance, donationAmount) => {
+    const donationSegments = Math.floor(donationAmount / 250);
+    
+    const potentialCoins = donationSegments * 25;
+    
+    const coinsToAdd = Math.min(potentialCoins, currentDailyBalance);
+    
+    const newDailyBalance = currentDailyBalance - coinsToAdd;
+    
+    console.log('Calculation details:', {
+      currentDailyBalance,
+      donationAmount,
+      donationSegments,
+      potentialCoins,
+      actualCoinsGiven: coinsToAdd,
+      newDailyBalance,
+      explanation: '25 coins per 250 Rs donated, limited by daily balance'
+    });
+    
+    return {
+      coinsToAdd,
+      newDailyBalance
+    };
+  };
 
   const handleSubmit = async () => {
     if (!user) {
@@ -91,6 +136,7 @@ const Form = () => {
     }
   
     const donationData = donationDoc.data();
+    const userData = userDoc.data();
     const donationGoal = donationData.goal || 0;
     const currentAmount = donationData.amount || 0;
   
@@ -106,58 +152,78 @@ const Form = () => {
       alert(`Donation exceeds the goal of ₹${donationGoal}. Please reduce your donation.`);
       return;
     }
-  
-    const userData = userDoc.data();
-    let dailyBalance = userData.dailyBalance || 250;
-  
-    let coinsToAdd = 0;
-    if (dailyBalance > 0) {
-      const eligibleForCoins = Math.min(dailyBalance, amount);
-      coinsToAdd = Math.floor(eligibleForCoins / 250) * 25;
-      dailyBalance -= eligibleForCoins;
-    }
-  
-    const newBalanceHistoryEntry = { date: new Date().toISOString(), balance: userData.balance };
-    const newDonation = { name, amount, date: new Date() };
-  
+
     try {
-      let currentDonationAmount = 0;
-      if (donationDoc.exists()) {
-        currentDonationAmount = donationData.amount || 0;
-      }
-  
+      const currentDailyBalance = await handleDailyBalanceReset(userRef, userDoc);
+      
+      console.log('Before calculation:', {
+        currentDailyBalance,
+        donationAmount: amount
+      });
+
+      const { coinsToAdd, newDailyBalance } = calculateCoinsAndBalance(currentDailyBalance, amount);
+      
+      console.log('After calculation:', {
+        currentBalance: userData.balance,
+        coinsToAdd,
+        newDailyBalance
+      });
+
+      const newBalanceHistoryEntry = {
+        date: new Date().toISOString(),
+        previousBalance: userData.balance || 0,
+        coinsAdded: coinsToAdd,
+        newBalance: (userData.balance || 0) + coinsToAdd,
+        type: 'donation_reward',
+        donationAmount: amount
+      };
+
+      const newDonation = {
+        name,
+        amount,
+        date: new Date(),
+        coinsEarned: coinsToAdd,
+        dailyBalanceRemaining: newDailyBalance
+      };
+
       await updateDoc(donationRef, {
-        amount: currentDonationAmount + amount,
+        amount: currentAmount + amount,
       });
   
       await addDoc(collection(db, "donationCollections", donationId, "donations"), newDonation);
   
-      const newTotalDonations = (userData.totalDonations || 0) + amount;
+      await saveToRevenueCollections(helpingMoney);
   
-      if (dailyBalance > 0) {
-        await updateDoc(userRef, {
-          totalDonations: newTotalDonations,
-          balance: (userData.balance || 0) + coinsToAdd,
-          dailyBalance: dailyBalance,
-          balanceHistory: [...(userData.balanceHistory || []), newBalanceHistoryEntry],
-        });
-      } else {
-        await updateDoc(userRef, {
-          totalDonations: newTotalDonations,
-          dailyBalance: dailyBalance,
-          balanceHistory: [...(userData.balanceHistory || []), newBalanceHistoryEntry],
-        });
+      const updatedUserData = {
+        totalDonations: (userData.totalDonations || 0) + amount,
+        dailyBalance: newDailyBalance,
+        balance: (userData.balance || 0) + coinsToAdd,
+        balanceHistory: [...(userData.balanceHistory || []), newBalanceHistoryEntry],
+        lastUpdated: new Date().toISOString()
+      };
+
+      await updateDoc(userRef, updatedUserData);
+      
+      console.log('Final update:', {
+        previousBalance: userData.balance || 0,
+        coinsAdded: coinsToAdd,
+        newBalance: (userData.balance || 0) + coinsToAdd,
+        newDailyBalance
+      });
+  
+      let message = `Thank You For Your Valuable Donation!`;
+      if (coinsToAdd > 0) {
+        message += `\nYou earned ${coinsToAdd} coins from your remaining daily balance of ₹${currentDailyBalance}!`;
+        message += `\nDaily balance used completely for today.`;
       }
-  
-      alert("Thank You For Your Valuable Donation!");
+      alert(message);
       router.back();
     } catch (error) {
-      console.error("Error saving donation information: ", error);
-      alert("Failed to save donation information. Please try again.");
+      console.error("Error processing donation: ", error);
+      alert("Failed to process donation. Please try again.");
     }
   };
-  
-  
+
   return (
     <StyledWrapper>
       <div className="container">
@@ -233,7 +299,7 @@ const Form = () => {
     </StyledWrapper>
   );
 };
-
+  
 const StyledWrapper = styled.div`
   display: flex;
   justify-content: center;
