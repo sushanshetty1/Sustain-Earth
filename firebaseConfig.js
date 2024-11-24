@@ -5,13 +5,13 @@ import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCFB7b842PYfaEgfhvfRHIO1kofVjXEkiQ",
-  authDomain: "sustain-earth-temp.firebaseapp.com",
-  projectId: "sustain-earth-temp",
-  storageBucket: "sustain-earth-temp.firebasestorage.app",
-  messagingSenderId: "784005346829",
-  appId: "1:784005346829:web:390f25484bffe20a4b8744",
-  measurementId: "G-8K7C4XKEPT"
+  apiKey: "AIzaSyBv7k3_r05x8CdecvF3jRpWuO7H8YwrA_g",
+  authDomain: "sustain-earth-2.firebaseapp.com",
+  projectId: "sustain-earth-2",
+  storageBucket: "sustain-earth-2.firebasestorage.app",
+  messagingSenderId: "1060845954082",
+  appId: "1:1060845954082:web:a287f7fd507bf88646d67b",
+  measurementId: "G-YD8LRRX3JE"
 };
 
 let firebaseApp;
