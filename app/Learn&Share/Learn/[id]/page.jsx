@@ -12,25 +12,27 @@ import ReactStars from 'react-stars'
 const ClassDetail = () => {
   const [user, setUser] = useState(null);
   const auth = getAuth(firebaseApp);
-  const [rating, setRating] = useState(0);
-  const [proctorData, setProctorData] = useState(null);
   const router = useRouter();
   const path = usePathname();
-  const [userRating, setUserRating] = useState(null);
   const classId = path.split('/').pop();
   const [classData, setClassData] = useState(null);
+  const [proctorData, setProctorData] = useState(null);
   const [interestedCount, setInterestedCount] = useState(0);
-  const [averageRating, setAverageRating] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isInterested, setIsInterested] = useState(false); 
+  const [isInterested, setIsInterested] = useState(false);
   const db = getFirestore(firebaseApp);
+
+  const [rating, setRating] = useState({
+    userRating: 0,
+    averageRating: 0,
+    isSubmitting: false
+  });
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(user => {
       if (user) {
-        setUser(user); 
+        setUser(user);
       } else {
-        setUser(null); 
+        setUser(null);
       }
     });
 
@@ -39,22 +41,37 @@ const ClassDetail = () => {
 
   useEffect(() => {
     const fetchClassData = async () => {
-      if (classId && user) { 
+      if (classId && user) {
         const classRef = doc(db, 'classesCollection', classId);
         const docSnap = await getDoc(classRef);
 
         if (docSnap.exists()) {
-          const classData = docSnap.data();
-          setClassData(classData);
-          setInterestedCount(classData.interestedUsers ? classData.interestedUsers.length : 0);
-          setIsInterested(classData.interestedUsers?.includes(user.uid) || false); 
+          const data = docSnap.data();
+          setClassData(data);
+          setInterestedCount(data.interestedUsers?.length || 0);
+          setIsInterested(data.interestedUsers?.includes(user.uid) || false);
 
-          if (classData.procterId) {
-            const proctorRef = doc(db, 'users', classData.procterId);
+          if (data.procterId) {
+            const proctorRef = doc(db, 'users', data.procterId);
             const proctorSnap = await getDoc(proctorRef);
+            
             if (proctorSnap.exists()) {
-              setProctorData(proctorSnap.data());
-              setUserRating(proctorInfo.ratings?.[user?.uid] || null);
+              const proctorInfo = proctorSnap.data();
+              setProctorData(proctorInfo);
+
+              // Update rating state with proctor ratings
+              if (proctorInfo.ratings) {
+                const ratings = Object.values(proctorInfo.ratings);
+                const avg = ratings.length > 0 
+                  ? ratings.reduce((a, b) => a + b, 0) / ratings.length 
+                  : 0;
+                
+                setRating({
+                  userRating: proctorInfo.ratings[user.uid] || 0,
+                  averageRating: Number(avg.toFixed(1)),
+                  isSubmitting: false
+                });
+              }
             }
           }
         } else {
@@ -64,7 +81,8 @@ const ClassDetail = () => {
     };
 
     fetchClassData();
-  }, [classId, db, router, user]); 
+  }, [classId, db, router, user]);
+
 
   const handleCheckboxChange = async () => {
     if (!user) {
@@ -134,43 +152,19 @@ const ClassDetail = () => {
     }
   };
 
-  // const handleRatingSubmit = async () => {
-  //   if (!user) {
-  //     alert("Please log in to rate the proctor!");
-  //     return;
-  //   }
-
-  //   try {
-  //     const proctorRef = doc(db, 'users', classData.procterId);
-  //     await updateDoc(proctorRef, {
-  //       ratings: {
-  //         ...(proctorData.ratings || {}),
-  //         [user.uid]: rating,
-  //       },
-  //     });
-
-  //     alert("Rating submitted successfully!");
-  //     setUserRating(rating);
-  //   } catch (error) {
-  //     console.error("Error submitting rating:", error);
-  //     alert("Failed to submit rating.");
-  //   }
-  // };
-
   const handleRatingChange = async (newRating) => {
     if (!user) {
       alert("Please log in to rate the proctor!");
       return;
     }
-  
+
     if (!proctorData || !classData?.procterId) {
       console.error("Missing proctor data or ID");
       return;
     }
-  
-    setRating(newRating);
-    setIsSubmitting(true);
-  
+
+    setRating(prev => ({ ...prev, isSubmitting: true }));
+
     try {
       const proctorRef = doc(db, 'users', classData.procterId);
       const proctorSnap = await getDoc(proctorRef);
@@ -178,64 +172,55 @@ const ClassDetail = () => {
       if (!proctorSnap.exists()) {
         throw new Error("Proctor document not found");
       }
-  
+
       const currentRatings = proctorSnap.data().ratings || {};
       const newRatings = {
         ...currentRatings,
         [user.uid]: newRating
       };
-  
+
       const ratingsArray = Object.values(newRatings);
       const newAverage = ratingsArray.reduce((a, b) => a + b, 0) / ratingsArray.length;
-  
-      // Update proctor document with new rating
+
       await updateDoc(proctorRef, {
         ratings: newRatings,
         averageRating: newAverage
       });
-  
-      // Update class document with new proctor rating if class ID exists
-      if (classData.id) {
-        const classRef = doc(db, 'classesCollection', classData.id);
-        await updateDoc(classRef, {
-          proctorRating: newAverage
-        });
-      }
-  
-      setUserRating(newRating);
-      //extra
-      setRating(newRating);
-      setAverageRating(Number(newAverage.toFixed(1)));
+
+      setRating({
+        userRating: newRating,
+        averageRating: Number(newAverage.toFixed(1)),
+        isSubmitting: false
+      });
+
       alert("Rating submitted successfully!");
-  
     } catch (error) {
       console.error("Error submitting rating:", error);
       alert("Failed to submit rating. Please try again.");
-      // Revert to previous rating if submission fails
-      setRating(userRating);
     } finally {
-      setIsSubmitting(false);
+      setRating(prev => ({ ...prev, isSubmitting: false }));
     }
   };
 
   const ProctorCard = ({ proctorData, db, user, classData }) => {
-    const [rating, setRating] = useState(0);
-    const [averageRating, setAverageRating] = useState(0);
-    const [userRating, setUserRating] = useState(0);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [ratingState, setRatingState] = useState({
+      userRating: 0,
+      averageRating: 0,
+      isSubmitting: false
+    });
   
     useEffect(() => {
-      if (proctorData && proctorData.ratings) {
+      if (proctorData?.ratings) {
         const ratings = Object.values(proctorData.ratings);
         const avg = ratings.length > 0 
           ? ratings.reduce((a, b) => a + b, 0) / ratings.length 
           : 0;
-        setAverageRating(Number(avg.toFixed(1)));
-  
-        if (user && proctorData.ratings[user.uid]) {
-          setUserRating(proctorData.ratings[user.uid]);
-          setRating(proctorData.ratings[user.uid]);
-        }
+        
+        setRatingState({
+          userRating: user && proctorData.ratings[user?.uid] ? proctorData.ratings[user.uid] : 0,
+          averageRating: Number(avg.toFixed(1)),
+          isSubmitting: false
+        });
       }
     }, [proctorData, user]);
   
@@ -250,7 +235,7 @@ const ClassDetail = () => {
         return;
       }
   
-      setIsSubmitting(true);
+      setRatingState(prev => ({ ...prev, isSubmitting: true }));
   
       try {
         const proctorRef = doc(db, 'users', classData.procterId);
@@ -273,7 +258,7 @@ const ClassDetail = () => {
           ratings: newRatings,
           averageRating: newAverage
         });
-
+  
         if (classData.id) {
           const classRef = doc(db, 'classesCollection', classData.id);
           await updateDoc(classRef, {
@@ -281,73 +266,20 @@ const ClassDetail = () => {
           });
         }
   
-        setRating(newRating);
-        setUserRating(newRating);
-        setAverageRating(Number(newAverage.toFixed(1)));
-        
-        if (classData.id) {
-          const classRef = doc(db, 'classesCollection', classData.id);
-          await updateDoc(classRef, {
-            proctorRating: newAverage
-          });
-        }
+        setRatingState({
+          userRating: newRating,
+          averageRating: Number(newAverage.toFixed(1)),
+          isSubmitting: false
+        });
   
       } catch (error) {
         console.error("Error submitting rating:", error);
         alert("Failed to submit rating. Please try again.");
-      } finally {
-        setIsSubmitting(false);
+        setRatingState(prev => ({ ...prev, isSubmitting: false }));
       }
     };
   
     if (!proctorData) return null;
-
-    useEffect(() => {
-      const fetchClassData = async () => {
-        if (classId && user) {
-          const classRef = doc(db, 'classesCollection', classId);
-          const docSnap = await getDoc(classRef);
-  
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setClassData(data);
-            setInterestedCount(data.interestedUsers ? data.interestedUsers.length : 0);
-            setIsInterested(data.interestedUsers?.includes(user.uid) || false);
-  
-            if (data.procterId) {
-              const proctorRef = doc(db, 'users', data.procterId);
-              const proctorSnap = await getDoc(proctorRef);
-              if (proctorSnap.exists()) {
-                const proctorData = proctorSnap.data();
-                setProctorData(proctorData);
-  
-                //this
-                if (proctorData.ratings && proctorData.ratings[user.uid]) {
-                  const userRatingValue = proctorData.ratings[user.uid];
-                  setUserRating(userRatingValue);
-                  setRating(userRatingValue);
-                }
-
-                // Set proctor ratings
-                if (proctorData.ratings) {
-                  const ratings = Object.values(proctorData.ratings);
-                  const avg = ratings.length > 0 
-                    ? ratings.reduce((a, b) => a + b, 0) / ratings.length 
-                    : 0;
-                  setAverageRating(Number(avg.toFixed(1)));
-                  setUserRating(proctorData.ratings[user.uid] || 0);
-                }
-              }
-            }
-          } else {
-            router.push('/404');
-          }
-        }
-      };
-  
-      fetchClassData();
-    }, [classId, db, router, user]);
-  
   
     return (
       <div className="font-['Inter'] w-full max-w-4xl mx-auto mt-12 mb-8">
@@ -414,33 +346,28 @@ const ClassDetail = () => {
               </div>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
-                  <p className="text-2xl font-bold text-gray-800">{averageRating}</p>
-                  <div className="flex text-yellow-400">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star 
-                        key={star} 
-                        className={`w-4 h-4 ${star <= averageRating ? 'fill-current' : ''}`}
-                      />
-                    ))}
-                  </div>
+                  <p className="text-2xl font-bold text-gray-800">{ratingState.averageRating}</p>
+                  <ReactStars
+                    count={5}
+                    value={ratingState.averageRating}
+                    size={24}
+                    color2={'#ffd700'}
+                    edit={false}
+                    half={true}
+                  />
                 </div>
                 {user && (
                   <div className="mt-2">
                     <p className="text-sm text-gray-600 mb-1">Your Rating:</p>
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          onClick={() => !isSubmitting && handleRatingSubmit(star)}
-                          className={`focus:outline-none ${isSubmitting ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                          disabled={isSubmitting}
-                        >
-                          <Star 
-                            className={`w-6 h-6 ${star <= userRating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
-                          />
-                        </button>
-                      ))}
-                    </div>
+                    <ReactStars
+                      count={5}
+                      onChange={handleRatingSubmit}
+                      size={24}
+                      value={ratingState.userRating}
+                      half={true}
+                      color2={'#ffd700'}
+                      disabled={ratingState.isSubmitting}
+                    />
                   </div>
                 )}
               </div>
@@ -515,40 +442,29 @@ const ClassDetail = () => {
             <span className="text-xl">{interestedCount} people are interested</span>         
           </div>
 
-          <div className='flex-row flex'  >
-      <div className="flex items-center flex-row gap-3 mb-2">
-      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000"><path d="m384-334 96-74 96 74-36-122 90-64H518l-38-124-38 124H330l90 64-36 122ZM233-120l93-304L80-600h304l96-320 96 320h304L634-424l93 304-247-188-247 188Zm247-369Z"/></svg>
-        <span className="text-xl font-semibold mr-3">Rating:</span>
+      <div className="flex-row flex">
+        <div className="flex items-center flex-row gap-3 mb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000">
+            <path d="m384-334 96-74 96 74-36-122 90-64H518l-38-124-38 124H330l90 64-36 122ZM233-120l93-304L80-600h304l96-320 96 320h304L634-424l93 304-247-188-247 188Zm247-369Z"/>
+          </svg>
+          <span className="text-xl font-semibold mr-3">Rating:</span>
+        </div>
+        <div className="flex justify-center mb-4 items-center gap-2">
+          {user && (
+            <div className="mt-2">
+              <ReactStars
+                count={5}
+                onChange={handleRatingChange}
+                size={24}
+                value={rating.userRating}
+                half={true}
+                color2={'#ffd700'}
+                disabled={rating.isSubmitting}
+              />
+            </div>
+          )}
+        </div>
       </div>
-      <div className="flex justify-center mb-4 items-center gap-2">
-        {/* <div className="flex items-center gap-2">
-          <p className="text-2xl font-bold text-gray-800">{averageRating}</p>
-          <ReactStars
-            count={5}
-            value={averageRating}
-            size={24}
-            color2={'#ffd700'}
-            edit={false}
-            half={true}
-          />
-        </div> */}
-        {user && (
-          <div className="mt-2">
-            {/* <p className="text-sm text-gray-600 mb-1">Your Rating:</p> */}
-            <ReactStars
-              count={5}
-              onChange={handleRatingChange}
-              size={24}
-              value={userRating}
-              half={true}
-              color2={'#ffd700'}
-              disabled={isSubmitting}
-            />
-          </div>
-        )}
-      </div>
-    </div>
-          
         </div>
         
       </div>

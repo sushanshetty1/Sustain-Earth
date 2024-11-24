@@ -1,5 +1,4 @@
 "use client";
-
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
@@ -84,15 +83,14 @@ const ClassesEntry = () => {
   }, [auth, router, db]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    let processedValue = value;
-
-    // Special handling for isPremium field
+    const { name, value, type } = e.target;
+    
+    // Special handling for select elements and boolean values
     if (name === 'isPremium') {
-      processedValue = value === 'true';
+      setFormData(prev => ({ ...prev, [name]: value === 'true' }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
-
-    setFormData(prev => ({ ...prev, [name]: processedValue }));
   };
 
   const handleImageUpload = () => {
@@ -268,7 +266,7 @@ const ClassesEntry = () => {
         value={value}
         onChange={onChange}
         required={required}
-        placeholder={placeholder}
+       
         className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
       />
     </div>
@@ -459,23 +457,23 @@ const ClassesEntry = () => {
 
           {error && (
             <div className="text-red-600 text-center mt-2 p-2 bg-red-50 rounded-md">
-            {error}
+              {error}
+            </div>
+          )}
+        </form>
+
+        {/* Loading overlay */}
+        {isLoading && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-4 rounded-lg">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+              <p className="mt-2 text-gray-800">Saving class data...</p>
+            </div>
           </div>
         )}
-      </form>
-
-      {/* Loading overlay */}
-      {isLoading && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-4 rounded-lg">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-2 text-gray-800">Saving class data...</p>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default ClassesEntry;

@@ -69,7 +69,7 @@ const About = () => {
           }
         },
         {
-          name: "Yash Shenoy",
+          name: "Yash V Maurya",
           role: "UI/UX Designer",
           description: "Creative problem-solver passionate about designing seamless and visually stunning user interfaces.",
           icon: "bi-palette",

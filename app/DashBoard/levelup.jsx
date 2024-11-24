@@ -12,10 +12,22 @@ import {
   Area,
   ComposedChart
 } from 'recharts';
+import Image from 'next/image';
 import { collection, getDocs, doc, getDoc, query, where } from 'firebase/firestore';
 import { auth, db } from "../../firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
 import { PlusCircle, X, Crown } from 'lucide-react';
+import coinIcon from "./coinSVG.svg";
+
+const CoinIcon = () => (
+  <Image 
+    src={coinIcon}
+    alt="Coin"
+    width={16}
+    height={16}
+    className="inline-block"
+  />
+);
 
 const LEVEL_THRESHOLDS = {
   1: 0,
@@ -94,7 +106,7 @@ const CustomTooltip = ({ active, payload, label }) => {
               style={{ backgroundColor: entry.color }}
             />
             <span className="font-medium">{entry.name}:</span>
-            <span>₹{entry.value.toLocaleString()}</span>
+            <span><CoinIcon />{entry.value.toLocaleString()}</span>
           </div>
         ))}
       </div>
@@ -150,7 +162,7 @@ const ProgressChart = ({ progressData, userData, trackedFriends }) => {
             tick={{ fill: '#6b7280' }}
             tickLine={{ stroke: '#6b7280' }}
             axisLine={{ stroke: '#6b7280' }}
-            tickFormatter={(value) => `₹${value.toLocaleString()}`}
+            tickFormatter={(value) => `<CoinIcon/>${value.toLocaleString()}`}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend 
@@ -406,9 +418,11 @@ const ProgressDashboard = () => {
             style={{ width: `${progressToNext}%` }}
           />
         </div>
-        <p className="text-gray-600 text-center">
-          ₹{remainingToNext.toLocaleString()} more to reach Level {currentLevel < 5 ? currentLevel + 1 : 'MAX'}
-        </p>
+        <p className="text-gray-600 text-center flex items-center justify-center gap-1">
+        <CoinIcon />
+        {remainingToNext.toLocaleString()} more to reach Level {currentLevel < 5 ? currentLevel + 1 : 'MAX'}
+      </p>
+
       </div>
 
       {/* Control Buttons */}
@@ -519,7 +533,7 @@ const ProgressDashboard = () => {
                   <span className={`px-3 py-1 rounded-full text-white ${LEVEL_COLORS[user.level].bg}`}>
                     Level {user.level}
                   </span>
-                  <span className="text-gray-600">₹{(user.balance || 0).toLocaleString()}</span>
+                  <span className="text-gray-600"><CoinIcon/>{(user.balance || 0).toLocaleString()}</span>
                 </div>
               </div>
             ))}

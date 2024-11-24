@@ -10,6 +10,17 @@ import Image from "next/image";
 import { toast } from "react-hot-toast";
 import ProgressDashboard from './levelup';
 import Button from "./Button";
+import coinIcon from "./coinSVG.svg";
+
+const CoinIcon = () => (
+  <Image 
+    src={coinIcon}
+    alt="Coin"
+    width={16}
+    height={16}
+    className="inline-block"
+  />
+);
 
 const PremiumModal = ({ isOpen, onClose, onUpgrade }) => {
   if (!isOpen) return null;
@@ -28,7 +39,7 @@ const PremiumModal = ({ isOpen, onClose, onUpgrade }) => {
           <h3 className="text-xl font-semibold mb-2 text-white">Premium Plan</h3>
           <p className="text-gray-400">Monthly Subscription: ₹59</p>
           <ul className="list-disc list-inside text-sm text-gray-300 mt-2">
-            <li>Boost your Daily Coin Limit by +100</li>
+            <li>Boost your Daily Coin Limit by +10</li>
             <li>Challenge as many friends as you like</li>
             <li>Gain VIP Access to Expert-Led Premium Classes</li>
           </ul>
@@ -447,10 +458,14 @@ const DashBoard = () => {
                 <div>{userProfile?.email}</div>
                 <div>{userProfile?.phone}</div>
                 <div>{userProfile?.bio}</div>
-                <div>Balance : {userProfile?.balance}</div>
+                <div className="flex items-center">
+                  <CoinIcon />
+                  <span>{userProfile?.balance}</span>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between">
+
+              <div className="flex items-center justify-between  mr-1">
                 <div className="text-sm text-gray-600">
                   <span className="font-bold">
                     User Type: {userProfile?.type}

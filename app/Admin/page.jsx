@@ -1,5 +1,6 @@
 'use client';
-
+import Chart from './chart'
+import Bar from './barchart'
 import React, { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, getDoc, collection, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
@@ -134,9 +135,9 @@ const Admin = () => {
   }
 
   return (
-    <div className="flex items-center justify-center h-screen mt-4 bg-[#f9f6f4]">
+    <div className="flex  items-center justify-center h-screen mt-4 bg-[#f9f6f4]">
       <Header />
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl">
+      <div className="bg-white block p-8 rounded-lg shadow-lg w-full max-w-4xl">
         <div className="mt-8">
           <h2 className="text-3xl font-semibold text-gray-800">Teacher Verification Requests</h2>
           <div className="mt-4">
@@ -228,8 +229,9 @@ const Admin = () => {
                           </div>
                         )}
                       </div>
+            
                     </div>
-
+                   
                     <div className="mt-4 flex space-x-4">
                       <button
                         onClick={() => handleApproval(request.userId, request.id, 'Professional')}
@@ -249,8 +251,12 @@ const Admin = () => {
               </div>
             )}
           </div>
+          
         </div>
+       
       </div>
+      <Chart/>
+      <Bar/>
     </div>
   );
 };

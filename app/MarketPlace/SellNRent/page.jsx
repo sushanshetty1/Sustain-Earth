@@ -1,9 +1,18 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  updateDoc, 
+  doc, 
+  arrayRemove, 
+  arrayUnion 
+} from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { firebaseApp} from "../../../firebaseConfig";
+import { firebaseApp } from "../../../firebaseConfig";
 import { getFirestore, addDoc } from "firebase/firestore";
 import { FaSpinner } from "react-icons/fa";
 import styled from 'styled-components';
@@ -103,27 +112,24 @@ const SellNRent = () => {
       );
   
       const querySnapshot = await getDocs(tradeQuery);
+      const requests = [];
   
-      const requests = querySnapshot.docs.map((doc) => {
+      querySnapshot.forEach((doc) => {
         const data = doc.data();
-  
-        const formattedTradeRequests = (data.TradeRequests || []).map((trade) => ({
-          ...trade,
-          timestamp: trade.timestamp
-            ? new Date(trade.timestamp.seconds * 1000).toLocaleString()
-            : null,
-        }));
-  
-        return {
-          id: doc.id,
-          ...data,
-          TradeRequests: formattedTradeRequests,
-        };
+        if (data.TradeRequests && Array.isArray(data.TradeRequests)) {
+          data.TradeRequests.forEach((trade) => {
+            requests.push({
+              ...trade,
+              orderId: doc.id,
+              timestamp: trade.timestamp
+                ? new Date(trade.timestamp.seconds * 1000).toLocaleString()
+                : new Date().toLocaleString(),
+            });
+          });
+        }
       });
   
-      const tradeRequests = requests.flatMap((request) => request.TradeRequests || []);
-  
-      setTradeRequests(tradeRequests);
+      setTradeRequests(requests);
     } catch (error) {
       console.error("Error fetching trade requests:", error);
       alert("Failed to load trade requests. Please try again.");
@@ -179,6 +185,7 @@ const SellNRent = () => {
         sizes: productSizes,
         images,
         type: productType,
+        userId: auth.currentUser.uid,
         location: {
           city: productCity,
           state: productState,
@@ -201,31 +208,51 @@ const SellNRent = () => {
     }
   };
 
-const handleConfirmTrade = async (tradeId) => {
-  try {
-    await updateDoc(doc(db, "orderCollections", tradeId), {
-      type: "Confirmed",
-    });
-    alert("Trade confirmed!");
-    fetchTradeRequests();
-  } catch (error) {
-    console.error("Error confirming trade:", error);
-    alert("Failed to confirm trade.");
-  }
-};
+  const handleConfirmTrade = async (tradeRequest) => {
+    try {
+      if (!tradeRequest || !tradeRequest.orderId) {
+        throw new Error("Invalid trade request data");
+      }
+  
+      const docRef = doc(db, "orderCollections", tradeRequest.orderId);
+      
+      const updatedTradeRequest = {
+        ...tradeRequest,
+        status: 'confirmed',
+        confirmedAt: new Date()
+      };
+  
+      await updateDoc(docRef, {
+        TradeRequests: arrayUnion(updatedTradeRequest)
+      });
+  
+      alert("Trade request confirmed successfully!");
+      fetchTradeRequests();
+    } catch (error) {
+      console.error("Error confirming trade request:", error);
+      alert("Failed to confirm trade request. Please try again.");
+    }
+  };
 
-const handleDeleteTrade = async (tradeId) => {
-  try {
-    await updateDoc(doc(db, "orderCollections", tradeId), {
-      TradeRequests: arrayRemove({ id: tradeId }),
-    });
-    alert("Trade deleted!");
-    fetchTradeRequests();
-  } catch (error) {
-    console.error("Error deleting trade:", error);
-    alert("Failed to delete trade.");
-  }
-};
+  const handleDeleteTrade = async (tradeRequest) => {
+    try {
+      if (!tradeRequest || !tradeRequest.orderId) {
+        throw new Error("Invalid trade request data");
+      }
+  
+      const docRef = doc(db, "orderCollections", tradeRequest.orderId);
+      
+      await updateDoc(docRef, {
+        TradeRequests: arrayRemove(tradeRequest)
+      });
+  
+      alert("Trade request rejected successfully!");
+      fetchTradeRequests();
+    } catch (error) {
+      console.error("Error rejecting trade request:", error);
+      alert("Failed to reject trade request. Please try again.");
+    }
+  };
 
   return (
     <div className="flex flex-col lg:flex-row h-auto bg-[#f9f6f4] mt-10">
@@ -407,70 +434,80 @@ const handleDeleteTrade = async (tradeId) => {
           </div>
         )}
         {view === "trade" && (
-  <div className="bg-[#f9f6f4]">
-    <h2 className="text-2xl font-semibold text-gray-800 mb-6">Trade Requests</h2>
-    {loading ? (
-      <div className="flex justify-center items-center mt-10 h-screen">
-        <FaSpinner className="animate-spin text-4xl" />
-      </div>
-    ) : tradeRequests.length === 0 ? (
-      <p>No responses available.</p>
-    ) : (
-      <div className="ml-4 sm:ml-20 mt-10 mr-4 sm:mr-20 flex flex-wrap gap-6 p-6">
-        {tradeRequests.map((response) => (
-          <div
-            key={response.id}
-            className="w-full sm:w-[300px] bg-white p-4 rounded-lg transition-transform transform hover:scale-105 shadow-lg"
-          >
-            <div className="image_slot bg-gray-200 w-full h-[180px] sm:h-[200px] rounded-t-lg">
-              {response.images ? (
-                <img 
-                  src={response.images} 
-                  alt="Trade Pic" 
-                  className="w-full h-full object-cover rounded-t-lg" 
-                />
-              ) : (
-                <p className="text-gray-500 text-center pt-16">No image available</p>
-              )}
-            </div>
-            <div className="font-semibold text-gray-700 p-2 text-lg">
-              {response.productName || "Anonymous"}
-              <div className="text-gray-500 font-normal text-sm pt-3">
-              Initial Value: <span className="font-semibold">₹{response.initialValue || "N/A"}</span>
-                <br />
-                Created At:{" "}
-                <span className="font-semibold">
-                  {response.createdAt 
-                    ? new Date(response.createdAt.seconds * 1000).toLocaleString() 
-                    : "Unknown"}
-                </span>
+          <div className="bg-[#f9f6f4]">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Trade Requests</h2>
+            {loading ? (
+              <div className="flex justify-center items-center mt-10">
+                <FaSpinner className="animate-spin text-4xl" />
               </div>
-              <div className="flex items-center justify-center mt-4 space-x-4">
-                <button
-                  onClick={() => handleConfirmTrade(trade.id)}
-                  className="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600 transition duration-200"
-                >
-                  ✓
-                </button>
-                <button
-                  onClick={() => handleDeleteTrade(trade.id)}
-                  className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-200"
-                >
-                  ✗
-                </button>
+            ) : tradeRequests.length === 0 ? (
+              <div className="text-center text-gray-600 mt-10">
+                <p>No trade requests available at this time.</p>
               </div>
-            </div>
+            ) : (
+              <div className="ml-4 sm:ml-20 mt-10 mr-4 sm:mr-20 flex flex-wrap gap-6 p-6">
+                {tradeRequests.map((request, index) => (
+                  <div
+                    key={`${request.orderId}-${index}`}
+                    className="w-full sm:w-[300px] bg-white p-4 rounded-lg transition-transform transform hover:scale-105 shadow-lg"
+                  >
+                    <div className="image_slot bg-gray-200 w-full h-[180px] sm:h-[200px] rounded-t-lg">
+                      {request.images && request.images.length > 0 ? (
+                        <img 
+                          src={Array.isArray(request.images) ? request.images[0] : request.images} 
+                          alt="Trade Item" 
+                          className="w-full h-full object-cover rounded-t-lg" 
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <p className="text-gray-500">No image available</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="font-semibold text-gray-700 p-2 text-lg">
+                      <h3 className="text-xl mb-2">{request.productName || "Unnamed Item"}</h3>
+                      <div className="text-gray-500 font-normal text-sm space-y-2">
+                        <p>
+                          Value: <span className="font-semibold">₹{request.initialValue?.toLocaleString() || "N/A"}</span>
+                        </p>
+                        <p>
+                          Requested: <span className="font-semibold">{request.timestamp || "Unknown"}</span>
+                        </p>
+                        {request.status && (
+                          <p className="text-blue-600">
+                            Status: <span className="font-semibold capitalize">{request.status}</span>
+                          </p>
+                        )}
+                      </div>
+                      
+                      {(!request.status || request.status === 'pending') && (
+                        <div className="flex items-center justify-center mt-4 space-x-4">
+                          <button
+                            onClick={() => handleConfirmTrade(request)}
+                            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition duration-200"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTrade(request)}
+                            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition duration-200"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        ))}
-      </div>
-    )}
-  </div>
-)}
-
+        )}
       </div>
     </div>
   );
 };
+
 const StyledWrapper = styled.div`
 button {
  display: inline-block;
