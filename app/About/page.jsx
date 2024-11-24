@@ -75,9 +75,9 @@ const About = () => {
           icon: "bi-palette",
           delay: 0.2,
           socialLinks: {
-            github: "https://github.com/yashshenoy",
-            linkedin: "https://linkedin.com/in/yash-shenoy",
-            instagram: "https://instagram.com/yash.shenoy"
+            github: "https://github.com/Yash-v-maurya",
+            linkedin: "https://www.linkedin.com/in/yash-v-maurya/",
+            instagram: "https://www.instagram.com/yashh_v_m_/?next=%2F"
           }
         },
         {

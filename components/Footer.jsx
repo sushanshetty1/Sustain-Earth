@@ -1,9 +1,6 @@
 "use client"
 import React from 'react';
 import Image from 'next/image';
-import img1 from '../public/images/x.png';
-import img2 from '../public/images/insta.png';
-import img3 from '../public/images/f.png';
 import logo from '../public/images/logo.jpg';
 import Link from 'next/link';
 function Footer() {
@@ -23,7 +20,7 @@ function Footer() {
           <Link href="/About"><button className="text-gray-600 hover:text-black font-medium">About Us</button></Link>
           <Link href="/Contact"><button className="text-gray-600 hover:text-black font-medium">Contact Us</button></Link>
           <Link href="/PrivacyPolicy"> <button className="text-gray-600 hover:text-black font-medium">Privacy Policy</button></Link>
-          <button className="text-gray-600 hover:text-black font-medium">Terms of Service</button>
+          <Link href="/TermsOfService"><button className="text-gray-600 hover:text-black font-medium">Terms of Service</button></Link>
         </div>
         
         <div className="flex gap-4 justify-center">

@@ -36,12 +36,12 @@ const PrivacyPolicy = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br mt-14 from-[#f6f8fd] to-white">
+    <div className="min-h-screen bg-gradient-to-br mt-14 from-orange-50 to-white">
       <main className="max-w-5xl mx-auto px-4 py-16">
         {/* Header Section */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-gray-800 mb-4">Privacy Policy</h1>
-          <div className="h-[3px] w-[60px] bg-gradient-to-r from-indigo-600 to-purple-600 mx-auto my-4"></div>
+          <div className="h-[3px] w-[60px] bg-gradient-to-r from-orange-500 to-orange-600 mx-auto my-4"></div>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             Your privacy matters to us. Learn how we collect, use, and protect your personal information.
           </p>
@@ -55,7 +55,7 @@ const PrivacyPolicy = () => {
               className="bg-white p-8 rounded-2xl shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-center mb-6">
-                <i className={`bi bi-${card.icon} text-4xl text-indigo-600`}></i>
+                <i className={`bi bi-${card.icon} text-4xl text-orange-500`}></i>
                 <h2 className="text-2xl font-bold text-gray-800 ml-4">{card.title}</h2>
               </div>
               
@@ -65,7 +65,7 @@ const PrivacyPolicy = () => {
                 <ul className="text-gray-600 space-y-3">
                   {card.items.map((item, i) => (
                     <li key={i} className="flex items-center">
-                      <i className={`bi bi-${index === 2 ? 'check2-circle text-green-500' : 'arrow-right-circle text-indigo-500'} mr-2`}></i>
+                      <i className={`bi bi-${index === 2 ? 'check2-circle text-orange-500' : 'arrow-right-circle text-orange-500'} mr-2`}></i>
                       {item}
                     </li>
                   ))}
@@ -84,10 +84,9 @@ const PrivacyPolicy = () => {
             </div>
             
             <div className="flex space-x-4">
-              {/* Fixed the nested anchor tags issue */}
               <Link 
                 href="/Contact" 
-                className="flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="flex items-center px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
               >
                 <i className="bi bi-envelope-fill mr-2"></i>
                 Contact Us
@@ -98,7 +97,7 @@ const PrivacyPolicy = () => {
 
         {/* Footer */}
         <div className="text-center mt-16 text-sm text-gray-500">
-          <p>Last updated: November 2024 | <Link href="/terms" className="text-indigo-600 hover:text-indigo-700">Terms of Service</Link></p>
+          <p>Last updated: November 2024</p>
         </div>
       </main>
     </div>

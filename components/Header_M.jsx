@@ -153,12 +153,13 @@ function Header() {
         <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
           QuickAsk
         </button>
+        </Link>
         <Link href="/DashBoard">
         <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
           DashBoard
         </button>
       </Link>
-      </Link>
+     
       {user ? (
         <button
           onClick={() => {
