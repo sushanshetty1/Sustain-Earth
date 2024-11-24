@@ -26,7 +26,7 @@ const GreenMarket = () => {
 
   return (
     <PageContainer>
-      <h1 className="text-3xl text-center font-semibold mb-6">
+      <h1 className="text-3xl text-center font-semibold mb-6 mt-2">
         Empower your choices—buy, rent, and share for a more sustainable tomorrow.
       </h1>
       {loading ? (

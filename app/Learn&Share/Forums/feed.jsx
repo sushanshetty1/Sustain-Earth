@@ -716,9 +716,9 @@ const handleCommentSubmit = async (e) => {
     return (
       <div className="feed-card border flex flex-col justify-center w-full max-w-3xl p-4 md:p-6 rounded-lg bg-white shadow-lg mb-4 md:mb-6">
         <div className="flex items-center mb-3 md:mb-4">
-          <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-300 flex items-center justify-center mr-3 md:mr-4">
-            <span>{profilePic}</span>
-          </div>
+        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-300 flex items-center justify-center mr-3 md:mr-4">
+          <img src={profilePic} alt="Profile" className="w-full h-full object-cover rounded-full" />
+        </div>
           <div>
             <p className="font-bold text-base md:text-lg">{name}</p>
             <p className="text-gray-500 text-xs md:text-sm">{time}</p>

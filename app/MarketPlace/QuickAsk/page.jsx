@@ -674,7 +674,7 @@ export default function App() {
   <div className="flex gap-2 w-full md:w-auto overflow-x-auto">
     <button
       className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-        currentTab === 'pending' ? 'bg-blue-500 text-white' : 'bg-white border'
+        currentTab === 'pending' ? 'bg-black text-white' : 'bg-white border'
       }`}
       onClick={() => setCurrentTab('pending')}
     >
@@ -683,7 +683,7 @@ export default function App() {
     </button>
     <button
       className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-        currentTab === 'accepted' ? 'bg-blue-500 text-white' : 'bg-white border'
+        currentTab === 'accepted' ? 'bg-black text-white' : 'bg-white border'
       }`}
       onClick={() => setCurrentTab('accepted')}
     >
@@ -692,7 +692,7 @@ export default function App() {
     </button>
     <button
       className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-        currentTab === 'myRequests' ? 'bg-blue-500 text-white' : 'bg-white border'
+        currentTab === 'myRequests' ? 'bg-black text-white' : 'bg-white border'
       }`}
       onClick={() => setCurrentTab('myRequests')}
     >
@@ -781,7 +781,7 @@ export default function App() {
       </div>
 
       <button
-        className="fixed bottom-6 right-6 rounded-full bg-blue-500 text-white p-4 shadow-lg"
+        className="fixed bottom-6 right-6 rounded-full bg-black text-white p-4 shadow-lg"
         onClick={() => setIsModalOpen(true)}
       >
         <Plus className="h-6 w-6" />

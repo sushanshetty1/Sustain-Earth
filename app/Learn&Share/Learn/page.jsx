@@ -201,10 +201,10 @@ const Home = () => {
             </div>
             <div className="text-center text-black">{classData.classDate}</div>
             <div className="types flex gap-2 justify-center">
-              <span style={{ backgroundColor: 'rgba(165, 96, 247, 0.43)', color: 'rgb(85, 27, 177)' }} className="project-type">• {classData.classType}</span>
-              <span className="project-type">• {classData.standard}</span>
+              <span style={{ backgroundColor: 'rgba(165, 96, 247, 0.43)', color: 'rgb(85, 27, 177)' }} className="project-type">{classData.classType}</span>
+              <span className="project-type">{classData.standard}</span>
               {isPremiumClass && (
-                <span className="project-type bg-yellow-200 text-yellow-800">• Premium</span>
+                <span className="project-type bg-yellow-200 text-yellow-800">Premium</span>
               )}
             </div>
           </div>

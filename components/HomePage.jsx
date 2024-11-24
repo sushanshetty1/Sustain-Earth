@@ -132,7 +132,7 @@ function HomePage() {
         <StyledWrapper>
           <button
             onClick={handleAdminClick}
-            className="fixed bottom-5 right-5 text-white"
+            className="fixed bottom-5 right-5  text-white"
           >
             Admin
           </button>
@@ -162,7 +162,7 @@ const StyledWrapper = styled.div`
   }
 
   button:hover {
-    background-color: #FAEBD7;
+    background-color: #232a2f;
     transform: scale(1.05);
   }
 `;
