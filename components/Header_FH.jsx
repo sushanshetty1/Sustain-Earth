@@ -77,6 +77,7 @@ function Header() {
           ) : user ? (
             <div className="flex items-center gap-3">
               <span className="flex items-center ml-2">
+              <Link href="/DashBoard">
                 <Image
                   src={profilePic}
                   alt={userProfile?.firstName || 'User'}
@@ -84,6 +85,7 @@ function Header() {
                   height={40}
                   className="rounded-full"
                 />
+                </Link>
                 <span className="ml-5 text-xl font-semibold">{userProfile?.firstName}</span>
               </span>
               <button
@@ -150,6 +152,11 @@ function Header() {
             <Link href="/FoodHub/Alert">
               <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
                 Alert
+              </button>
+            </Link>
+            <Link href="/DashBoard">
+              <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">
+                DashBoard
               </button>
             </Link>
             {user ? (
