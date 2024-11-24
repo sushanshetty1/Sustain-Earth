@@ -9,6 +9,7 @@ import { firebaseApp } from "../../../../firebaseConfig";
 import dummyImage from "../../../../public/images/dummy-image.png";
 import Loader from '../loader';
 import Link from 'next/link';
+import { getAuth } from 'firebase/auth';
 
 const db = getFirestore(firebaseApp);
 
@@ -24,7 +25,9 @@ const ItemDetails = () => {
   const [mainImage, setMainImage] = useState(dummyImage);
   const [showAddressPopup, setShowAddressPopup] = useState(false);
   const [address, setAddress] = useState("");
-
+  const auth = getAuth();
+  const currentUser = auth.currentUser;
+  
   useEffect(() => {
     const fetchItem = async () => {
       setIsLoading(true);
