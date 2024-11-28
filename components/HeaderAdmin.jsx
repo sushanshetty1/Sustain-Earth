@@ -67,9 +67,10 @@ function Header() {
                     className="rounded-full profile-pic"  /* Added profile-pic class */
                   />
                 </Link>
-                <span className="ml-5 text-xl font-semibold wave-effect">
+                <h3 className='md:flex hidden'>
+                <span className="ml-5 text-xl sm:flex hidden font-semibold wave-effect">
                   {userProfile?.firstName}
-                </span>
+                </span></h3>
               </span>
               <button
                 onClick={handleSignOut}

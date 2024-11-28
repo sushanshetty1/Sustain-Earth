@@ -262,10 +262,10 @@ const Admin = () => {
 
           {/* Charts Section */}
           <div className="lg:col-span-1 space-y-8">
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white rounded-xl shadow-lg md:p-6">
               <Chart />
             </div>
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white rounded-xl shadow-lg md:p-6">
               <Bar />
             </div>
           </div>

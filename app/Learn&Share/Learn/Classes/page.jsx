@@ -21,6 +21,7 @@ const ClassesEntry = () => {
         classTime: '',
         imageUrl: '',
         description: '',
+        classLink: '',
         minimumRequirements: [],
         whatYouWillLearn: [],
         isPremium: false,

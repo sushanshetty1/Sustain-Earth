@@ -63,6 +63,44 @@ const PremiumModal = ({ isOpen, onClose, onUpgrade }) => {
     </div>
   );
 };
+
+const Info = ({ isOpen, onClose, title, description, details, primaryButtonText, primaryButtonAction }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
+        <h2 className="text-3xl font-bold mb-4 text-center text-white">{title}</h2>
+        <div className="mb-4">
+          <p className="text-gray-300 text-center">
+            {description}
+          </p>
+        </div>
+        {details && (
+          <div className="mb-4">
+            <div className="bg-gray-700 p-4 rounded-lg">
+              <ul className="list-disc list-inside text-sm text-gray-300 mt-2">
+                {details.map((detail, index) => (
+                  <li key={index}>{detail}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+        <div className="flex justify-between">
+          <button 
+            onClick={onClose} 
+            className="w-full mr-2 bg-red-600 text-white rounded p-2 hover:bg-red-400 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 const PremiumDeadline = ({ premiumEndDate }) => {
   if (!premiumEndDate) return null;
 
@@ -300,6 +338,7 @@ const DashBoard = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
   const [editValues, setEditValues] = useState({
     username: "",
@@ -313,6 +352,12 @@ const DashBoard = () => {
   const [showProgress, setShowProgress] = useState(false);
 
   const router = useRouter();
+
+  const handleConfirm = () => {
+    console.log("Confirmed!");
+    setIsModalOpen(false);
+  };  
+
   const handlePremiumUpgrade = async () => {
     try {
       if (!auth.currentUser) {
@@ -546,7 +591,36 @@ const DashBoard = () => {
                 <div>{userProfile?.bio}</div>
                 <div className="flex items-center">
                   <CoinIcon />
-                  <span>{userProfile?.balance}</span>
+                  <span className="mr-1">{userProfile?.balance}</span>
+                  <Info 
+                    isOpen={isModalOpen} 
+                    onClose={() => setIsModalOpen(false)}
+                    title="Get More Coins"
+                    description="Here's what you need to do"
+                    details={[
+                      "₹250 donated = 25 coins",
+                      "Each meal donated = 12 coins",
+                      "Forum Posts = 25 coins",
+                      "100 views = 5 coins",
+                      "25 likes = 5 coins",
+                      "Class Upload = 25 coins"
+                    ]}
+                  />
+                  <button 
+                    onClick={() => setIsModalOpen(true)} 
+                    className="flex items-center justify-center"
+                  >
+                    <svg 
+                      className="w-4 h-4 text-gray-600 cursor-pointer"
+                      xmlns="http://www.w3.org/2000/svg" 
+                      height="18px" 
+                      viewBox="0 -960 960 960" 
+                      width="18px" 
+                      fill="#000000"
+                    >
+                      <path d="M480-240q20 0 34-14t14-34q0-20-14-34t-34-14q-20 0-34 14t-14 34q0 20 14 34t34 14Zm-36-153h73q0-37 6.5-52.5T555-485q35-34 48.5-58t13.5-53q0-55-37.5-89.5T484-720q-51 0-88.5 27T343-620l65 27q9-28 28.5-43.5T482-652q28 0 46 16t18 42q0 23-15.5 41T496-518q-35 32-43.5 52.5T444-393Zm36 297q-79 0-149-30t-122.5-82.5Q156-261 126-331T96-480q0-80 30-149.5t82.5-122Q261-804 331-834t149-30q80 0 149.5 30t122 82.5Q804-699 834-629.5T864-480q0 79-30 149t-82.5 122.5Q699-156 629.5-126T480-96Zm0-72q130 0 221-91t91-221q0-130-91-221t-221-91q-130 0-221 91t-91 221q0 130 91 221t221 91Zm0-312Z" />
+                    </svg>
+                  </button>
                 </div>
               </div>
 
