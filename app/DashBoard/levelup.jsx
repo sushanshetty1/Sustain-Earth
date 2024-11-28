@@ -18,6 +18,7 @@ import { auth, db } from "../../firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
 import { PlusCircle, X, Crown } from 'lucide-react';
 import coinIcon from "./coinSVG.svg";
+import { format, parseISO } from 'date-fns';
 
 const CoinIcon = () => (
   <Image 
@@ -73,26 +74,36 @@ const calculateRemaining = (balance) => {
 };
 
 const processBalanceHistory = (balanceHistory) => {
-  const sortedHistory = balanceHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
-  const lastWeek = sortedHistory.slice(-7);
-  
-  if (lastWeek.length < 7) {
-    const today = new Date();
-    const missingDays = 7 - lastWeek.length;
-    
-    for (let i = 1; i <= missingDays; i++) {
-      const missingDate = new Date(today);
-      missingDate.setDate(today.getDate() - (7 - i));
-      
-      lastWeek.unshift({
-        date: missingDate.toISOString().split('T')[0],
-        balance: lastWeek.length > 0 ? lastWeek[0].balance : 0
-      });
-    }
+  const sortedHistory = balanceHistory.sort(
+    (a, b) => new Date(a.date) - new Date(b.date)
+  );
+
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+
+  const weeklyData = [];
+
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(startOfWeek);
+    date.setDate(startOfWeek.getDate() + i);
+    const dateString = date.toISOString().split('T')[0];
+
+    const existingEntry = sortedHistory.find(
+      (entry) => entry.date.startsWith(dateString)
+    );
+
+    weeklyData.push({
+      date: dateString,
+      balance: existingEntry ? existingEntry.balance : (weeklyData[i - 1]?.balance || 0),
+    });
   }
-  
-  return lastWeek;
+
+  return weeklyData;
 };
+
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -126,6 +137,7 @@ const CustomizedDot = ({ cx, cy, payload, value }) => (
   />
 );
 
+
 const ProgressChart = ({ progressData, userData, trackedFriends }) => {
   const gradientOffset = useMemo(() => {
     if (!progressData.length) return 0;
@@ -143,43 +155,35 @@ const ProgressChart = ({ progressData, userData, trackedFriends }) => {
         <ComposedChart data={progressData}>
           <defs>
             <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#0d9488" stopOpacity={0.1}/>
-              <stop offset="95%" stopColor="#0d9488" stopOpacity={0}/>
-            </linearGradient>
-            <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
-              <stop offset={gradientOffset} stopColor="#0d9488" stopOpacity={0.3}/>
-              <stop offset={gradientOffset} stopColor="#ff4444" stopOpacity={0.3}/>
+              <stop offset="5%" stopColor="#0d9488" stopOpacity={0.1} />
+              <stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-          <XAxis 
-            dataKey="date" 
+          <XAxis
+            dataKey="date"
             tick={{ fill: '#6b7280' }}
             tickLine={{ stroke: '#6b7280' }}
             axisLine={{ stroke: '#6b7280' }}
+            tickFormatter={(date) => format(parseISO(date), 'EEE')}
+            interval={0}
           />
-          <YAxis 
+          <YAxis
             tick={{ fill: '#6b7280' }}
             tickLine={{ stroke: '#6b7280' }}
             axisLine={{ stroke: '#6b7280' }}
-            tickFormatter={(value) => `<CoinIcon/>${value.toLocaleString()}`}
+            tickFormatter={(value) => `${value.toLocaleString()} coins`}
           />
+
           <Tooltip content={<CustomTooltip />} />
-          <Legend 
-            verticalAlign="top"
-            height={36}
-            wrapperStyle={{
-              paddingBottom: '20px',
-              fontWeight: 500
-            }}
-          />
+          <Legend verticalAlign="top" height={36} />
           <Area
             type="monotone"
             dataKey={userData?.username || 'You'}
             fill="url(#colorBalance)"
             stroke="none"
           />
-          <Line 
+          <Line
             type="monotone"
             dataKey={userData?.username || 'You'}
             stroke="#0d9488"

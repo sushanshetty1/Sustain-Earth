@@ -173,7 +173,7 @@ const Form = () => {
         date: new Date().toISOString(),
         previousBalance: userData.balance || 0,
         coinsAdded: coinsToAdd,
-        newBalance: (userData.balance || 0) + coinsToAdd,
+        balance: (userData.balance || 0) + coinsToAdd,
         type: 'donation_reward',
         donationAmount: amount
       };
