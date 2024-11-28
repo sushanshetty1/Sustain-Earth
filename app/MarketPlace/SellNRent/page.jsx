@@ -192,23 +192,31 @@ const SellNRent = () => {
         alert("Please log in to view your orders.");
         return;
       }
-
+  
       const yourOrdersQuery = query(
         collection(db, "confirmedOrders"),
         where("buyerId", "==", user.uid)
       );
-
+  
       const querySnapshot = await getDocs(yourOrdersQuery);
       const yourOrdersData = [];
-
+  
       querySnapshot.forEach((doc) => {
+        const orderData = doc.data();
+        const date = orderData.date
+          ? new Date(orderData.date.seconds * 1000).toLocaleString("en-GB", {
+              timeZoneName: "short",
+              hour12: false,
+            })
+          : new Date().toLocaleDateString();
+  
         yourOrdersData.push({
           id: doc.id,
-          ...doc.data(),
-          date: doc.data().date ? new Date(doc.data().date.seconds * 1000).toLocaleDateString() : new Date().toLocaleDateString()
+          ...orderData,
+          date
         });
       });
-
+  
       setYourOrders(yourOrdersData);
     } catch (error) {
       console.error("Error fetching your orders:", error);
@@ -217,6 +225,9 @@ const SellNRent = () => {
       setYourOrdersLoading(false);
     }
   };
+  
+  
+  
 
   const handleImageUpload = () => {
     if (window.cloudinary) {
@@ -336,16 +347,14 @@ const SellNRent = () => {
     try {
       const orderRef = doc(db, "confirmedOrders", orderId);
       await updateDoc(orderRef, {
-        status: "shipped",
-        shippedDate: new Date()
+        status: "shipped"
       });
       
       setOrders(orders.map(order => {
         if (order.id === orderId) {
           return {
             ...order,
-            status: "shipped",
-            shippedDate: new Date().toLocaleDateString()
+            status: "shipped"
           };
         }
         return order;

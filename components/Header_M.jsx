@@ -45,7 +45,7 @@ function Header() {
   };
 
   return (
-    <div className="flex flex-row justify-center lg:justify-around items-center mt-12 ml-6 mr-6 sm:mb-3 mb-3">
+    <div className="flex  flex-row justify-center lg:justify-around items-center mt-12 ml-6 mr-6 sm:mb-3 mb-3">
       <div className="lg:flex w-screen lg:justify-evenly h-7 items-center">
         <div className="lg:flex hidden justify-around gap-6">
           <Link href="/MarketPlace/GreenMarket">
@@ -137,7 +137,7 @@ function Header() {
       </button>
 
 {isOpen && (
-  <div className="absolute overflow-hidden top-28 h-screen w-screen left-0 bg-[#f9f6f4]  shadow-lg lg:hidden">
+  <div className="absolute top-28 h-[400vh] overflow-hidden w-screen left-0 bg-[#f9f6f4] z-10 shadow-lg lg:hidden">
     <div className="flex flex-col items-center py-4 space-y-4">
       <Link href="/MarketPlace/GreenMarket">
         <button onClick={closeMenu} className="text-lg w-full text-center font-bold text-gray-500 hover:text-black transition duration-300">

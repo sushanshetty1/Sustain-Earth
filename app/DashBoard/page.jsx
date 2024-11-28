@@ -109,11 +109,11 @@ const PremiumDeadline = ({ premiumEndDate }) => {
   const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
   
   return (
-    <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-4 py-2 rounded-lg shadow-md">
-      <FaCrown className="text-white text-lg" />
+    <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white sm:px-4 px-1 py-2 rounded-lg shadow-md">
+      <FaCrown className="text-white h-[18.9px] w-[18.9px] sm:text-lg text-md" />
       <div className="flex flex-col">
         <span className="font-semibold">Premium Active</span>
-        <span className="text-sm">
+        <span className="md:block hidden text-sm">
           {daysLeft > 0 
             ? `${daysLeft} days remaining`
             : "Expires today"

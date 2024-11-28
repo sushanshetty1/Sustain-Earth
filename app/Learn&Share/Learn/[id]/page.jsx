@@ -323,7 +323,7 @@ const ClassDetail = () => {
   
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gray-50 rounded-xl p-4 transition-all duration-200 hover:bg-gray-100">
+            {/* <div className="bg-gray-50 rounded-xl p-4 transition-all duration-200 hover:bg-gray-100">
               <div className="flex items-center gap-3 mb-2">
                 <Users className="w-5 h-5 text-blue-600" />
                 <span className="text-gray-600 font-medium">Students Taught</span>
@@ -337,7 +337,7 @@ const ClassDetail = () => {
                 <span className="text-gray-600 font-medium">Classes Completed</span>
               </div>
               <p className="text-2xl font-bold text-gray-800">{proctorData.classesCompleted || '120'}</p>
-            </div>
+            </div> */}
             
             <div className="bg-gray-50 rounded-xl p-4 transition-all duration-200 hover:bg-gray-100">
               <div className="flex items-center gap-3 mb-2">

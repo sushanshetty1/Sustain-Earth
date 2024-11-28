@@ -291,6 +291,19 @@ const ClassesEntry = () => {
                 className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
               />
             </div>
+
+            <div>
+              <label className="block text-gray-600 font-medium mb-1">Google Meet link:</label>
+              <input
+                type="text"
+                name="classLink"
+                value={formData.classLink}
+                onChange={handleChange}
+                placeholder="Enter URL"
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-indigo-200"
+              />
+            </div>
+  
   
             <div>
               <label className="block text-gray-600 font-medium mb-1">Description:</label>
