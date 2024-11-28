@@ -379,14 +379,10 @@ const DashBoard = () => {
       await addDoc(revenueCollectionRef, {
         userId: auth.currentUser.uid,
         username: userProfile?.username,
-        date: currentDate.toISOString(),
+        date: new Date(),
         amount: 59,
         type: 'premium_subscription',
-        paymentStatus: 'completed',
-        subscriptionPeriod: {
-          start: currentDate.toISOString(),
-          end: endDate.toISOString()
-        }
+        paymentStatus: "completed"
       });
       
       setUserProfile(prev => ({
