@@ -567,7 +567,7 @@ const DashBoard = () => {
       />
       <div className="p-4">
         {/* Original Profile Section */}
-        <div className="bg-white p-6 w-full max-w-2xl mx-auto rounded-lg shadow-lg transform transition duration-300 hover:scale-105 mb-8">
+        <div className="bg-white p-3 sm:p-6 w-full max-w-2xl mx-auto rounded-lg shadow-lg transform transition duration-300 hover:scale-105 mb-8">
           {isEditing ? (
             <EditForm
               editValues={editValues}
