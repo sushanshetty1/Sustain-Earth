@@ -282,10 +282,10 @@ const ClassDetail = () => {
     if (!proctorData) return null;
   
     return (
-      <div className="font-['Inter'] w-full max-w-4xl mx-auto mt-12 mb-8">
+      <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: "20px", color: "black" }} className="font-['Inter'] w-full max-w-4xl mx-auto mt-12 mb-8">
         <h1 className="text-3xl font-bold mb-8 text-gray-800">Proctor Details</h1>
         
-        <div className="bg-white rounded-2xl shadow-xl p-8 transition-all duration-300 hover:shadow-2xl">
+        <div className="bg-white rounded-2xl  shadow-xl p-8 transition-all duration-300 hover:shadow-2xl">
           {/* Header Section */}
           <div className="flex flex-col md:flex-row items-start md:items-center gap-8 mb-8 pb-8 border-b border-gray-100">
             <div className="relative">
@@ -399,7 +399,7 @@ const ClassDetail = () => {
 
   if (!classData) return <div className='min-h-screen flex items-center justify-center'><Loader/></div>;
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start p-8 bg-[#f9f6f4] text-gray-900">
+    <div style={{ fontFamily: "'Poppins', sans-serif", fontSize: "30px", color: "black" }} className="min-h-screen flex flex-col items-center justify-start p-8 bg-[#f9f6f4] text-gray-900">
       <h1 className="text-5xl font-bold text-center mb-6 text-gray-800 tracking-wide">
         {classData.className}
       </h1>
