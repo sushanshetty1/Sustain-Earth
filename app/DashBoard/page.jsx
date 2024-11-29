@@ -599,7 +599,7 @@ const DashBoard = () => {
                       "Forum Posts = 25 coins",
                       "100 views = 5 coins",
                       "25 likes = 5 coins",
-                      "Class Upload = 25 coins"
+                      "Class Upload = 50 coins"
                     ]}
                   />
                   <button 
