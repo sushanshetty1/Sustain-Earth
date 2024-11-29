@@ -447,7 +447,7 @@ const DashBoard = () => {
             });
           }
         } else {
-          router.push('/login');
+          router.push('/Login');
         }
       } catch (error) {
         toast.error("Error loading profile");
