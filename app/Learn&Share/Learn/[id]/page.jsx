@@ -336,7 +336,7 @@ const ClassDetail = () => {
                 <Calendar className="w-5 h-5 text-blue-600" />
                 <span className="text-gray-600 font-medium">Classes Completed</span>
               </div>
-              <p className="text-2xl font-bold text-gray-800">{proctorData.numberOfTeaching || '120'}</p>
+              <p className="text-2xl font-bold text-gray-800">{proctorData.numberOfTeaching || '0'}</p>
             </div> 
             
             <div className="bg-gray-50 rounded-xl p-4 transition-all duration-200 hover:bg-gray-100">
