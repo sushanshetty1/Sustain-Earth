@@ -8,7 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
-import { initializeApp } from 'firebase/app';
+// import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, query, where } from 'firebase/firestore';
 import { firebaseApp } from '../../firebaseConfig';
 
@@ -44,7 +44,8 @@ const SubscriptionBarChart = () => {
 
       revenueCollections.forEach(doc => {
         if (doc.type === "premium_subscription" && doc.date) {
-          const date = new Date(doc.date);
+          // Handle both Date object and Firestore timestamp
+          const date = doc.date.toDate ? doc.date.toDate() : new Date(doc.date);
           const dayName = date.toLocaleString('en-US', { weekday: 'short' }).slice(0, 3);
           dailyData.set(dayName, dailyData.get(dayName) + 1);
         }
@@ -65,16 +66,23 @@ const SubscriptionBarChart = () => {
         const revenueCollectionRef = collection(db, "revenueCollections");
         const q = query(
           revenueCollectionRef,
-          where("date", ">=", monday),
-          where("date", "<=", sunday)
+          where("date", ">=", new Date(monday)),
+          where("date", "<=", new Date(sunday))
         );
         
         const querySnapshot = await getDocs(q);
         
-        const documents = querySnapshot.docs.map(doc => ({
-          ...doc.data(),
-          id: doc.id
-        }));
+        const documents = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          // If date is a Firestore timestamp, convert it
+          if (data.date && data.date.toDate) {
+            data.date = data.date.toDate();
+          }
+          return {
+            ...data,
+            id: doc.id
+          };
+        });
 
         const processedData = processFirebaseData(documents);
         setData(processedData);
@@ -95,7 +103,7 @@ const SubscriptionBarChart = () => {
       return (
         <div className="bg-gray-800 border border-gray-700 p-3 rounded-lg shadow-lg">
           <p className="text-gray-200 font-medium">
-            {`${label}: ${payload[0].value.toLocaleString()} subscriptions`}
+            {label}: {payload[0].value.toLocaleString()} subscriptions
           </p>
         </div>
       );
@@ -135,7 +143,7 @@ const SubscriptionBarChart = () => {
       <div className="mb-6">
         <h2 className="text-2xl text-white font-bold">Weekly Premium Subscriptions</h2>
         <p className="text-gray-400 mt-2">
-          {`${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`}
+          ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}
         </p>
         <p className="text-gray-400">
           Total this week: {totalWeeklySubscriptions} subscriptions
@@ -171,7 +179,7 @@ const SubscriptionBarChart = () => {
                 stroke="#888"
                 tick={{ fill: '#888' }}
                 axisLine={{ stroke: '#333' }}
-                tickFormatter={(value) => `${value}`}
+                tickFormatter={(value) => value}
               />
               <Tooltip 
                 content={<CustomTooltip />}
