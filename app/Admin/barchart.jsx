@@ -143,7 +143,7 @@ const SubscriptionBarChart = () => {
       <div className="mb-6">
         <h2 className="text-2xl text-white font-bold">Weekly Premium Subscriptions</h2>
         <p className="text-gray-400 mt-2">
-          ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}
+          {startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}
         </p>
         <p className="text-gray-400">
           Total this week: {totalWeeklySubscriptions} subscriptions
